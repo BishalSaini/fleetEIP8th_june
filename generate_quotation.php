@@ -2875,7 +2875,7 @@ document.addEventListener('DOMContentLoaded', function() {
         5: window.fifth_equipment ? window.fifth_equipment : function(){}
     }; 
 
-    //Auto-select fleet category when "Choose New Equipment" is selected
+    //Auto-select fleet category when "Choose New Equipment" is selected.....
 
     document.querySelectorAll('.asset-code').forEach(function(assetCodeSelect) {
         assetCodeSelect.addEventListener('change', function() {
