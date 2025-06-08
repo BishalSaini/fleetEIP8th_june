@@ -6,6 +6,8 @@ $showError = false;
 $showAlertuser=false;
 $uniqueId = uniqid();
 
+//trial for github commit
+
 session_start();
 $companyname001 = $_SESSION['companyname'];
 $enterprise=$_SESSION['enterprise'];
