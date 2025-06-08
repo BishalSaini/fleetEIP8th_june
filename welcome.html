@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">      <link rel="icon" href="favicon.jpg" type="image/x-icon">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="style.css">
+    <title>Dashboard</title>
+</head>
+<body>
+        <div class="navbar1">
+    <div class="logo_fleet">
+    <img src="logo_fe.png" alt="FLEET EIP" onclick="window.location.href='<?php echo $dashboard_url  ?>'">
+</div>
+
+        <div class="iconcontainer">
+        <ul><li><a href="sign_in.php">Home</a></li>
+            <li><a href="about_us.html">About Us</a></li>
+            <li><a href="contact_us.php">Contact Us</a></li>
+            <li><a href="logout.php">Log Out</a></li></ul>
+        </div>
+    </div> 
+    <!-- <div class="mainout">
+<div class="user-dashboard">
+    <div onclick="location.href='addcrane.php'" class="viewfleet dashboard" style="cursor: pointer;" >
+        <h1 class="cardtext">Add Fleet</h1></div>
+    <div onclick="location.href='viewfleet.php'" class="viewfleet dashboard" style="cursor: pointer;" >
+        <h1 class="cardtext">View Fleet</h1></div>
+    <div onclick="location.href='#'" class="viewfleet dashboard" style="cursor: pointer;" >
+        <h1 class="cardtext">Post Requirement</h1></div> -->
+        <div class="outercard">
+            <div class="card1" onclick="location.href='addfleetnew.php'">
+                <img src="img_avatar.png" alt="avatar" style="width: 200px;">
+                <div class="font"><p>Add fleet</p></div>
+            </div>
+            <div class="card1">
+                <img src="img_avatar.png" onclick="location.href='viewfleet.php'" alt="avatar" style="width: 200px;">
+                <div class="font"><p>View fleet</p></div>
+            </div>
+            <div class="card1">
+                <img src="img_avatar.png" onclick="location.href='#'" alt="avatar" style="width: 200px;">
+                <div class="font"><p>Post Requirement</p></div>
+            </div>
+            
+            </div>
+    
+</div>
+</div>
+</body>
+</html>

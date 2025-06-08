@@ -1,0 +1,42 @@
+
+.button-52 {
+  font-size: 18px;
+  font-weight: 200;
+  /* font-family: serif; */
+  color: white;
+  letter-spacing: 1px;
+  padding: 13px 20px 13px;
+  border: 2px solid black;
+  cursor: pointer;
+  position: relative;
+  touch-action: manipulation;
+  width: 150px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-52:after {
+  content: "";
+  background-color: #4067B5;
+  width: 100%;
+  z-index: -1;
+  position: absolute;
+  height: 100%;
+  top: 7px;
+  left: 7px;
+  transition: 0.3s;
+}
+
+.button-52:hover:after {
+  top: 0px;
+  left: 0px;
+}
+
+/* @media (min-width: 768px) {
+  .button-52 {
+    padding: 13px 50px 13px;
+  }
+} */
+

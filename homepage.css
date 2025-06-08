@@ -1,0 +1,8 @@
+.main_container{
+    width: 100%;
+    height: auto;
+    border: 1px solid red;
+    background-image: url("3dbg.jpg");
+    background-size: contain;
+    background-repeat: no-repeat;
+}

@@ -1,0 +1,28 @@
+if(mysqli_num_rows($site_person_result)>0){ ?>
+            <table class="hqdetailstable">
+            <th>Name</th>
+            <th>Designation</th>
+            <th>Number</th>
+            <th>Email</th>
+            <th>Action</th>
+        <?php while($rowleft=mysqli_fetch_assoc($site_person_result)){ ?>
+                <tr>
+                <td><?php echo $rowleft['contact_person'] ?></td>
+                <td><?php echo $rowleft['designation'] ?></td>
+                <td><?php echo $rowleft['contact_number'] ?></td>
+                <td><?php echo $rowleft['contact_email'] ?></td>
+                <td>
+                        <div class="actioniconcontainer">
+                        <a href="edit_siteoffice_contact.php?id=<?php echo $rowleft['id'] ?>&clientid=<?php echo $row['id'] ?>" title="Edit"><i style="width: 22px; height: 22px;" class="bi bi-pencil"></i></a>
+                            <a href="delete_site_officecontact.php?id=<?php echo $rowleft['id'] ?>&clientid=<?php echo $row['id'] ?>" title="Delete"><i style="width: 22px; height: 22px;" class="bi bi-trash"></i></a>
+                            <a onclick="return confirmexit();" href="leftcompany.php?id=<?php echo $rowleft['id'] ?>&clientid=<?php echo $row['id'] ?>" title="Left the company"><i class="bi bi-person-x" style="width: 22px; height: 22px;"></i></a>
+
+                        </div>
+                    </td>
+
+                </tr>
+
+
+
+      <?php  } ?>   
+        </table>
