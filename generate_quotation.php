@@ -1,3 +1,5 @@
+<!-- // generate quotation file -->
+
 <?php
 include_once 'partials/_dbconnect.php';
 
