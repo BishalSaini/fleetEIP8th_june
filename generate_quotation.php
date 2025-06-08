@@ -1,5 +1,4 @@
 <!-- // generate quotation file -->
- <!-- change no 34234324 -->
 
 <?php
 include_once 'partials/_dbconnect.php';
