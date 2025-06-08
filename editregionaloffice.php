@@ -47,10 +47,6 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         header("Location:rentalclientdetail.php?id=".urldecode($clientidinput));
 
     }
-
-
-
-
 }
 ?>
 <!DOCTYPE html>
