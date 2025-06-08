@@ -2873,7 +2873,9 @@ document.addEventListener('DOMContentLoaded', function() {
         3: window.third_equipment ? window.third_equipment : function(){},
         4: window.fourth_equipment ? window.fourth_equipment : function(){},
         5: window.fifth_equipment ? window.fifth_equipment : function(){}
-    };
+    }; 
+
+    //Auto-select fleet category when "Choose New Equipment" is selected.........
 
     document.querySelectorAll('.asset-code').forEach(function(assetCodeSelect) {
         assetCodeSelect.addEventListener('change', function() {
