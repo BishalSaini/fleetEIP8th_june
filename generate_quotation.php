@@ -6,7 +6,6 @@ $showError = false;
 $showAlertuser=false;
 $uniqueId = uniqid();
 
-//trial for github commit
 
 session_start();
 $companyname001 = $_SESSION['companyname'];
@@ -127,7 +126,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $boomLength=$_POST['boomLength'];
     $jibLength=$_POST['jibLength'];
     $luffingLength=$_POST['luffingLength'];
-    $bedlength1=$_POST['bedlength1'];
     $newfleetmake=$_POST['newfleetmake'];
     $newfleetmodel=$_POST['newfleetmodel'];
     $fuel = $_POST['fuel_per_hour'];
@@ -406,15 +404,9 @@ elseif(isset($_POST['asset_code5']) && $_POST['asset_code5']='New Equipment'){
 }
 
 
-
-
-
-
-
-
 if ($_POST['asset_code']==='New Equipment') {
     $sql_insertion = "INSERT INTO `quotation_generated` (
-        `fuelUnit`,`bedlength1`,`road_tax`, `adblue_scope`, `fuel_scope`, `working_start`, `working_end`, `working_end_unit`,
+        `fuelUnit`,`road_tax`, `adblue_scope`, `fuel_scope`, `working_start`, `working_end`, `working_end_unit`,
         `salutation`, `quote_validity`, `ppe_kit`, `dehire_clause`, `category`, `ref_no`, `uniqueid`,
         `engine_hours`, `shift_info`, `sender_office_address`, `tentative_date`, `contact_person_cell`,
         `yom`, `cap`, `cap_unit`, `boom`, `jib`, `luffing`, `availability`, `fuel/hour`, `make`, `model`,
@@ -425,7 +417,7 @@ if ($_POST['asset_code']==='New Equipment') {
         `brkdown`, `ot_pay`, `pay_terms`, `delay_pay`, `equipment_assembly`, `tpi`, `safety`, `tools`,
         `gst`, `custom_terms`, `force_clause`, `food_break`, `senders_designation` , `internal_shifting` ,`mobilisation_notice`,`roadtax_condition`,`lumsumamount`
     ) VALUES (
-        '$fuelUnit','$bedlength1','$road_tax', '$adblue_scope', '$fuel_scope', '$working_shift_start', '$working_shift_end', '$working_shift_end_unit',
+        '$fuelUnit','$road_tax', '$adblue_scope', '$fuel_scope', '$working_shift_start', '$working_shift_end', '$working_shift_end_unit',
         '$salutation_dd', '$quote_valid', '$ppe', '$dehire', '$fleet_category', '$next_ref_no', '$uniqueidname', '$engine_hour',
         '$shiftinfo', '$sender_office_address', '$tentative', '$contact_peson_cell', '$yom_new_fleet', '$new_fleet_cap',
         '$newfleet_cap', '$boomLength', '$jibLength', '$luffingLength', '$availability', '$fuel', '$newfleetmake',
@@ -744,7 +736,7 @@ if($showAlertuser){
         <p class="headingpara">Equipment Information</p> 
         <div class="outer02">
         <div class="trial1 selectfleetCategory" >
-        <select class="input02 fleet-category" id="selectFleetCategory1" data-dropdown="1" onchange="updateAssetCode(this)" required>
+        <select class="input02 fleet-category" data-dropdown="1" onchange="updateAssetCode(this)" required>
             
         <option value="" disabled selected>Select Fleet Category</option>
         <option value="Aerial Work Platform">Aerial Work Platform</option>
@@ -858,7 +850,8 @@ if($showAlertuser){
             <option value="Moli Pump"class="cq_options" id="concrete_equipment_option4">Moli Pump</option>
             <option value="Mobile Batching Plant"class="cq_options" id="concrete_equipment_option5">Mobile Batching Plant</option>
             <option value="Static Boom Placer"class="cq_options" id="concrete_equipment_option6">Static Boom Placer</option>
-            <option value="Transit Mixer"class="cq_options" id="concrete_equipment_option7">Transit Mixer</option>
+            <option value="Transit Mixer"class="cq_options" id="concrete_equipment_option7">Transit Mixer</option> 
+             <option value="Shotcrete boom"class="cq_options" id="concrete_equipment_option8">Shotcrete boom</option>
             <option value="Baby Roller" class="earthmover_options" id="earthmovers_option1">Baby Roller</option>
             <option value="Backhoe Loader" class="earthmover_options" id="earthmovers_option2">Backhoe Loader</option>
             <option value="Bulldozer" class="earthmover_options" id="earthmovers_option3">Bulldozer</option>
@@ -939,8 +932,7 @@ if($showAlertuser){
         </div>
     </div>
     <div class="outer02" id="newfleet_jib">
-
-    <div class="trial1">
+    <div class="trial1" >
             <input type="text" name="boomLength"  placeholder="" class=" input02" >
             <label class="placeholder2">Boom Length</label>
         </div>    
@@ -954,11 +946,6 @@ if($showAlertuser){
         </div>
 
     </div>
-    <div class="trial1" id="newfleet_bedlength">
-            <input type="text" name="bedlength1"  placeholder="" class=" input02" >
-            <label class="placeholder2">Bed Length</label>
-        </div>
-
         <div class="outer02">
         <div class="trial1 width350">
             <select name="shiftinfo" id="select_shift" class="input02" onchange="shift_hour()" required>
@@ -1185,6 +1172,7 @@ if($showAlertuser){
             <option value="Aerial Work Platform">Aerial Work Platform</option>
             <option value="Concrete Equipment">Concrete Equipment</option>
             <option value="EarthMovers and Road Equipments">EarthMovers and Road Equipments</option>
+            <!-- <option value="aerial_work_platform">Aerial Work Platform</option> -->
             <option value="Material Handling Equipments">Material Handling Equipments</option>
             <option value="Ground Engineering Equipments">Ground Engineering Equipments</option>
             <option value="Trailor and Truck">Trailor and Truck</option>
@@ -1209,7 +1197,8 @@ if($showAlertuser){
             <option value="Moli Pump"class="cq_options1" id="concrete_equipment_option4">Moli Pump</option>
             <option value="Mobile Batching Plant"class="cq_options1" id="concrete_equipment_option5">Mobile Batching Plant</option>
             <option value="Static Boom Placer"class="cq_options1" id="concrete_equipment_option6">Static Boom Placer</option>
-            <option value="Transit Mixer"class="cq_options1" id="concrete_equipment_option7">Transit Mixer</option>
+            <option value="Transit Mixer"class="cq_options1" id="concrete_equipment_option7">Transit Mixer</option> 
+             <option value="Shotcrete boom"class="cq_options" id="concrete_equipment_option8">Shotcrete boom</option>
             <option value="Baby Roller" class="earthmover_options1" id="earthmovers_option1">Baby Roller</option>
             <option value="Backhoe Loader" class="earthmover_options1" id="earthmovers_option2">Backhoe Loader</option>
             <option value="Bulldozer" class="earthmover_options1" id="earthmovers_option3">Bulldozer</option>
@@ -1472,7 +1461,8 @@ if($showAlertuser){
             <option value="Moli Pump"class="cq_options3" id="concrete_equipment_option4">Moli Pump</option>
             <option value="Mobile Batching Plant"class="cq_options3" id="concrete_equipment_option5">Mobile Batching Plant</option>
             <option value="Static Boom Placer"class="cq_options3" id="concrete_equipment_option6">Static Boom Placer</option>
-            <option value="Transit Mixer"class="cq_options3" id="concrete_equipment_option7">Transit Mixer</option>
+            <option value="Transit Mixer"class="cq_options3" id="concrete_equipment_option7">Transit Mixer</option> 
+             <option value="Shotcrete boom"class="cq_options" id="concrete_equipment_option8">Shotcrete boom</option>
             <option value="Baby Roller" class="earthmover_options3" id="earthmovers_option1">Baby Roller</option>
             <option value="Backhoe Loader" class="earthmover_options3" id="earthmovers_option2">Backhoe Loader</option>
             <option value="Bulldozer" class="earthmover_options3" id="earthmovers_option3">Bulldozer</option>
@@ -1736,7 +1726,8 @@ if($showAlertuser){
             <option value="Moli Pump"class="cq_options4" id="concrete_equipment_option4">Moli Pump</option>
             <option value="Mobile Batching Plant"class="cq_options4" id="concrete_equipment_option5">Mobile Batching Plant</option>
             <option value="Static Boom Placer"class="cq_options4" id="concrete_equipment_option6">Static Boom Placer</option>
-            <option value="Transit Mixer"class="cq_options4" id="concrete_equipment_option7">Transit Mixer</option>
+            <option value="Transit Mixer"class="cq_options4" id="concrete_equipment_option7">Transit Mixer</option> 
+             <option value="Shotcrete boom"class="cq_options" id="concrete_equipment_option8">Shotcrete boom</option>
             <option value="Baby Roller" class="earthmover_options4" id="earthmovers_option1">Baby Roller</option>
             <option value="Backhoe Loader" class="earthmover_options4" id="earthmovers_option2">Backhoe Loader</option>
             <option value="Bulldozer" class="earthmover_options4" id="earthmovers_option3">Bulldozer</option>
@@ -1998,7 +1989,8 @@ if($showAlertuser){
             <option value="Moli Pump"class="cq_options5" id="concrete_equipment_option4">Moli Pump</option>
             <option value="Mobile Batching Plant"class="cq_options5" id="concrete_equipment_option5">Mobile Batching Plant</option>
             <option value="Static Boom Placer"class="cq_options5" id="concrete_equipment_option6">Static Boom Placer</option>
-            <option value="Transit Mixer"class="cq_options5" id="concrete_equipment_option7">Transit Mixer</option>
+            <option value="Transit Mixer"class="cq_options5" id="concrete_equipment_option7">Transit Mixer</option> 
+             <option value="Shotcrete boom"class="cq_options" id="concrete_equipment_option8">Shotcrete boom</option>
             <option value="Baby Roller" class="earthmover_options5" id="earthmovers_option1">Baby Roller</option>
             <option value="Backhoe Loader" class="earthmover_options5" id="earthmovers_option2">Backhoe Loader</option>
             <option value="Bulldozer" class="earthmover_options5" id="earthmovers_option3">Bulldozer</option>
@@ -2576,15 +2568,14 @@ else{
 </div>
 <br>
 
-
-
-
 <!-- <button class="quotation_submit" type="submit">SUBMIT</button> -->
 <br><br>
 
     </div>
     </div>
 </form>
+
+
 <script>
     function not_immediate(){
  const availability_dd=document.getElementById("availability_dd");
@@ -2861,6 +2852,53 @@ document.addEventListener('click', function(event) {
     if (!suggestions.contains(event.target) && event.target !== input) {
         suggestions.style.display = 'none';
     }
+}); 
+
+
+// --- Auto-select fleet category in new equipment section when "Choose New Equipment" is selected ---
+document.addEventListener('DOMContentLoaded', function() {
+    // Map dropdown index to new equipment fleet category select IDs
+    const newEquipFleetCategoryIds = {
+        1: 'oem_fleet_type',
+        2: 'oem_fleet_type1',
+        3: 'oem_fleet_type3',
+        4: 'oem_fleet_type4',
+        5: 'oem_fleet_type5'
+    };
+
+    // Map dropdown index to fleet type onchange handler
+    const fleetTypeOnChangeFns = {
+        1: window.purchase_option,
+        2: window.seco_equip,
+        3: window.third_equipment ? window.third_equipment : function(){},
+        4: window.fourth_equipment ? window.fourth_equipment : function(){},
+        5: window.fifth_equipment ? window.fifth_equipment : function(){}
+    };
+
+    document.querySelectorAll('.asset-code').forEach(function(assetCodeSelect) {
+        assetCodeSelect.addEventListener('change', function() {
+            const selectedOption = assetCodeSelect.value;
+            const dropdownId = assetCodeSelect.getAttribute('data-dropdown');
+            if (selectedOption === 'New Equipment') {
+                // Find the fleet category select for this section
+                const fleetCategorySelect = document.querySelector('.fleet-category[data-dropdown="' + dropdownId + '"]');
+                const newEquipFleetCategoryId = newEquipFleetCategoryIds[dropdownId];
+                const newEquipFleetCategorySelect = document.getElementById(newEquipFleetCategoryId);
+                if (fleetCategorySelect && newEquipFleetCategorySelect) {
+                    // Set value and trigger change
+                    newEquipFleetCategorySelect.value = fleetCategorySelect.value;
+                    // Trigger the correct onchange handler for fleet type options
+                    if (typeof newEquipFleetCategorySelect.onchange === "function") {
+                        newEquipFleetCategorySelect.onchange();
+                    }
+                    // Also call the mapped function if available (for sections 2-5)
+                    if (fleetTypeOnChangeFns[dropdownId]) {
+                        fleetTypeOnChangeFns[dropdownId]();
+                    }
+                }
+            }
+        });
+    });
 });
 </script>
 </body>
