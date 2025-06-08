@@ -436,6 +436,42 @@ $sql_employee_result=mysqli_query($conn,$sql_employee);
                             </div>
                         </div>
                         
+                    </div>  
+
+                                <div class="col-xl-3 col-sm-6 col-12">
+                        <div class="card shadow border-0" id="dashboard-card">
+                            <div class="card-body" onclick="window.location.href='vendorsFleet.php'">
+                                <div class="row">
+                                    <div class="col">
+                                        <span class="h6 font-semibold text-muted text-sm d-block mb-2">Add Vendor</span>
+                                      <!--   <span class="h3 font-bold mb-0">4.100</span> -->
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="icon icon-shape bg-primary text-white text-lg rounded-circle">
+                                        <i class="bi bi-cash"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>  
+
+                                                   <div class="col-xl-3 col-sm-6 col-12">
+                        <div class="card shadow border-0" id="dashboard-card">
+                            <div class="card-body" onclick="window.location.href='vendorPO.php'">
+                                <div class="row">
+                                    <div class="col">
+                                        <span class="h6 font-semibold text-muted text-sm d-block mb-2">Add PO</span>
+                                      <!--   <span class="h3 font-bold mb-0">4.100</span> -->
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="icon icon-shape bg-primary text-white text-lg rounded-circle">
+                                        <i class="bi bi-cash"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div> 
 
                     <div class="col-xl-3 col-sm-6 col-12">
