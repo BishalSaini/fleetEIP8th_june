@@ -458,7 +458,7 @@ $sql_employee_result=mysqli_query($conn,$sql_employee);
 
                                                    <div class="col-xl-3 col-sm-6 col-12">
                         <div class="card shadow border-0" id="dashboard-card">
-                            <div class="card-body" onclick="window.location.href='vendorPO.php'">
+                            <div class="card-body" onclick="window.location.href='vendorPOView.php'">
                                 <div class="row">
                                     <div class="col">
                                         <span class="h6 font-semibold text-muted text-sm d-block mb-2">Add PO</span>
