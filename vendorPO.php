@@ -205,394 +205,364 @@ if ($vendor_id) {
 <?php endif; ?>
 
 <!-- ===================== VENDOR CONTACT SECTION ===================== -->
-<form id="vendorPOForm" class="vendorform" method="POST" autocomplete="off">
-    <div id="contactSection" class="form-section active">
-        <p class="headingpara">Vendor Contact Details</p>
-        <div class="outer02">
-            <div class="trial1">
-                <input type="text" id="vendorSearch" class="input02" autocomplete="off" onkeyup="filterVendors()" onclick="showVendorDropdown()">
-                <select id="vendorSelect" name="vendor_id" class="input02" style="display:none;" onchange="newVendorCheck(); fetchVendorContacts();">
-                    <option value="" disabled selected>Select Vendor</option>
-                    <?php foreach ($vendors as $v): ?>
-                        <option value="<?php echo $v['id']; ?>"><?php echo htmlspecialchars($v['vendor_name']); ?></option>
-                    <?php endforeach; ?>
-                    <option value="new_vendor">New Vendor</option>
-                </select>
-                <div id="vendorSuggestions" class="suggestions" style="display:none;"></div>
-                <label class="placeholder2">Vendor Name</label>
+<form action="" method="POST" id="vendorPOForm" class="generate_quotation" autocomplete="off" enctype="multipart/form-data">
+    <div id="contactSection" class="generate_quote_container active">
+        <div id="contactpersonsectioncontainer" >
+            <p class="headingpara" >Vendor Contact Details</p>
+            <div class="outer02" id="quoteouter02">
+                <div class="trial1" id="newrentalclient">
+                    <input type="text" name="new_vendor_name" class="input02" placeholder="New Vendor Name">
+                    <label class="placeholder2">New Vendor Name</label>
+                </div>
+                <div class="trial1" id="companySelectouter">
+                    <input type="text" id="vendorSearch" class="input02" placeholder="Select Vendor" autocomplete="off" onkeyup="filterVendors()" onclick="showVendorDropdown()">
+                    <select id="vendorSelect" name="vendor_id" class="input02" style="display:none;" onchange="newVendorCheck(); fetchVendorContacts();">
+                        <option value="" disabled selected>Select Vendor</option>
+                        <?php foreach ($vendors as $v): ?>
+                            <option value="<?php echo $v['id']; ?>"><?php echo htmlspecialchars($v['vendor_name']); ?></option>
+                        <?php endforeach; ?>
+                        <option value="new_vendor">New Vendor</option>
+                    </select>
+                    <div id="vendorSuggestions" class="suggestions" style="display:none;"></div>
+                </div> 
+                <div class="trial1" id="contactSelectouter">
+                    <select id="contactPersonSelect" name="contact_person" class="input02" onchange="handleContactPersonSelect(this);" style="transition:all .2s;">
+                        <option value="" disabled selected>Select Contact Person</option>
+                        <option value="new_contact">New Contact Person</option>
+                    </select>
+                </div>
+                <div class="trial1" id='officetypeouter'>
+                    <!-- If you want to add office type for vendor, add here -->
+                </div>
             </div>
-            <div class="trial1 hidden" id="newVendorDiv">
-                <input type="text" name="new_vendor_name" class="input02">
-                <label class="placeholder2">New Vendor Name</label>
+            <div class="outer02">
+                <div class="trial1">
+                    <input type="text" name="office_address" id="office_address" class="input02" placeholder="">
+                    <label class="placeholder2">Office Address</label>
+                </div>
+                <div class="trial1" id="contact_number1">
+                    <input type="text" name="contact_number" id="contact_number" class="input02" placeholder="">
+                    <label class="placeholder2">Contact Number</label>
+                </div>
+                <div class="trial1">
+                    <input type="email" name="contact_email" id="contact_email" class="input02" placeholder="">
+                    <label class="placeholder2">Contact Email</label>
+                </div>
             </div>
-            <div class="trial1" style="position:relative;">
-                <select id="contactPersonSelect" name="contact_person" class="input02" onchange="newContactCheck(); autofillContactDetails();">
-                    <option value="" disabled selected>Select Contact Person</option>
-                    <option value="new_contact">New Contact Person</option>
-                </select>
-                <label class="placeholder2">Contact Person</label>
-            </div>
-            <div class="trial1 hidden" id="newContactDiv">
-                <input type="text" name="new_contact_person" class="input02">
-                <label class="placeholder2">New Contact Person</label>
-            </div>
-            <div class="trial1">
-                <input type="text" name="contact_number" id="contact_number" class="input02">
-                <label class="placeholder2">Contact Number</label>
-            </div>
-            <div class="trial1">
-                <input type="email" name="contact_email" id="contact_email" class="input02">
-                <label class="placeholder2">Contact Email</label>
-            </div>
-            <div class="trial1">
-                <input type="text" name="office_address" id="office_address" class="input02">
-                <label class="placeholder2">Office Address</label>
-            </div>
+            <!-- Hidden company name if needed -->
+            <!-- <input type="text" value="<?php echo $companyname ?>" id="comp_name_trial" hidden> -->
+            <button
+                class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
+                type="button" onclick="showProductSection()"
+                style="margin-top: 18px;"
+            >
+                <div
+                    class="bg-custom-blue rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
+                    style="background-color: #1C549E;"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 1024 1024"
+                        height="18px"
+                        width="18px"
+                        transform="rotate(180)"
+                    >
+                        <path
+                            d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
+                            fill="white"
+                        ></path>
+                        <path
+                            d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+                            fill="white"
+                        ></path>
+                    </svg>
+                </div>
+                <p class="translate-x-1">Next</p>
+            </button>
         </div>
-       <button
-  class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
-  type="button" onclick="showProductSection()"
->
-  <div
-    class="bg-custom-blue rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
-    style="background-color: #1C549E;" 
-
-  >
-  <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 1024 1024"
-      height="18px"
-      width="18px"
-      transform="rotate(180)" 
-    >
-      <path
-        d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
-        fill="white" 
-      ></path>
-      <path
-        d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
-        fill="white" 
-      ></path>
-    </svg>
-  </div>
-  <p class="translate-x-1" >Next</p>
-</button>
     </div>
 
-    <div id="productSection" class="form-section hidden">
-        <p class="headingpara" style="background:#2253a3;">Add Product</p>
-        <div id="productRepeater">
-            <div class="product-group">
-                <div class="outer02">
-                    <div class="trial1" style="position:relative;">
-                        <input type="text" id="productSearch_0" class="input02 productSearch" autocomplete="off" onkeyup="filterProducts(this)" onclick="showProductDropdown(this)">
-                        <select id="productSelect_0" name="product_serial[]" class="input02 productSelect" style="display:none;" onchange="autofillProductDetails(this); newProductCheck(this);">
-                            <option value="" disabled selected>Select Product</option>
-                            <option value="new_product">New Product</option>
-                        </select>
-                        <div class="suggestions productSuggestions" style="display:none;"></div>
-                        <label class="placeholder2">Product Serial Number/Code</label>
-                    </div>
-                    <div class="trial1 hidden newProductDiv">
-                        <input type="text" name="new_product_serial[]" class="input02">
-                        <label class="placeholder2">New Product Serial/Code</label>
-                    </div>
-                    <div class="trial1">
-                        <input type="text" class="input02 product_name" name="product_name[]">
-                        <label class="placeholder2">Product Name (Code HSN/SAC)</label>
-                    </div>
-                    <div class="trial1">
-                        <select class="input02 product_uom" name="product_uom[]">
-                            <option value="" disabled selected>Select UoM</option>
-                            <option value="set">Set</option>
-                            <option value="nos">Nos</option>
-                            <option value="kgs">Kgs</option>
-                            <option value="meter">Meter</option>
-                            <option value="litre">Litre</option>
-                        </select>
-                        <label class="placeholder2">UoM (Unit of Measurement)</label>
-                    </div>
-                    <div class="trial1">
-                        <input type="number" step="0.01" min="0" class="input02 unit_price" name="unit_price[]" oninput="calcProductPrice(this)">
-                        <label class="placeholder2">Unit Price</label>
-                    </div>
-                    <div class="trial1">
-                        <input type="number" step="1" min="1" class="input02 qty" name="qty[]" oninput="calcProductPrice(this)">
-                        <label class="placeholder2">Qty</label>
-                    </div>
-                    <div class="trial1">
-                        <input type="number" step="0.01" min="0" class="input02 price" name="price[]" readonly style="background:#e9ecef;">
-                        <label class="placeholder2">Price (Unit Price × Qty)</label>
+    <!-- ===================== ADD PRODUCT SECTION ===================== -->
+    <div id="productSection" class="generate_quote_container form-section hidden">
+        <div class="headingpara" style="background: #2253a3; color: #fff; padding: 18px 0 14px 32px; border-radius: 8px 8px 0 0; margin: 0; font-size: 1.25rem; font-weight: 600; box-sizing: border-box;">
+            Product Information
+        </div>
+        <div style="padding: 32px;">
+            <div id="productRepeater">
+                <div class="product-group">
+                    <div class="outer02">
+                        <div class="trial1" style="position:relative;">
+                            <input type="text" id="productSearch_0" class="input02 productSearch" autocomplete="off" onkeyup="filterProducts(this)" onclick="showProductDropdown(this)">
+                            <select id="productSelect_0" name="product_serial[]" class="input02 productSelect" style="display:none;" onchange="autofillProductDetails(this); newProductCheck(this);">
+                                <option value="" disabled selected>Select Product</option>
+                                <option value="new_product">New Product</option>
+                            </select>
+                            <div class="suggestions productSuggestions" style="display:none;"></div>
+                            <label class="placeholder2">Product Serial Number/Code</label>
+                        </div>
+                        <div class="trial1 hidden newProductDiv">
+                            <input type="text" name="new_product_serial[]" class="input02">
+                            <label class="placeholder2">New Product Serial/Code</label>
+                        </div>
+                        <div class="trial1">
+                            <input type="text" class="input02 product_name" name="product_name[]">
+                            <label class="placeholder2">Product Name (Code HSN/SAC)</label>
+                        </div>
+                        <div class="trial1">
+                            <select class="input02 product_uom" name="product_uom[]">
+                                <option value="" disabled selected>Select UoM</option>
+                                <option value="set">Set</option>
+                                <option value="nos">Nos</option>
+                                <option value="kgs">Kgs</option>
+                                <option value="meter">Meter</option>
+                                <option value="litre">Litre</option>
+                            </select>
+                            <label class="placeholder2">UoM (Unit of Measurement)</label>
+                        </div>
+                        <div class="trial1">
+                            <input type="number" step="0.01" min="0" class="input02 unit_price" name="unit_price[]" oninput="calcProductPrice(this)">
+                            <label class="placeholder2">Unit Price</label>
+                        </div>
+                        <div class="trial1">
+                            <input type="number" step="1" min="1" class="input02 qty" name="qty[]" oninput="calcProductPrice(this)">
+                            <label class="placeholder2">Qty</label>
+                        </div>
+                        <div class="trial1">
+                            <input type="number" step="0.01" min="0" class="input02 price" name="price[]" readonly style="background:#e9ecef;">
+                            <label class="placeholder2">Price (Unit Price × Qty)</label>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-     <!--    <div class="form-btn-row">
-            <button type="button" class="back-btn" onclick="showContactSection()">Back</button>
-            <button type="button" class="next-btn" onclick="showBillToSection()">Next</button>
-        </div>  -->
-        
-        <div class="fulllength" id="quotationnextback">
-<button
-  class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
-  type="button" onclick="showContactSection()"
->
-<div
-    class="rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
-    style="background-color: #1C549E;" 
-  >  
-  
-  <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 1024 1024"
-      height="18px"
-      width="18px"
-    >
-      <path
-        d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
-        fill="white" 
-      ></path>
-      <path
-        d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
-        fill="white" 
-      ></path>
-    </svg>
-  </div>
-  <p class="translate-x-1">Back</p>
-</button>
-
-<button
-  class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
-  type="button" onclick="showBillToSection()"
->
-  <div
-    class="bg-custom-blue rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
-    style="background-color: #1C549E;" 
-
-  >
-  <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 1024 1024"
-      height="18px"
-      width="18px"
-      transform="rotate(180)" 
-    >
-      <path
-        d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
-        fill="white" 
-      ></path>
-      <path
-        d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
-        fill="white" 
-      ></path>
-    </svg>
-  </div>
-  <p class="translate-x-1" >Next</p>
-</button>
-
-</div>
-        
-        <div style="margin-top:10px;">
-            <button type="button" id="addProductBtn" class="next-btn" style="background:#4067B5;width:auto;padding:8px 18px;">Add Another Product</button>
+            <div class="addbuttonicon" id="addProductBtnContainer">
+                <i id="addProductBtn" onclick="$('#addProductBtn').trigger('click');" class="bi bi-plus-circle">Add Another Product</i>
+            </div>
+            <div class="fulllength" id="quotationnextback" style="margin-top:16px;">
+                <button class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
+                    type="button" onclick="showContactSection()">
+                    <div class="rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
+                        style="background-color: #1C549E;">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 1024 1024"
+                            height="18px"
+                            width="18px"
+                        >
+                            <path
+                                d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
+                                fill="white" 
+                            ></path>
+                            <path
+                                d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+                                fill="white" 
+                            ></path>
+                        </svg>
+                    </div>
+                    <p class="translate-x-1">Back</p>
+                </button>
+                <button class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
+                    type="button" onclick="showBillToSection()">
+                    <div class="bg-custom-blue rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
+                        style="background-color: #1C549E;" 
+                    >
+                    <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 1024 1024"
+                            height="18px"
+                            width="18px"
+                            transform="rotate(180)" 
+                        >
+                            <path
+                                d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
+                                fill="white" 
+                            ></path>
+                            <path
+                                d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+                                fill="white" 
+                            ></path>
+                        </svg>
+                    </div>
+                    <p class="translate-x-1" >Next</p>
+                </button>
+            </div>
         </div>
     </div>
 
-    <div id="billToSection" class="form-section hidden">
-        <p class="headingpara" style="background:#2253a3;">Bill To Details</p>
-        <div class="outer02">
-            <div class="trial1">
-                <input type="text" name="billto" id="billto" class="input02" value="<?php echo htmlspecialchars($billto_detail['companyname'] ?? ''); ?>">
-                <label class="placeholder2">Bill To (Company Name)</label>
+    <!-- ===================== BILL TO SECTION ===================== -->
+    <div id="billToSection" class="generate_quote_container form-section hidden" >
+        <div class="headingpara" style="background: #2253a3; color: #fff; padding: 18px 0 14px 32px; border-radius: 8px 8px 0 0; margin: 0; font-size: 1.25rem; font-weight: 600; box-sizing: border-box;">
+            Bill To Details
+        </div>
+        <div style="padding: 32px;">
+            <div class="outer02" style="margin-top:0;">
+                <div class="trial1">
+                    <input type="text" name="billto" id="billto" class="input02" value="<?php echo htmlspecialchars($billto_detail['companyname'] ?? ''); ?>">
+                    <label class="placeholder2">Bill To (Company Name)</label>
+                </div>
+                <div class="trial1">
+                    <input type="text" name="billto_address" id="billto_address" class="input02" value="<?php echo htmlspecialchars($billto_detail['company_address'] ?? ''); ?>">
+                    <label class="placeholder2">Address</label>
+                </div>
+                <div class="trial1">
+                    <input type="text" name="billto_gstn" class="input02">
+                    <label class="placeholder2">GSTN</label>
+                </div>
+                <div class="trial1">
+                    <input type="text" name="billto_pan" class="input02">
+                    <label class="placeholder2">PAN</label>
+                </div>
+                <div class="trial1" style="position:relative;">
+                    <select name="billto_contactperson" id="billto_contactperson" class="input02">
+                        <option value="" disabled selected>Select Contact Person</option>
+                        <?php foreach ($team_contacts as $c): ?>
+                            <option value="<?php echo htmlspecialchars($c['name']); ?>"><?php echo htmlspecialchars($c['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <label class="placeholder2">Contact Person</label>
+                </div>
+                <div class="trial1">
+                    <input type="text" name="billto_contactno" id="billto_contactno" class="input02">
+                    <label class="placeholder2">Contact No</label>
+                </div>
             </div>
-            <div class="trial1">
-                <input type="text" name="billto_address" id="billto_address" class="input02" value="<?php echo htmlspecialchars($billto_detail['company_address'] ?? ''); ?>">
-                <label class="placeholder2">Address</label>
-            </div>
-            <div class="trial1">
-                <input type="text" name="billto_gstn" class="input02">
-                <label class="placeholder2">GSTN</label>
-            </div>
-            <div class="trial1">
-                <input type="text" name="billto_pan" class="input02">
-                <label class="placeholder2">PAN</label>
-            </div>
-            <div class="trial1" style="position:relative;">
-                <select name="billto_contactperson" id="billto_contactperson" class="input02">
-                    <option value="" disabled selected>Select Contact Person</option>
-                    <?php foreach ($team_contacts as $c): ?>
-                        <option value="<?php echo htmlspecialchars($c['name']); ?>"><?php echo htmlspecialchars($c['name']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <label class="placeholder2">Contact Person</label>
-            </div>
-            <div class="trial1">
-                <input type="text" name="billto_contactno" id="billto_contactno" class="input02">
-                <label class="placeholder2">Contact No</label>
+            <div class="fulllength" id="quotationnextback" style="margin-top:16px;">
+                <button class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
+                    type="button" onclick="showProductSection()">
+                    <div class="rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
+                        style="background-color: #1C549E;">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 1024 1024"
+                            height="18px"
+                            width="18px"
+                        >
+                            <path
+                                d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
+                                fill="white" 
+                            ></path>
+                            <path
+                                d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+                                fill="white" 
+                            ></path>
+                        </svg>
+                    </div>
+                    <p class="translate-x-1">Back</p>
+                </button>
+                <button class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
+                    type="button" onclick="showShipToSection()">
+                    <div class="bg-custom-blue rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
+                        style="background-color: #1C549E;" 
+
+                    >
+                    <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 1024 1024"
+                            height="18px"
+                            width="18px"
+                            transform="rotate(180)" 
+                        >
+                            <path
+                                d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
+                                fill="white" 
+                            ></path>
+                            <path
+                                d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+                                fill="white" 
+                            ></path>
+                        </svg>
+                    </div>
+                    <p class="translate-x-1" >Next</p>
+                </button>
             </div>
         </div>
-        <!-- <div class="form-btn-row">
-            <button type="button" class="back-btn" onclick="showProductSection()">Back</button>
-            <button type="button" class="next-btn" onclick="showShipToSection()">Next</button>
-        </div>  --> 
-
-                <div class="fulllength" id="quotationnextback">
-<button
-  class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
-  type="button" onclick="showProductSection()"
->
-<div
-    class="rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
-    style="background-color: #1C549E;" 
-  >  
-  
-  <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 1024 1024"
-      height="18px"
-      width="18px"
-    >
-      <path
-        d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
-        fill="white" 
-      ></path>
-      <path
-        d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
-        fill="white" 
-      ></path>
-    </svg>
-  </div>
-  <p class="translate-x-1">Back</p>
-</button>
-
-<button
-  class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
-  type="button" onclick="showShipToSection()"
->
-  <div
-    class="bg-custom-blue rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
-    style="background-color: #1C549E;" 
-
-  >
-  <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 1024 1024"
-      height="18px"
-      width="18px"
-      transform="rotate(180)" 
-    >
-      <path
-        d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
-        fill="white" 
-      ></path>
-      <path
-        d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
-        fill="white" 
-      ></path>
-    </svg>
-  </div>
-  <p class="translate-x-1" >Next</p>
-</button>
-
-</div>
-        </div>
-
-    <div id="shipToSection" class="form-section hidden">
-        <p class="headingpara" style="background:#2253a3;">Ship To Details</p>
-        <div class="outer02">
-            <div class="trial1">
-                <input type="text" name="shipto" class="input02">
-                <label class="placeholder2">Ship To (Company Name)</label>
-            </div>
-            <div class="trial1">
-                <input type="text" name="shipto_address" id="shipto_address" class="input02" value="<?php echo htmlspecialchars($billto_detail['company_address'] ?? ''); ?>">
-                <label class="placeholder2">Address</label>
-            </div>
-            <div class="trial1">
-                <input type="text" name="shipto_gstn" class="input02">
-                <label class="placeholder2">GSTN</label>
-            </div>
-            <div class="trial1">
-                <input type="text" name="placeofsupply" class="input02">
-                <label class="placeholder2">Place of Supply</label>
-            </div>
-            <div class="trial1" style="position:relative;">
-                <select name="shipto_contactperson" id="shipto_contactperson" class="input02">
-                    <option value="" disabled selected>Select Contact Person</option>
-                    <?php foreach ($team_contacts as $c): ?>
-                        <option value="<?php echo htmlspecialchars($c['name']); ?>"><?php echo htmlspecialchars($c['name']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <label class="placeholder2">Contact Person</label>
-            </div>
-            <div class="trial1">
-                <input type="text" name="shipto_contactno" id="shipto_contactno" class="input02">
-                <label class="placeholder2">Contact No</label>
-            </div>
-        </div>
-       <!--  <div class="form-btn-row">
-            <button type="button" class="back-btn" onclick="showBillToSection()">Back</button>
-            <button type="submit" class="next-btn">Submit PO</button>
-        </div> --> 
-            <div class="fulllength" id="quotationnextback">
-            <!-- <button class="epc-button">Next</button> -->
-         <!-- Updated Button with the class "quotationnavigatebutton" -->
-<button
-  class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
-  type="button" onclick="showBillToSection()"
->
-<div
-    class="rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
-    style="background-color: #1C549E;" 
-  >  
-  
-  <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 1024 1024"
-      height="18px"
-      width="18px"
-    >
-      <path
-        d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
-        fill="white" 
-      ></path>
-      <path
-        d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
-        fill="white" 
-      ></path>
-    </svg>
-  </div>
-  <p class="translate-x-1">Back</p>
-</button>
-
-<button
-    class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
-    type="submit"
->
-    <div
-        class="bg-custom-blue rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
-        style="background-color: #1C549E;" 
-    >
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 1024 1024"
-            height="18px"
-            width="18px"
-            transform="rotate(180)" 
-        >
-            <path
-                d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
-                fill="white" 
-            ></path>
-            <path
-                d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
-                fill="white" 
-            ></path>
-        </svg>
     </div>
-    <p class="translate-x-1" >Submit</p>
-</button>
 
-</div>
+    <!-- ===================== SHIP TO SECTION ===================== -->
+    <div id="shipToSection" class="generate_quote_container form-section hidden">
+        <div class="headingpara" style="background: #2253a3; color: #fff; padding: 18px 0 14px 32px; border-radius: 8px 8px 0 0; margin: 0; font-size: 1.25rem; font-weight: 600; box-sizing: border-box;">
+            Ship To Details
+        </div>
+        <div style="padding: 32px;">
+            <div class="outer02" style="margin-top:0;">
+                <div class="trial1">
+                    <input type="text" name="shipto" class="input02">
+                    <label class="placeholder2">Ship To (Company Name)</label>
+                </div>
+                <div class="trial1">
+                    <input type="text" name="shipto_address" id="shipto_address" class="input02" value="<?php echo htmlspecialchars($billto_detail['company_address'] ?? ''); ?>">
+                    <label class="placeholder2">Address</label>
+                </div>
+                <div class="trial1">
+                    <input type="text" name="shipto_gstn" class="input02">
+                    <label class="placeholder2">GSTN</label>
+                </div>
+                <div class="trial1">
+                    <input type="text" name="placeofsupply" class="input02">
+                    <label class="placeholder2">Place of Supply</label>
+                </div>
+                <div class="trial1" style="position:relative;">
+                    <select name="shipto_contactperson" id="shipto_contactperson" class="input02">
+                        <option value="" disabled selected>Select Contact Person</option>
+                        <?php foreach ($team_contacts as $c): ?>
+                            <option value="<?php echo htmlspecialchars($c['name']); ?>"><?php echo htmlspecialchars($c['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <label class="placeholder2">Contact Person</label>
+                </div>
+                <div class="trial1">
+                    <input type="text" name="shipto_contactno" id="shipto_contactno" class="input02">
+                    <label class="placeholder2">Contact No</label>
+                </div>
+            </div>
+            <div class="fulllength" id="quotationnextback" style="margin-top:16px;">
+                <button class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
+                    type="button" onclick="showBillToSection()">
+                    <div class="rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
+                        style="background-color: #1C549E;">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 1024 1024"
+                            height="18px"
+                            width="18px"
+                        >
+                            <path
+                                d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
+                                fill="white" 
+                            ></path>
+                            <path
+                                d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+                                fill="white" 
+                            ></path>
+                        </svg>
+                    </div>
+                    <p class="translate-x-1">Back</p>
+                </button>
+                <button class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
+                    type="submit">
+                    <div class="bg-custom-blue rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
+                        style="background-color: #1C549E;" 
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 1024 1024"
+                            height="18px"
+                            width="18px"
+                            transform="rotate(180)" 
+                        >
+                            <path
+                                d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
+                                fill="white" 
+                            ></path>
+                            <path
+                                d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+                                fill="white" 
+                            ></path>
+                        </svg>
+                    </div>
+                    <p class="translate-x-1" >Submit</p>
+                </button>
+            </div>
+        </div>
     </div>
 </form>
 <script>
@@ -682,14 +652,57 @@ function fetchVendorContacts() {
 }
 function newContactCheck() {
     let val = document.getElementById('contactPersonSelect').value;
-    document.getElementById('newContactDiv').classList.toggle('hidden', val !== 'new_contact');
+    let newInput = document.getElementById('newContactPersonInput');
+    if (val === 'new_contact') {
+        newInput.style.display = 'block';
+        newInput.required = true;
+    } else {
+        newInput.style.display = 'none';
+        newInput.required = false;
+    }
     if (val !== 'new_contact' && val) {
         autofillContactDetails();
     }
 }
+function handleContactPersonSelect(select) {
+    if (select.value === 'new_contact') {
+        // Replace select with input for new contact person
+        const parent = select.parentNode;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = 'contact_person';
+        input.className = 'input02';
+        input.placeholder = 'Enter New Contact Person';
+        input.id = 'contactPersonSelect';
+        input.style.transition = 'all .2s';
+        input.onblur = function() {
+            // If input is left empty, revert back to select
+            if (!input.value.trim()) {
+                parent.innerHTML = `
+                    <select id="contactPersonSelect" name="contact_person" class="input02" onchange="handleContactPersonSelect(this);" style="transition:all .2s;">
+                        <option value="" disabled selected>Select Contact Person</option>
+                        <option value="new_contact">New Contact Person</option>
+                    </select>
+                `;
+            }
+        };
+        parent.replaceChild(input, select);
+        input.focus();
+        // Clear autofill fields for new contact
+        document.getElementById('contact_number').value = '';
+        document.getElementById('contact_email').value = '';
+        document.getElementById('office_address').value = '';
+    } else if (select.value) {
+        autofillContactDetails();
+    }
+}
+
 function autofillContactDetails() {
+    // Only run if the contact person is a select (not input)
+    var contactPersonElem = document.getElementById('contactPersonSelect');
+    if (!contactPersonElem || contactPersonElem.tagName !== 'SELECT') return;
     let vendorId = document.getElementById('vendorSelect').value;
-    let contactPerson = document.getElementById('contactPersonSelect').value;
+    let contactPerson = contactPersonElem.value;
     if (!vendorId || !contactPerson || contactPerson === 'new_contact') {
         document.getElementById('contact_number').value = '';
         document.getElementById('contact_email').value = '';
