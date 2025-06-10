@@ -448,7 +448,7 @@ $sql_employee_result=mysqli_query($conn,$sql_employee);
                                     </div>
                                     <div class="col-auto">
                                         <div class="icon icon-shape bg-primary text-white text-lg rounded-circle">
-                                        <i class="bi bi-cash"></i>
+                                        <i class="bi bi-person-vcard"></i>
                                         </div>
                                     </div>
                                 </div>
@@ -465,8 +465,9 @@ $sql_employee_result=mysqli_query($conn,$sql_employee);
                                       <!--   <span class="h3 font-bold mb-0">4.100</span> -->
                                     </div>
                                     <div class="col-auto">
-                                        <div class="icon icon-shape bg-primary text-white text-lg rounded-circle">
-                                        <i class="bi bi-cash"></i>
+                                        <div class="icon icon-shape bg-info text-white text-lg rounded-circle">
+                                        <i class="bi bi-receipt-cutoff"></i>
+
                                         </div>
                                     </div>
                                 </div>
