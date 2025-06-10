@@ -51,6 +51,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $shipto_contactperson = $_POST['shipto_contactperson'] ?? null;
     $shipto_contactno = $_POST['shipto_contactno'] ?? null;
 
+    // If vendor_id is not 'new_vendor', ignore new_vendor_name
+    if ($vendor_id !== 'new_vendor') {
+        $new_vendor_name = null;
+    }
+    // If vendor_id is 'new_vendor', set vendor_id to null for DB
+    if ($vendor_id === 'new_vendor' || empty($vendor_id)) {
+        $vendor_id = null;
+    }
+
     // Insert for each product (max 5)
     $max_products = min(5, count($product_names));
     for ($i = 0; $i < $max_products; $i++) {
@@ -608,7 +617,8 @@ function filterVendors() {
         div.className = 'suggestion-item';
         div.textContent = 'New Vendor';
         div.onclick = function() {
-            document.getElementById('vendorSearch').value = 'New Vendor';
+            // Set the input to the user's typed value, not "New Vendor"
+            document.getElementById('vendorSearch').value = document.getElementById('vendorSearch').value;
             document.getElementById('vendorSelect').value = 'new_vendor';
             suggestions.style.display = 'none';
             fetchVendorContacts();

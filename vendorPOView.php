@@ -17,7 +17,7 @@ $orders = [];
 $sql = "SELECT vpo.id, vpo.vendor_id, vpo.new_vendor_name, vpo.product_serial, vpo.new_product_serial, vpo.product_name, vpo.qty, vpo.price, vpo.created_at
         FROM vendor_purchase_orders vpo
         LEFT JOIN vendors v ON vpo.vendor_id = v.id
-        WHERE (v.companyname = ? OR vpo.vendor_id IS NULL)
+        WHERE vpo.companyname = ?
         ORDER BY vpo.created_at DESC";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $companyname);
