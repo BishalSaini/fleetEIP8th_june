@@ -220,12 +220,12 @@ if ($vendor_id) {
             <p class="headingpara" >Vendor Contact Details</p>
             <div class="outer02" id="quoteouter02">
                 <div class="trial1" id="newrentalclient">
-                    <input type="text" name="new_vendor_name" class="input02" placeholder="New Vendor Name">
+                    <input type="text" name="new_vendor_name" class="input02" placeholder="New Vendor Name" required>
                     <label class="placeholder2">New Vendor Name</label>
                 </div>
                 <div class="trial1" id="companySelectouter">
-                    <input type="text" id="vendorSearch" class="input02" placeholder="Select Vendor" autocomplete="off" onkeyup="filterVendors()" onclick="showVendorDropdown()">
-                    <select id="vendorSelect" name="vendor_id" class="input02" style="display:none;" onchange="newVendorCheck(); fetchVendorContacts();">
+                    <input type="text" id="vendorSearch" class="input02" placeholder="Select Vendor" autocomplete="off" onkeyup="filterVendors()" onclick="showVendorDropdown()" required>
+                    <select id="vendorSelect" name="vendor_id" class="input02" style="display:none;" onchange="newVendorCheck(); fetchVendorContacts();" required>
                         <option value="" disabled selected>Select Vendor</option>
                         <?php foreach ($vendors as $v): ?>
                             <option value="<?php echo $v['id']; ?>"><?php echo htmlspecialchars($v['vendor_name']); ?></option>
@@ -235,7 +235,7 @@ if ($vendor_id) {
                     <div id="vendorSuggestions" class="suggestions" style="display:none;"></div>
                 </div> 
                 <div class="trial1" id="contactSelectouter">
-                    <select id="contactPersonSelect" name="contact_person" class="input02" onchange="handleContactPersonSelect(this);" style="transition:all .2s;">
+                    <select id="contactPersonSelect" name="contact_person" class="input02" onchange="handleContactPersonSelect(this);" style="transition:all .2s;" required>
                         <option value="" disabled selected>Select Contact Person</option>
                         <option value="new_contact">New Contact Person</option>
                     </select>
@@ -246,15 +246,15 @@ if ($vendor_id) {
             </div>
             <div class="outer02">
                 <div class="trial1">
-                    <input type="text" name="office_address" id="office_address" class="input02" placeholder="">
+                    <input type="text" name="office_address" id="office_address" class="input02" placeholder="" required>
                     <label class="placeholder2">Office Address</label>
                 </div>
                 <div class="trial1" id="contact_number1">
-                    <input type="text" name="contact_number" id="contact_number" class="input02" placeholder="">
+                    <input type="text" name="contact_number" id="contact_number" class="input02" placeholder="" required>
                     <label class="placeholder2">Contact Number</label>
                 </div>
                 <div class="trial1">
-                    <input type="email" name="contact_email" id="contact_email" class="input02" placeholder="">
+                    <input type="email" name="contact_email" id="contact_email" class="input02" placeholder="" required>
                     <label class="placeholder2">Contact Email</label>
                 </div>
             </div>
@@ -301,8 +301,8 @@ if ($vendor_id) {
                 <div class="product-group">
                     <div class="outer02">
                         <div class="trial1" style="position:relative;">
-                            <input type="text" id="productSearch_0" class="input02 productSearch" autocomplete="off" onkeyup="filterProducts(this)" onclick="showProductDropdown(this)">
-                            <select id="productSelect_0" name="product_serial[]" class="input02 productSelect" style="display:none;" onchange="autofillProductDetails(this); newProductCheck(this);">
+                            <input type="text" id="productSearch_0" class="input02 productSearch" autocomplete="off" onkeyup="filterProducts(this)" onclick="showProductDropdown(this)" required>
+                            <select id="productSelect_0" name="product_serial[]" class="input02 productSelect" style="display:none;" onchange="autofillProductDetails(this); newProductCheck(this);" required>
                                 <option value="" disabled selected>Select Product</option>
                                 <option value="new_product">New Product</option>
                             </select>
@@ -310,15 +310,15 @@ if ($vendor_id) {
                             <label class="placeholder2">Product Serial Number/Code</label>
                         </div>
                         <div class="trial1 hidden newProductDiv">
-                            <input type="text" name="new_product_serial[]" class="input02">
+                            <input type="text" name="new_product_serial[]" class="input02" required>
                             <label class="placeholder2">New Product Serial/Code</label>
                         </div>
                         <div class="trial1">
-                            <input type="text" class="input02 product_name" name="product_name[]">
+                            <input type="text" class="input02 product_name" name="product_name[]" required>
                             <label class="placeholder2">Product Name (Code HSN/SAC)</label>
                         </div>
                         <div class="trial1">
-                            <select class="input02 product_uom" name="product_uom[]">
+                            <select class="input02 product_uom" name="product_uom[]" required>
                                 <option value="" disabled selected>Select UoM</option>
                                 <option value="set">Set</option>
                                 <option value="nos">Nos</option>
@@ -329,15 +329,15 @@ if ($vendor_id) {
                             <label class="placeholder2">UoM (Unit of Measurement)</label>
                         </div>
                         <div class="trial1">
-                            <input type="number" step="0.01" min="0" class="input02 unit_price" name="unit_price[]" oninput="calcProductPrice(this)">
+                            <input type="number" step="0.01" min="0" class="input02 unit_price" name="unit_price[]" oninput="calcProductPrice(this)" required>
                             <label class="placeholder2">Unit Price</label>
                         </div>
                         <div class="trial1">
-                            <input type="number" step="1" min="1" class="input02 qty" name="qty[]" oninput="calcProductPrice(this)">
+                            <input type="number" step="1" min="1" class="input02 qty" name="qty[]" oninput="calcProductPrice(this)" required>
                             <label class="placeholder2">Qty</label>
                         </div>
                         <div class="trial1">
-                            <input type="number" step="0.01" min="0" class="input02 price" name="price[]" readonly style="background:#e9ecef;">
+                            <input type="number" step="0.01" min="0" class="input02 price" name="price[]" readonly style="background:#e9ecef;" required>
                             <label class="placeholder2">Price (Unit Price × Qty)</label>
                         </div>
                     </div>
@@ -405,23 +405,23 @@ if ($vendor_id) {
         <div style="padding: 32px;">
             <div class="outer02" style="margin-top:0;">
                 <div class="trial1">
-                    <input type="text" name="billto" id="billto" class="input02" value="<?php echo htmlspecialchars($billto_detail['companyname'] ?? ''); ?>">
+                    <input type="text" name="billto" id="billto" class="input02" value="<?php echo htmlspecialchars($billto_detail['companyname'] ?? ''); ?>" required>
                     <label class="placeholder2">Bill To (Company Name)</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="billto_address" id="billto_address" class="input02" value="<?php echo htmlspecialchars($billto_detail['company_address'] ?? ''); ?>">
+                    <input type="text" name="billto_address" id="billto_address" class="input02" value="<?php echo htmlspecialchars($billto_detail['company_address'] ?? ''); ?>" required>
                     <label class="placeholder2">Address</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="billto_gstn" class="input02">
+                    <input type="text" name="billto_gstn" class="input02" required>
                     <label class="placeholder2">GSTN</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="billto_pan" class="input02">
+                    <input type="text" name="billto_pan" class="input02" required>
                     <label class="placeholder2">PAN</label>
                 </div>
                 <div class="trial1" style="position:relative;">
-                    <select name="billto_contactperson" id="billto_contactperson" class="input02">
+                    <select name="billto_contactperson" id="billto_contactperson" class="input02" required>
                         <option value="" disabled selected>Select Contact Person</option>
                         <?php foreach ($team_contacts as $c): ?>
                             <option value="<?php echo htmlspecialchars($c['name']); ?>"><?php echo htmlspecialchars($c['name']); ?></option>
@@ -430,7 +430,7 @@ if ($vendor_id) {
                     <label class="placeholder2">Contact Person</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="billto_contactno" id="billto_contactno" class="input02">
+                    <input type="text" name="billto_contactno" id="billto_contactno" class="input02" required>
                     <label class="placeholder2">Contact No</label>
                 </div>
             </div>
@@ -494,23 +494,23 @@ if ($vendor_id) {
         <div style="padding: 32px;">
             <div class="outer02" style="margin-top:0;">
                 <div class="trial1">
-                    <input type="text" name="shipto" class="input02">
+                    <input type="text" name="shipto" class="input02" required>
                     <label class="placeholder2">Ship To (Company Name)</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="shipto_address" id="shipto_address" class="input02" value="<?php echo htmlspecialchars($billto_detail['company_address'] ?? ''); ?>">
+                    <input type="text" name="shipto_address" id="shipto_address" class="input02" value="<?php echo htmlspecialchars($billto_detail['company_address'] ?? ''); ?>" required>
                     <label class="placeholder2">Address</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="shipto_gstn" class="input02">
+                    <input type="text" name="shipto_gstn" class="input02" required>
                     <label class="placeholder2">GSTN</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="placeofsupply" class="input02">
+                    <input type="text" name="placeofsupply" class="input02" required>
                     <label class="placeholder2">Place of Supply</label>
                 </div>
                 <div class="trial1" style="position:relative;">
-                    <select name="shipto_contactperson" id="shipto_contactperson" class="input02">
+                    <select name="shipto_contactperson" id="shipto_contactperson" class="input02" required>
                         <option value="" disabled selected>Select Contact Person</option>
                         <?php foreach ($team_contacts as $c): ?>
                             <option value="<?php echo htmlspecialchars($c['name']); ?>"><?php echo htmlspecialchars($c['name']); ?></option>
@@ -519,7 +519,7 @@ if ($vendor_id) {
                     <label class="placeholder2">Contact Person</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="shipto_contactno" id="shipto_contactno" class="input02">
+                    <input type="text" name="shipto_contactno" id="shipto_contactno" class="input02" required>
                     <label class="placeholder2">Contact No</label>
                 </div>
             </div>
@@ -892,6 +892,62 @@ $('#addProductBtn').on('click', function() {
     $('#productRepeater').append($clone);
     productCount++;
 });
+
+// Validate required fields before moving to next section
+function validateSection(sectionId) {
+    let valid = true;
+    $('#' + sectionId + ' .input02:visible[required], #' + sectionId + ' select:visible[required]').each(function() {
+        if (!$(this).val()) {
+            $(this).addClass('input-error');
+            valid = false;
+        } else {
+            $(this).removeClass('input-error');
+        }
+    });
+    return valid;
+}
+
+// Add red border for invalid fields
+$('<style>.input-error{border:2px solid #e74c3c !important;}</style>').appendTo('head');
+
+// Override navigation buttons
+function showProductSection() {
+    if (!validateSection('contactSection')) return;
+    document.getElementById('contactSection').classList.remove('active');
+    document.getElementById('contactSection').classList.add('hidden');
+    document.getElementById('productSection').classList.remove('hidden');
+    document.getElementById('productSection').classList.add('active');
+    document.getElementById('billToSection').classList.remove('active');
+    document.getElementById('billToSection').classList.add('hidden');
+    document.getElementById('shipToSection').classList.remove('active');
+    document.getElementById('shipToSection').classList.add('hidden');
+}
+function showBillToSection() {
+    if (!validateSection('productSection')) return;
+    document.getElementById('productSection').classList.remove('active');
+    document.getElementById('productSection').classList.add('hidden');
+    document.getElementById('billToSection').classList.remove('hidden');
+    document.getElementById('billToSection').classList.add('active');
+    document.getElementById('shipToSection').classList.remove('active');
+    document.getElementById('shipToSection').classList.add('hidden');
+}
+function showShipToSection() {
+    if (!validateSection('billToSection')) return;
+    document.getElementById('billToSection').classList.remove('active');
+    document.getElementById('billToSection').classList.add('hidden');
+    document.getElementById('shipToSection').classList.remove('hidden');
+    document.getElementById('shipToSection').classList.add('active');
+}
+function showContactSection() {
+    document.getElementById('productSection').classList.remove('active');
+    document.getElementById('productSection').classList.add('hidden');
+    document.getElementById('contactSection').classList.remove('hidden');
+    document.getElementById('contactSection').classList.add('active');
+    document.getElementById('billToSection').classList.remove('active');
+    document.getElementById('billToSection').classList.add('hidden');
+    document.getElementById('shipToSection').classList.remove('active');
+    document.getElementById('shipToSection').classList.add('hidden');
+}
 </script>
 </body>
 </html>
