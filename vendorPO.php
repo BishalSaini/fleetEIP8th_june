@@ -15,6 +15,18 @@ while ($row = $result_vendors->fetch_assoc()) {
 }
 $stmt_vendors->close();
 
+// Autofill Contact Person and Contact No from team_members table
+$team_contacts = [];
+$sql_team = "SELECT name, mob_number FROM team_members WHERE company_name = ?";
+$stmt_team = $conn->prepare($sql_team);
+$stmt_team->bind_param("s", $companyname);
+$stmt_team->execute();
+$result_team = $stmt_team->get_result();
+while ($row = $result_team->fetch_assoc()) {
+    $team_contacts[] = $row;
+}
+$stmt_team->close();
+
 // Handle form submission
 $showSuccess = false;
 $showError = false;
@@ -60,6 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $vendor_id = null;
     }
 
+    // Get company name from session for each insert
+    $companyname = $_SESSION['companyname'] ?? '';
+
     // Insert for each product (max 5)
     $max_products = min(5, count($product_names));
     for ($i = 0; $i < $max_products; $i++) {
@@ -67,11 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             vendor_id, new_vendor_name, contact_person, new_contact_person, contact_number, contact_email, office_address,
             product_serial, new_product_serial, product_name, product_uom, unit_price, qty, price, created_at,
             billto, billto_address, billto_gstn, billto_pan, billto_contactperson, billto_contactno,
-            shipto, shipto_address, shipto_gstn, placeofsupply, shipto_contactperson, shipto_contactno
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            shipto, shipto_address, shipto_gstn, placeofsupply, shipto_contactperson, shipto_contactno,
+            companyname
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param(
-            "issssssssssddsssssssssssss",
+            "issssssssssddssssssssssssss",
             $vendor_id,
             $new_vendor_name,
             $contact_person,
@@ -97,11 +113,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $shipto_gstn,
             $placeofsupply,
             $shipto_contactperson,
-            $shipto_contactno
+            $shipto_contactno,
+            $companyname // add companyname from session
         );
         $stmt->execute();
         $stmt->close();
     }
+
+    // --- Insert new contact person into vendor_regional_office if needed ---
+    // Only if "New Contact Person" was selected and a name was entered
+    // Use $vendor_id (if existing) or get the new vendor's id if created
+    $contact_person_to_save = $_POST['contact_person'] ?? '';
+    $is_new_contact = false;
+    if (isset($_POST['contact_person']) && !empty($_POST['contact_person'])) {
+        // If the contact_person is not in the select options, it's a new one (input field)
+        // Or if the select value is "new_contact" and a new name is entered
+        if (
+            (isset($_POST['contact_person']) && isset($_POST['new_contact_person']) && !empty($_POST['new_contact_person']))
+            || (isset($_POST['contact_person']) && !in_array($_POST['contact_person'], array_column($team_contacts, 'name')))
+        ) {
+            $is_new_contact = true;
+            $contact_person_to_save = $_POST['new_contact_person'] ?? $_POST['contact_person'];
+        }
+    }
+
+    // If new vendor, get its id (after insert)
+    if ($vendor_id === null && !empty($new_vendor_name)) {
+        // Try to get the vendor id by name and company
+        $stmt = $conn->prepare("SELECT id FROM vendors WHERE vendor_name = ? AND companyname = ? ORDER BY id DESC LIMIT 1");
+        $stmt->bind_param("ss", $new_vendor_name, $companyname);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $vendor_id_for_office = $row['id'];
+        } else {
+            $vendor_id_for_office = null;
+        }
+        $stmt->close();
+    } else {
+        $vendor_id_for_office = $vendor_id;
+    }
+
+    if ($is_new_contact && $vendor_id_for_office) {
+        // Insert into vendor_regional_office
+        $office_address_to_save = $_POST['office_address'] ?? '';
+        $contact_number_to_save = $_POST['contact_number'] ?? '';
+        $contact_email_to_save = $_POST['contact_email'] ?? '';
+        $state_to_save = ''; // You can add a field for state in the form if needed
+
+        $stmt = $conn->prepare("INSERT INTO vendor_regional_office (vendor_id, office_address, state, contact_person, contact_number, contact_email) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param(
+            "isssss",
+            $vendor_id_for_office,
+            $office_address_to_save,
+            $state_to_save,
+            $contact_person_to_save,
+            $contact_number_to_save,
+            $contact_email_to_save
+        );
+        $stmt->execute();
+        $stmt->close();
+    }
+
     header("Location: vendorPOView.php?success=1");
     exit();
 }
@@ -125,18 +198,6 @@ if ($table_exists) {
     }
     $stmt_basic->close();
 }
-
-// Autofill Contact Person and Contact No from team_members table
-$team_contacts = [];
-$sql_team = "SELECT name, mob_number FROM team_members WHERE company_name = ?";
-$stmt_team = $conn->prepare($sql_team);
-$stmt_team->bind_param("s", $companyname);
-$stmt_team->execute();
-$result_team = $stmt_team->get_result();
-while ($row = $result_team->fetch_assoc()) {
-    $team_contacts[] = $row;
-}
-$stmt_team->close();
 
 // Fetch vendor products for autocomplete (for the logged-in company)
 // Add qty to the select
@@ -182,6 +243,21 @@ if ($vendor_id) {
         .form-section { margin-bottom: 0; }
         .form-section.hidden { display: none; }
         .form-section.active { display: block; }
+        /* Add a little spacing for product group */
+        .product-group {
+            border: 1px solid white;
+            border-radius: 6px;
+            margin-bottom: 22px;
+            padding: 12px 12px 0 12px;
+            background: white;
+            position: relative;
+        }
+        .product-header {
+            margin-bottom: 10px;
+        }
+        .remove-product-btn:hover {
+            color: blue;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
@@ -220,12 +296,12 @@ if ($vendor_id) {
             <p class="headingpara" >Vendor Contact Details</p>
             <div class="outer02" id="quoteouter02">
                 <div class="trial1" id="newrentalclient">
-                    <input type="text" name="new_vendor_name" class="input02" placeholder="New Vendor Name" required>
+                    <input type="text" name="new_vendor_name" class="input02" placeholder="New Vendor Name">
                     <label class="placeholder2">New Vendor Name</label>
                 </div>
                 <div class="trial1" id="companySelectouter">
-                    <input type="text" id="vendorSearch" class="input02" placeholder="Select Vendor" autocomplete="off" onkeyup="filterVendors()" onclick="showVendorDropdown()" required>
-                    <select id="vendorSelect" name="vendor_id" class="input02" style="display:none;" onchange="newVendorCheck(); fetchVendorContacts();" required>
+                    <input type="text" id="vendorSearch" class="input02" placeholder="Select Vendor" autocomplete="off" onkeyup="filterVendors()" onclick="showVendorDropdown()">
+                    <select id="vendorSelect" name="vendor_id" class="input02" style="display:none;" onchange="newVendorCheck(); fetchVendorContacts();">
                         <option value="" disabled selected>Select Vendor</option>
                         <?php foreach ($vendors as $v): ?>
                             <option value="<?php echo $v['id']; ?>"><?php echo htmlspecialchars($v['vendor_name']); ?></option>
@@ -235,26 +311,26 @@ if ($vendor_id) {
                     <div id="vendorSuggestions" class="suggestions" style="display:none;"></div>
                 </div> 
                 <div class="trial1" id="contactSelectouter">
-                    <select id="contactPersonSelect" name="contact_person" class="input02" onchange="handleContactPersonSelect(this);" style="transition:all .2s;" required>
+                    <select id="contactPersonSelect" name="contact_person" class="input02" onchange="handleContactPersonSelect(this);" style="transition:all .2s;">
                         <option value="" disabled selected>Select Contact Person</option>
                         <option value="new_contact">New Contact Person</option>
                     </select>
                 </div>
                 <div class="trial1" id='officetypeouter'>
-                    <!-- If you want to add office type for vendor, add here -->
+                  
                 </div>
             </div>
             <div class="outer02">
                 <div class="trial1">
-                    <input type="text" name="office_address" id="office_address" class="input02" placeholder="" required>
+                    <input type="text" name="office_address" id="office_address" class="input02" placeholder="">
                     <label class="placeholder2">Office Address</label>
                 </div>
                 <div class="trial1" id="contact_number1">
-                    <input type="text" name="contact_number" id="contact_number" class="input02" placeholder="" required>
+                    <input type="text" name="contact_number" id="contact_number" class="input02" placeholder="">
                     <label class="placeholder2">Contact Number</label>
                 </div>
                 <div class="trial1">
-                    <input type="email" name="contact_email" id="contact_email" class="input02" placeholder="" required>
+                    <input type="email" name="contact_email" id="contact_email" class="input02" placeholder="">
                     <label class="placeholder2">Contact Email</label>
                 </div>
             </div>
@@ -299,10 +375,18 @@ if ($vendor_id) {
         <div style="padding: 32px;">
             <div id="productRepeater">
                 <div class="product-group">
+                    <div class="product-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                        <span class="product-title"></span>
+                        <span class="remove-product-btn"
+                            style="display:none;cursor:pointer;color:#000;font-size:16px;font-weight:normal;"
+                            onclick="removeProductGroup(this)">
+                            Remove Product <span style="color:#1C549E;font-size:20px;font-weight:bold;vertical-align:middle;">&#10005;</span>
+                        </span>
+                    </div>
                     <div class="outer02">
                         <div class="trial1" style="position:relative;">
-                            <input type="text" id="productSearch_0" class="input02 productSearch" autocomplete="off" onkeyup="filterProducts(this)" onclick="showProductDropdown(this)" required>
-                            <select id="productSelect_0" name="product_serial[]" class="input02 productSelect" style="display:none;" onchange="autofillProductDetails(this); newProductCheck(this);" required>
+                            <input type="text" id="productSearch_0" class="input02 productSearch" autocomplete="off" onkeyup="filterProducts(this)" onclick="showProductDropdown(this)">
+                            <select id="productSelect_0" name="product_serial[]" class="input02 productSelect" style="display:none;" onchange="autofillProductDetails(this); newProductCheck(this);">
                                 <option value="" disabled selected>Select Product</option>
                                 <option value="new_product">New Product</option>
                             </select>
@@ -310,15 +394,15 @@ if ($vendor_id) {
                             <label class="placeholder2">Product Serial Number/Code</label>
                         </div>
                         <div class="trial1 hidden newProductDiv">
-                            <input type="text" name="new_product_serial[]" class="input02" required>
+                            <input type="text" name="new_product_serial[]" class="input02">
                             <label class="placeholder2">New Product Serial/Code</label>
                         </div>
                         <div class="trial1">
-                            <input type="text" class="input02 product_name" name="product_name[]" required>
+                            <input type="text" class="input02 product_name" name="product_name[]">
                             <label class="placeholder2">Product Name (Code HSN/SAC)</label>
                         </div>
                         <div class="trial1">
-                            <select class="input02 product_uom" name="product_uom[]" required>
+                            <select class="input02 product_uom" name="product_uom[]">
                                 <option value="" disabled selected>Select UoM</option>
                                 <option value="set">Set</option>
                                 <option value="nos">Nos</option>
@@ -329,22 +413,22 @@ if ($vendor_id) {
                             <label class="placeholder2">UoM (Unit of Measurement)</label>
                         </div>
                         <div class="trial1">
-                            <input type="number" step="0.01" min="0" class="input02 unit_price" name="unit_price[]" oninput="calcProductPrice(this)" required>
+                            <input type="number" step="0.01" min="0" class="input02 unit_price" name="unit_price[]" oninput="calcProductPrice(this)">
                             <label class="placeholder2">Unit Price</label>
                         </div>
                         <div class="trial1">
-                            <input type="number" step="1" min="1" class="input02 qty" name="qty[]" oninput="calcProductPrice(this)" required>
+                            <input type="number" step="1" min="1" class="input02 qty" name="qty[]" oninput="calcProductPrice(this)">
                             <label class="placeholder2">Qty</label>
                         </div>
                         <div class="trial1">
-                            <input type="number" step="0.01" min="0" class="input02 price" name="price[]" readonly style="background:#e9ecef;" required>
+                            <input type="number" step="0.01" min="0" class="input02 price" name="price[]" readonly style="background:#e9ecef;">
                             <label class="placeholder2">Price (Unit Price × Qty)</label>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="addbuttonicon" id="addProductBtnContainer">
-                <i id="addProductBtn" onclick="$('#addProductBtn').trigger('click');" class="bi bi-plus-circle">Add Another Product</i>
+                <i id="addProductBtn" class="bi bi-plus-circle" style="cursor:pointer;">Add Another Product</i>
             </div>
             <div class="fulllength" id="quotationnextback" style="margin-top:16px;">
                 <button class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
@@ -405,23 +489,23 @@ if ($vendor_id) {
         <div style="padding: 32px;">
             <div class="outer02" style="margin-top:0;">
                 <div class="trial1">
-                    <input type="text" name="billto" id="billto" class="input02" value="<?php echo htmlspecialchars($billto_detail['companyname'] ?? ''); ?>" required>
+                    <input type="text" name="billto" id="billto" class="input02" value="<?php echo htmlspecialchars($billto_detail['companyname'] ?? ''); ?>">
                     <label class="placeholder2">Bill To (Company Name)</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="billto_address" id="billto_address" class="input02" value="<?php echo htmlspecialchars($billto_detail['company_address'] ?? ''); ?>" required>
+                    <input type="text" name="billto_address" id="billto_address" class="input02" value="<?php echo htmlspecialchars($billto_detail['company_address'] ?? ''); ?>">
                     <label class="placeholder2">Address</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="billto_gstn" class="input02" required>
+                    <input type="text" name="billto_gstn" class="input02">
                     <label class="placeholder2">GSTN</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="billto_pan" class="input02" required>
+                    <input type="text" name="billto_pan" class="input02">
                     <label class="placeholder2">PAN</label>
                 </div>
                 <div class="trial1" style="position:relative;">
-                    <select name="billto_contactperson" id="billto_contactperson" class="input02" required>
+                    <select name="billto_contactperson" id="billto_contactperson" class="input02">
                         <option value="" disabled selected>Select Contact Person</option>
                         <?php foreach ($team_contacts as $c): ?>
                             <option value="<?php echo htmlspecialchars($c['name']); ?>"><?php echo htmlspecialchars($c['name']); ?></option>
@@ -430,7 +514,7 @@ if ($vendor_id) {
                     <label class="placeholder2">Contact Person</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="billto_contactno" id="billto_contactno" class="input02" required>
+                    <input type="text" name="billto_contactno" id="billto_contactno" class="input02">
                     <label class="placeholder2">Contact No</label>
                 </div>
             </div>
@@ -494,23 +578,23 @@ if ($vendor_id) {
         <div style="padding: 32px;">
             <div class="outer02" style="margin-top:0;">
                 <div class="trial1">
-                    <input type="text" name="shipto" class="input02" required>
+                    <input type="text" name="shipto" class="input02"value="<?php echo htmlspecialchars($billto_detail['companyname'] ?? ''); ?>">
                     <label class="placeholder2">Ship To (Company Name)</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="shipto_address" id="shipto_address" class="input02" value="<?php echo htmlspecialchars($billto_detail['company_address'] ?? ''); ?>" required>
+                    <input type="text" name="shipto_address" id="shipto_address" class="input02" value="<?php echo htmlspecialchars($billto_detail['company_address'] ?? ''); ?>">
                     <label class="placeholder2">Address</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="shipto_gstn" class="input02" required>
+                    <input type="text" name="shipto_gstn" class="input02">
                     <label class="placeholder2">GSTN</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="placeofsupply" class="input02" required>
+                    <input type="text" name="placeofsupply" class="input02">
                     <label class="placeholder2">Place of Supply</label>
                 </div>
                 <div class="trial1" style="position:relative;">
-                    <select name="shipto_contactperson" id="shipto_contactperson" class="input02" required>
+                    <select name="shipto_contactperson" id="shipto_contactperson" class="input02">
                         <option value="" disabled selected>Select Contact Person</option>
                         <?php foreach ($team_contacts as $c): ?>
                             <option value="<?php echo htmlspecialchars($c['name']); ?>"><?php echo htmlspecialchars($c['name']); ?></option>
@@ -519,7 +603,7 @@ if ($vendor_id) {
                     <label class="placeholder2">Contact Person</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" name="shipto_contactno" id="shipto_contactno" class="input02" required>
+                    <input type="text" name="shipto_contactno" id="shipto_contactno" class="input02">
                     <label class="placeholder2">Contact No</label>
                 </div>
             </div>
@@ -871,10 +955,46 @@ function calcProductPrice(input) {
 
 // Product repeater logic (max 5)
 let productCount = 1;
+const maxProducts = 5;
+
+function updateProductHeaders() {
+    $('#productRepeater .product-group').each(function(idx) {
+        let title = "Add Product Details";
+        if (idx === 0) title = "Add Product Details";
+        else title = `Add ${ordinal(idx+1)} Product Details`;
+        $(this).find('.product-header > .product-title').text(title);
+        // Show cross only if not the first group
+        if (idx === 0) {
+            $(this).find('.product-header > .remove-product-btn').hide();
+        } else {
+            $(this).find('.product-header > .remove-product-btn').show();
+        }
+    });
+}
+
+function ordinal(n) {
+    if (n === 1) return "First";
+    if (n === 2) return "Second";
+    if (n === 3) return "Third";
+    if (n === 4) return "Fourth";
+    if (n === 5) return "Fifth";
+    return n + "th";
+}
+
+function removeProductGroup(btn) {
+    $(btn).closest('.product-group').remove();
+    productCount--;
+    updateProductHeaders();
+    if (productCount < maxProducts) {
+        $('#addProductBtn').show();
+    }
+}
+
 $('#addProductBtn').on('click', function() {
-    if (productCount >= 5) return;
+    if (productCount >= maxProducts) return;
     let $first = $('#productRepeater .product-group').first();
     let $clone = $first.clone(true, true);
+
     // Reset all input values in the clone
     $clone.find('input, select').each(function() {
         if ($(this).is('select')) {
@@ -883,14 +1003,36 @@ $('#addProductBtn').on('click', function() {
             $(this).val('');
         }
     });
+
     // Update IDs for new group
     $clone.find('.productSearch').attr('id', 'productSearch_' + productCount);
     $clone.find('.productSelect').attr('id', 'productSelect_' + productCount);
     $clone.find('.productSuggestions').attr('id', 'productSuggestions_' + productCount);
+
     // Hide newProductDiv by default
     $clone.find('.newProductDiv').addClass('hidden');
+
+    // Show remove button for all except the first
+    $clone.find('.remove-product-btn').show();
+
+    // Insert the new group
     $('#productRepeater').append($clone);
+
     productCount++;
+    updateProductHeaders();
+
+    // Hide add button if max reached
+    if (productCount >= maxProducts) {
+        $('#addProductBtn').hide();
+    }
+});
+
+// On page load, set header and remove button visibility
+$(function() {
+    updateProductHeaders();
+    if (productCount >= maxProducts) {
+        $('#addProductBtn').hide();
+    }
 });
 
 // Validate required fields before moving to next section
@@ -948,6 +1090,34 @@ function showContactSection() {
     document.getElementById('shipToSection').classList.remove('active');
     document.getElementById('shipToSection').classList.add('hidden');
 }
+
+// Only validate required fields in the visible section on submit
+$('#vendorPOForm').on('submit', function(e) {
+    // Remove required from all hidden fields
+    $('.form-section.hidden [required]').each(function() {
+        $(this).removeAttr('required').addClass('was-required');
+    });
+    // Validate only visible required fields
+    let valid = true;
+    $('.form-section.active [required]').each(function() {
+        if (!$(this).val()) {
+            $(this).addClass('input-error');
+            valid = false;
+        } else {
+            $(this).removeClass('input-error');
+        }
+    });
+    if (!valid) {
+        e.preventDefault();
+        // Restore required to hidden fields immediately
+        $('.was-required').attr('required', true).removeClass('was-required');
+        return false;
+    }
+    // Restore required to hidden fields after short delay (for next submit)
+    setTimeout(function() {
+        $('.was-required').attr('required', true).removeClass('was-required');
+    }, 100);
+});
 </script>
 </body>
 </html>
