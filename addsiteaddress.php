@@ -10,11 +10,12 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['clientsubmit'])){
     $siteaddress=$_POST['siteaddress'];
     $sitestate=$_POST['sitestate'];
     $heading=$_POST['heading'];
+    $kam = $_POST['handled_by'];
 
     $sql="INSERT INTO `site_office`( `companyname`, `clientid`,
-     `clientname`, `address`, `heading`, `state`) 
+     `clientname`, `address`, `heading`, `state`,`KAM`) 
      VALUES ('$companyname001','$clientid','$clientname',
-     '$siteaddress','$heading','$sitestate')";
+     '$siteaddress','$heading','$sitestate','$kam')";
      $result=mysqli_query($conn,$sql);
      if($result){
         session_start();

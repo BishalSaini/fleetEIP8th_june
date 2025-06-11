@@ -2507,7 +2507,8 @@ else{
     <option <?php if(isset($lastrow['quote_validity']) && $lastrow['quote_validity']==='15 days'){ echo 'selected';}?> value="15 days">15 Days</option>
     <option <?php if(isset($lastrow['quote_validity']) && $lastrow['quote_validity']==='30 days'){ echo 'selected';}?> value="30 days">30 Days</option>
 </select></p>
-<p class="terms_condition"><textarea id="custom_terms_textarea" name="custom" cols="30" rows="5" class="terms_textarea" id=""><?php if(isset($row_custom['custom_terms']) ){ echo $row_custom['custom_terms'];} else{ echo "26.Custom Terms And Condition To Be Written Here If Any If Not Clear The Text" ;}  ?> </textarea></p>
+<p class="terms_condition"><Strong>26.Machine Stoppage Policy :</Strong>If the machine is stopped for any reason not caused by us, including payment delays or site issues, the rental charges will continue during the stoppage period until the machine resumes work.</p>
+<p class="terms_condition"><textarea id="custom_terms_textarea" name="custom" cols="30" rows="5" class="terms_textarea" id=""><?php if(isset($row_custom['custom_terms']) ){ echo $row_custom['custom_terms'];} else{ echo "27.Custom Terms And Condition To Be Written Here If Any If Not Clear The Text" ;}  ?> </textarea></p>
 
 
     </div>
