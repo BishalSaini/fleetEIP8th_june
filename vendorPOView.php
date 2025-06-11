@@ -160,7 +160,7 @@ $stmt_vendors->close();
         <div class="vendorpo-btn-container">
             <h2>Vendor Purchase Orders</h2>
             <button class="vendorpo-btn" onclick="window.location.href='vendorPO.php'">
-                <i class="bi bi-plus-circle"></i> Add Product
+                <i class="bi bi-plus-circle"></i> Generate PO
             </button>
         </div>
         <table class="vendorpo-table">

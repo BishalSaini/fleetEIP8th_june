@@ -107,7 +107,7 @@ if (count($all_vendors) > 0) { ?>
         }
 
         echo '<td>
-        <a href="vendorRegionalOffice.php?id=' . urlencode($id) . '" class="custom-card-link" target="_blank">
+        <a href="vendorRegionalOffice.php?id=' . urlencode($id) . '" class="custom-card-link">
             <div class="custom-card" id="requirement_club">
                 <h3 class="custom-card__title">' . htmlspecialchars($row['vendor_name']) . '</h3>
                 <p class="insidedetails">Category: ' . htmlspecialchars($row['vendor_category']) . '</p>
