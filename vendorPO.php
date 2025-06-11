@@ -15,6 +15,18 @@ while ($row = $result_vendors->fetch_assoc()) {
 }
 $stmt_vendors->close();
 
+// Autofill Contact Person and Contact No from team_members table
+$team_contacts = [];
+$sql_team = "SELECT name, mob_number FROM team_members WHERE company_name = ?";
+$stmt_team = $conn->prepare($sql_team);
+$stmt_team->bind_param("s", $companyname);
+$stmt_team->execute();
+$result_team = $stmt_team->get_result();
+while ($row = $result_team->fetch_assoc()) {
+    $team_contacts[] = $row;
+}
+$stmt_team->close();
+
 // Handle form submission
 $showSuccess = false;
 $showError = false;
@@ -107,6 +119,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $stmt->close();
     }
+
+    // --- Insert new contact person into vendor_regional_office if needed ---
+    // Only if "New Contact Person" was selected and a name was entered
+    // Use $vendor_id (if existing) or get the new vendor's id if created
+    $contact_person_to_save = $_POST['contact_person'] ?? '';
+    $is_new_contact = false;
+    if (isset($_POST['contact_person']) && !empty($_POST['contact_person'])) {
+        // If the contact_person is not in the select options, it's a new one (input field)
+        // Or if the select value is "new_contact" and a new name is entered
+        if (
+            (isset($_POST['contact_person']) && isset($_POST['new_contact_person']) && !empty($_POST['new_contact_person']))
+            || (isset($_POST['contact_person']) && !in_array($_POST['contact_person'], array_column($team_contacts, 'name')))
+        ) {
+            $is_new_contact = true;
+            $contact_person_to_save = $_POST['new_contact_person'] ?? $_POST['contact_person'];
+        }
+    }
+
+    // If new vendor, get its id (after insert)
+    if ($vendor_id === null && !empty($new_vendor_name)) {
+        // Try to get the vendor id by name and company
+        $stmt = $conn->prepare("SELECT id FROM vendors WHERE vendor_name = ? AND companyname = ? ORDER BY id DESC LIMIT 1");
+        $stmt->bind_param("ss", $new_vendor_name, $companyname);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $vendor_id_for_office = $row['id'];
+        } else {
+            $vendor_id_for_office = null;
+        }
+        $stmt->close();
+    } else {
+        $vendor_id_for_office = $vendor_id;
+    }
+
+    if ($is_new_contact && $vendor_id_for_office) {
+        // Insert into vendor_regional_office
+        $office_address_to_save = $_POST['office_address'] ?? '';
+        $contact_number_to_save = $_POST['contact_number'] ?? '';
+        $contact_email_to_save = $_POST['contact_email'] ?? '';
+        $state_to_save = ''; // You can add a field for state in the form if needed
+
+        $stmt = $conn->prepare("INSERT INTO vendor_regional_office (vendor_id, office_address, state, contact_person, contact_number, contact_email) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param(
+            "isssss",
+            $vendor_id_for_office,
+            $office_address_to_save,
+            $state_to_save,
+            $contact_person_to_save,
+            $contact_number_to_save,
+            $contact_email_to_save
+        );
+        $stmt->execute();
+        $stmt->close();
+    }
+
     header("Location: vendorPOView.php?success=1");
     exit();
 }
@@ -130,18 +198,6 @@ if ($table_exists) {
     }
     $stmt_basic->close();
 }
-
-// Autofill Contact Person and Contact No from team_members table
-$team_contacts = [];
-$sql_team = "SELECT name, mob_number FROM team_members WHERE company_name = ?";
-$stmt_team = $conn->prepare($sql_team);
-$stmt_team->bind_param("s", $companyname);
-$stmt_team->execute();
-$result_team = $stmt_team->get_result();
-while ($row = $result_team->fetch_assoc()) {
-    $team_contacts[] = $row;
-}
-$stmt_team->close();
 
 // Fetch vendor products for autocomplete (for the logged-in company)
 // Add qty to the select
@@ -261,7 +317,7 @@ if ($vendor_id) {
                     </select>
                 </div>
                 <div class="trial1" id='officetypeouter'>
-                    <!-- If you want to add office type for vendor, add here -->
+                  
                 </div>
             </div>
             <div class="outer02">
@@ -522,7 +578,7 @@ if ($vendor_id) {
         <div style="padding: 32px;">
             <div class="outer02" style="margin-top:0;">
                 <div class="trial1">
-                    <input type="text" name="shipto" class="input02">
+                    <input type="text" name="shipto" class="input02"value="<?php echo htmlspecialchars($billto_detail['companyname'] ?? ''); ?>">
                     <label class="placeholder2">Ship To (Company Name)</label>
                 </div>
                 <div class="trial1">
