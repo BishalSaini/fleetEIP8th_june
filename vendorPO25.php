@@ -224,15 +224,12 @@ if ($vendor_id) {
     <meta charset="UTF-8">
     <title>Vendor Purchase Order</title>
     <link rel="stylesheet" href="style.css"> 
-        <style><?php include "style.css" ?></style> 
-        
- <style>
+        <style><?php include "style.css" ?></style>
+    <style>
         /* Use the same layout and field styles as generate_quotation.php */
         .vendorform { max-width: 700px; margin: 40px auto; background: #fafbfc; border: 1px solid #ddd; border-radius: 8px; padding: 32px 32px 24px 32px; }
-        .headingpara { background: #2253a3; color: #fff; padding: 16px 0 12px 18px; border-radius: 2px 2px 0 0; margin: -16px -16px 24px -16px; font-size: 1.15rem; font-weight: 600; }
-        .outer02 { display: flex; gap: 18px; flex-wrap: wrap; }
-        .trial1 { flex: 1 1 220px; margin-bottom: 18px; position: relative; display: flex; flex-direction: column; }
-        .input02, select { width: 100%; padding: 8px; font-size: 1.1rem; border: 1px solid #ccc; border-radius: 4px; }
+       
+        . select { width: 100%; padding: 8px; font-size: 1.1rem; border: 1px solid #ccc; border-radius: 4px; }
         .placeholder2 { font-weight: 500; margin-bottom: 4px; display: block; }
         .suggestions { border: 1px solid #ccc; background: #fff; position: absolute; z-index: 10; width: 100%; max-height: 180px; overflow-y: auto; }
         .suggestion-item { padding: 8px; cursor: pointer; }
@@ -245,15 +242,7 @@ if ($vendor_id) {
         .form-section.hidden { display: none; }
         .form-section.active { display: block; }
         /* Add a little spacing for product group */
-        .product-group {
-            border: 1px solid white;
-            border-radius: 6px;
-            margin-bottom: 22px; 
-            margin-left:120px;
-            padding: 12px 12px 0 12px;
-            background: white;
-            position: relative;
-        }
+
         .product-header {
             margin-bottom: 10px;
         }
@@ -295,8 +284,7 @@ if ($vendor_id) {
 <form action="" method="POST" id="vendorPOForm" class="generate_quotation" autocomplete="off" enctype="multipart/form-data">
     <div id="contactSection" class="generate_quote_container active">
         <div id="contactpersonsectioncontainer" >
-            <p class="headingpara" style="background: #2253a3; color: #fff; padding: 18px 0 14px 32px; border-radius: 8px 8px 0 0; margin: 0; font-size: 1.25rem; font-weight: 600; box-sizing: border-box;"> Vendor Contact Details</p> 
-            <br> 
+            <p class="headingpara" >Vendor Contact Details</p>
             <div class="outer02" id="quoteouter02">
                 <div class="trial1" id="newrentalclient">
                     <input type="text" name="new_vendor_name" class="input02" placeholder="New Vendor Name">
@@ -370,71 +358,337 @@ if ($vendor_id) {
         </div>
     </div>  
 
-    <!-- ===================== ADD PRODUCT SECTION ===================== -->
-    <div id="productSection" class="generate_quote_container form-section hidden">
-        <div class="headingpara" style="background: #2253a3; color: #fff; padding: 18px 0 14px 32px; border-radius: 8px 8px 0 0; margin: 0; font-size: 1.25rem; font-weight: 600; box-sizing: border-box;">
-            Product Information
+  
+<!-- First row -->
+     <div id="equipmentinfosectioncontainer">
+        <p class="headingpara">Product Information</p> 
+        <div class="outer02 product-outer">
+    <div class="trial1">
+        <input type="text" class="input02 productSearch" autocomplete="off" onkeyup="filterProducts(this)" onclick="showProductDropdown(this)">
+        <select name="product_serial[]" class="input02 productSelect" style="display:none;" onchange="autofillProductDetails(this); newProductCheck(this);">
+            <option value="" disabled selected>Select Product</option>
+            <option value="new_product">New Product</option>
+        </select>
+        <div class="suggestions productSuggestions" style="display:none; position:absolute; z-index:100;"></div>
+        <label class="placeholder2">Product Serial Number/Code</label>
+    </div>
+    <div class="trial1">
+        <div class="trial1 hidden newProductDiv">
+            <input type="text" name="new_product_serial[]" class="input02">
+            <label class="placeholder2">New Product Serial/Code</label>
         </div>
-        <div style="padding: 32px;">
-            <div id="productRepeater">
-                <div class="product-group">
-                    <div class="product-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                        <span class="product-title"></span>
-                        <span class="remove-product-btn"
-                            style="display:none;cursor:pointer;color:#000;font-size:16px;font-weight:normal;"
-                            onclick="removeProductGroup(this)">
-                            Remove Product <span style="color:#1C549E;font-size:20px;font-weight:bold;vertical-align:middle;">&#10005;</span>
-                        </span>
-                    </div>
-                    <div class="outer02">
-                        <div class="trial1" style="position:relative;">
-                            <input type="text" id="productSearch_0" class="input02 productSearch" autocomplete="off" onkeyup="filterProducts(this)" onclick="showProductDropdown(this)">
-                            <select id="productSelect_0" name="product_serial[]" class="input02 productSelect" style="display:none;" onchange="autofillProductDetails(this); newProductCheck(this);">
-                                <option value="" disabled selected>Select Product</option>
-                                <option value="new_product">New Product</option>
-                            </select>
-                            <div class="suggestions productSuggestions" style="display:none;"></div>
-                            <label class="placeholder2">Product Serial Number/Code</label>
-                        </div>
-                        <div class="trial1 hidden newProductDiv">
-                            <input type="text" name="new_product_serial[]" class="input02">
-                            <label class="placeholder2">New Product Serial/Code</label>
-                        </div>
-                        <div class="trial1">
-                            <input type="text" class="input02 product_name" name="product_name[]">
-                            <label class="placeholder2">Product Name (Code HSN/SAC)</label>
-                        </div>
-                        <div class="trial1">
-                            <select class="input02 product_uom" name="product_uom[]">
-                                <option value="" disabled selected>Select UoM</option>
-                                <option value="set">Set</option>
-                                <option value="nos">Nos</option>
-                                <option value="kgs">Kgs</option>
-                                <option value="meter">Meter</option>
-                                <option value="litre">Litre</option>
-                            </select>
-                            <label class="placeholder2">UoM (Unit of Measurement)</label>
-                        </div>
-                        <div class="trial1">
-                            <input type="number" step="0.01" min="0" class="input02 unit_price" name="unit_price[]" oninput="calcProductPrice(this)">
-                            <label class="placeholder2">Unit Price</label>
-                        </div>
-                        <div class="trial1">
-                            <input type="number" step="1" min="1" class="input02 qty" name="qty[]" oninput="calcProductPrice(this)">
-                            <label class="placeholder2">Qty</label>
-                        </div>
-                        <div class="trial1">
-                            <input type="number" step="0.01" min="0" class="input02 price" name="price[]" readonly style="background:#e9ecef;">
-                            <label class="placeholder2">Price (Unit Price × Qty)</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="addbuttonicon" id="addProductBtnContainer">
-                <i id="addProductBtn" class="bi bi-plus-circle" style="cursor:pointer;">Add Another Product</i>
-            </div>
-            <div class="fulllength" id="quotationnextback" style="margin-top:16px;">
-                <button class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
+        <div class="trial1">
+            <input type="text" class="input02 product_name" name="product_name[]">
+            <label class="placeholder2">Product Name (Code HSN/SAC)</label>
+        </div>
+    </div>
+    <div class="trial1">
+        <select class="input02 product_uom" name="product_uom[]">
+            <option value="" disabled selected>Select UoM</option>
+            <option value="set">Set</option>
+            <option value="nos">Nos</option>
+            <option value="kgs">Kgs</option>
+            <option value="meter">Meter</option>
+            <option value="litre">Litre</option>
+        </select>
+        <label class="placeholder2">UoM (Unit of Measurement)</label>
+    </div>
+</div> 
+
+<div class="trial1">
+        <select class="input02 product_uom" name="product_uom[]">
+            <option value="" disabled selected>Select UoM</option>
+            <option value="set">Set</option>
+            <option value="nos">Nos</option>
+            <option value="kgs">Kgs</option>
+            <option value="meter">Meter</option>
+            <option value="litre">Litre</option>
+        </select>
+        <label class="placeholder2">UoM (Unit of Measurement)</label>
+    </div> 
+</div>
+        <div class="outer02 product-outer">
+    <div class="trial1">
+        <input type="number" step="0.01" min="0" class="input02 unit_price" name="unit_price[]" oninput="calcProductPrice(this)">
+        <label class="placeholder2">Unit Price</label>
+    </div>
+    <div class="trial1">
+        <input type="number" step="1" min="1" class="input02 qty" name="qty[]" oninput="calcProductPrice(this)">
+        <label class="placeholder2">Qty</label>
+    </div>
+    <div class="trial1">
+        <input type="number" step="0.01" min="0" class="input02 price" name="price[]" readonly style="background:#e9ecef;">
+        <label class="placeholder2">Price (Unit Price × Qty)</label>
+    </div>
+</div> 
+    <div class="addbuttonicon" id="second_addequipbtn"><i onclick="other_quotation()"  class="bi bi-plus-circle">Add Another Equipment</i></div>
+    <div class="otherquipquote" id="new_out1">
+        <br> 
+
+        <!-- Secondrow -->
+        <p class="add_second_equipment_generate">Add Second Equipment Details <i onclick="cancelsecondequipment()" class="bi bi-x icon-cancel"></i></p> 
+            <div class="outer02 product-outer">
+    <div class="trial1">
+        <input type="text" class="input02 productSearch" autocomplete="off" onkeyup="filterProducts(this)" onclick="showProductDropdown(this)">
+        <select name="product_serial[]" class="input02 productSelect" style="display:none;" onchange="autofillProductDetails(this); newProductCheck(this);">
+            <option value="" disabled selected>Select Product</option>
+            <option value="new_product">New Product</option>
+        </select>
+        <div class="suggestions productSuggestions" style="display:none; position:absolute; z-index:100;"></div>
+        <label class="placeholder2">Product Serial Number/Code</label>
+    </div>
+    <div class="trial1">
+        <div class="trial1 hidden newProductDiv">
+            <input type="text" name="new_product_serial[]" class="input02">
+            <label class="placeholder2">New Product Serial/Code</label>
+        </div>
+        <div class="trial1">
+            <input type="text" class="input02 product_name" name="product_name[]">
+            <label class="placeholder2">Product Name (Code HSN/SAC)</label>
+        </div>
+    </div>
+    <div class="trial1">
+        <select class="input02 product_uom" name="product_uom[]">
+            <option value="" disabled selected>Select UoM</option>
+            <option value="set">Set</option>
+            <option value="nos">Nos</option>
+            <option value="kgs">Kgs</option>
+            <option value="meter">Meter</option>
+            <option value="litre">Litre</option>
+        </select>
+        <label class="placeholder2">UoM (Unit of Measurement)</label>
+    </div>
+</div> 
+
+<div class="trial1">
+        <select class="input02 product_uom" name="product_uom[]">
+            <option value="" disabled selected>Select UoM</option>
+            <option value="set">Set</option>
+            <option value="nos">Nos</option>
+            <option value="kgs">Kgs</option>
+            <option value="meter">Meter</option>
+            <option value="litre">Litre</option>
+        </select>
+        <label class="placeholder2">UoM (Unit of Measurement)</label>
+    </div>
+</div>
+        <div class="outer02 product-outer">
+    <div class="trial1">
+        <input type="number" step="0.01" min="0" class="input02 unit_price" name="unit_price[]" oninput="calcProductPrice(this)">
+        <label class="placeholder2">Unit Price</label>
+    </div>
+    <div class="trial1">
+        <input type="number" step="1" min="1" class="input02 qty" name="qty[]" oninput="calcProductPrice(this)">
+        <label class="placeholder2">Qty</label>
+    </div>
+    <div class="trial1">
+        <input type="number" step="0.01" min="0" class="input02 price" name="price[]" readonly style="background:#e9ecef;">
+        <label class="placeholder2">Price (Unit Price × Qty)</label>
+    </div>
+</div> 
+        <div class="addbuttonicon" id="third_addequipbtn"><i onclick="third_vehicle()"  class="bi bi-plus-circle">Add Another Equipment</i></div>
+        </div>
+
+
+    <!-- thirdrow -->
+    <div class="otherquipquote" id="thirdvehicledetail">
+        <br>
+        <p class="add_second_equipment_generate">Add Third Equipment Details <i onclick="cancelthirdequipment()" title="cancel" class="bi bi-x icon-cancel"></i></p> 
+           <div class="outer02 product-outer">
+    <div class="trial1">
+        <input type="text" class="input02 productSearch" autocomplete="off" onkeyup="filterProducts(this)" onclick="showProductDropdown(this)">
+        <select name="product_serial[]" class="input02 productSelect" style="display:none;" onchange="autofillProductDetails(this); newProductCheck(this);">
+            <option value="" disabled selected>Select Product</option>
+            <option value="new_product">New Product</option>
+        </select>
+        <div class="suggestions productSuggestions" style="display:none; position:absolute; z-index:100;"></div>
+        <label class="placeholder2">Product Serial Number/Code</label>
+    </div>
+    <div class="trial1">
+        <div class="trial1 hidden newProductDiv">
+            <input type="text" name="new_product_serial[]" class="input02">
+            <label class="placeholder2">New Product Serial/Code</label>
+        </div>
+        <div class="trial1">
+            <input type="text" class="input02 product_name" name="product_name[]">
+            <label class="placeholder2">Product Name (Code HSN/SAC)</label>
+        </div>
+    </div>
+    <div class="trial1">
+        <select class="input02 product_uom" name="product_uom[]">
+            <option value="" disabled selected>Select UoM</option>
+            <option value="set">Set</option>
+            <option value="nos">Nos</option>
+            <option value="kgs">Kgs</option>
+            <option value="meter">Meter</option>
+            <option value="litre">Litre</option>
+        </select>
+        <label class="placeholder2">UoM (Unit of Measurement)</label>
+    </div>
+</div> 
+
+<div class="trial1">
+        <select class="input02 product_uom" name="product_uom[]">
+            <option value="" disabled selected>Select UoM</option>
+            <option value="set">Set</option>
+            <option value="nos">Nos</option>
+            <option value="kgs">Kgs</option>
+            <option value="meter">Meter</option>
+            <option value="litre">Litre</option>
+        </select>
+        <label class="placeholder2">UoM (Unit of Measurement)</label>
+    </div>
+</div>
+        <div class="outer02 product-outer">
+    <div class="trial1">
+        <input type="number" step="0.01" min="0" class="input02 unit_price" name="unit_price[]" oninput="calcProductPrice(this)">
+        <label class="placeholder2">Unit Price</label>
+    </div>
+    <div class="trial1">
+        <input type="number" step="1" min="1" class="input02 qty" name="qty[]" oninput="calcProductPrice(this)">
+        <label class="placeholder2">Qty</label>
+    </div>
+    <div class="trial1">
+        <input type="number" step="0.01" min="0" class="input02 price" name="price[]" readonly style="background:#e9ecef;">
+        <label class="placeholder2">Price (Unit Price × Qty)</label>
+    </div>
+</div> 
+        <div class="addbuttonicon" id="fourth_addequipbtn"><i onclick="fourth_quotation()"  class="bi bi-plus-circle">Add Another Equipment</i></div>
+        </div>
+
+
+    <!-- fourthrow -->
+    <div class="otherquipquote" id="fouthvehicledata">
+        <br>
+        <p class="add_second_equipment_generate">Add Fourth Equipment Details <i onclick="cancelfourthequipment()" class="bi bi-x icon-cancel"></i></p> 
+           <div class="outer02 product-outer">
+    <div class="trial1">
+        <input type="text" class="input02 productSearch" autocomplete="off" onkeyup="filterProducts(this)" onclick="showProductDropdown(this)">
+        <select name="product_serial[]" class="input02 productSelect" style="display:none;" onchange="autofillProductDetails(this); newProductCheck(this);">
+            <option value="" disabled selected>Select Product</option>
+            <option value="new_product">New Product</option>
+        </select>
+        <div class="suggestions productSuggestions" style="display:none; position:absolute; z-index:100;"></div>
+        <label class="placeholder2">Product Serial Number/Code</label>
+    </div>
+    <div class="trial1">
+        <div class="trial1 hidden newProductDiv">
+            <input type="text" name="new_product_serial[]" class="input02">
+            <label class="placeholder2">New Product Serial/Code</label>
+        </div>
+        <div class="trial1">
+            <input type="text" class="input02 product_name" name="product_name[]">
+            <label class="placeholder2">Product Name (Code HSN/SAC)</label>
+        </div>
+    </div>
+    <div class="trial1">
+        <select class="input02 product_uom" name="product_uom[]">
+            <option value="" disabled selected>Select UoM</option>
+            <option value="set">Set</option>
+            <option value="nos">Nos</option>
+            <option value="kgs">Kgs</option>
+            <option value="meter">Meter</option>
+            <option value="litre">Litre</option>
+        </select>
+        <label class="placeholder2">UoM (Unit of Measurement)</label>
+    </div>
+</div> 
+
+<div class="trial1">
+        <select class="input02 product_uom" name="product_uom[]">
+            <option value="" disabled selected>Select UoM</option>
+            <option value="set">Set</option>
+            <option value="nos">Nos</option>
+            <option value="kgs">Kgs</option>
+            <option value="meter">Meter</option>
+            <option value="litre">Litre</option>
+        </select>
+        <label class="placeholder2">UoM (Unit of Measurement)</label>
+    </div>
+</div>
+        <div class="outer02 product-outer">
+    <div class="trial1">
+        <input type="number" step="0.01" min="0" class="input02 unit_price" name="unit_price[]" oninput="calcProductPrice(this)">
+        <label class="placeholder2">Unit Price</label>
+    </div>
+    <div class="trial1">
+        <input type="number" step="1" min="1" class="input02 qty" name="qty[]" oninput="calcProductPrice(this)">
+        <label class="placeholder2">Qty</label>
+    </div>
+    <div class="trial1">
+        <input type="number" step="0.01" min="0" class="input02 price" name="price[]" readonly style="background:#e9ecef;">
+        <label class="placeholder2">Price (Unit Price × Qty)</label>
+    </div>
+</div> 
+        <div class="addbuttonicon" id="fifth_addequipbtn"><i onclick="fifth_quotation()"  class="bi bi-plus-circle">Add Another Equipment</i></div>
+
+        <!-- <div class="addbuttonicon" id="lastaddequipbtn"><i onclick="addanother_equip()"  class="bi bi-plus-circle"></i><p>Add Another Equipment</p></div> -->
+        </div>
+
+    <!-- fifthrow -->
+            <div class="outer02 product-outer">
+    <div class="trial1">
+        <input type="text" class="input02 productSearch" autocomplete="off" onkeyup="filterProducts(this)" onclick="showProductDropdown(this)">
+        <select name="product_serial[]" class="input02 productSelect" style="display:none;" onchange="autofillProductDetails(this); newProductCheck(this);">
+            <option value="" disabled selected>Select Product</option>
+            <option value="new_product">New Product</option>
+        </select>
+        <div class="suggestions productSuggestions" style="display:none; position:absolute; z-index:100;"></div>
+        <label class="placeholder2">Product Serial Number/Code</label>
+    </div>
+    <div class="trial1">
+        <div class="trial1 hidden newProductDiv">
+            <input type="text" name="new_product_serial[]" class="input02">
+            <label class="placeholder2">New Product Serial/Code</label>
+        </div>
+        <div class="trial1">
+            <input type="text" class="input02 product_name" name="product_name[]">
+            <label class="placeholder2">Product Name (Code HSN/SAC)</label>
+        </div>
+    </div>
+    <div class="trial1">
+        <select class="input02 product_uom" name="product_uom[]">
+            <option value="" disabled selected>Select UoM</option>
+            <option value="set">Set</option>
+            <option value="nos">Nos</option>
+            <option value="kgs">Kgs</option>
+            <option value="meter">Meter</option>
+            <option value="litre">Litre</option>
+        </select>
+        <label class="placeholder2">UoM (Unit of Measurement)</label>
+    </div>
+</div> 
+
+<div class="trial1">
+        <select class="input02 product_uom" name="product_uom[]">
+            <option value="" disabled selected>Select UoM</option>
+            <option value="set">Set</option>
+            <option value="nos">Nos</option>
+            <option value="kgs">Kgs</option>
+            <option value="meter">Meter</option>
+            <option value="litre">Litre</option>
+        </select>
+        <label class="placeholder2">UoM (Unit of Measurement)</label>
+    </div>
+</div>
+        <div class="outer02 product-outer">
+    <div class="trial1">
+        <input type="number" step="0.01" min="0" class="input02 unit_price" name="unit_price[]" oninput="calcProductPrice(this)">
+        <label class="placeholder2">Unit Price</label>
+    </div>
+    <div class="trial1">
+        <input type="number" step="1" min="1" class="input02 qty" name="qty[]" oninput="calcProductPrice(this)">
+        <label class="placeholder2">Qty</label>
+    </div>
+    <div class="trial1">
+        <input type="number" step="0.01" min="0" class="input02 price" name="price[]" readonly style="background:#e9ecef;">
+        <label class="placeholder2">Price (Unit Price × Qty)</label>
+    </div>
+</div> 
+        <!-- <div class="addbuttonicon" id="lastaddequipbtn"><i onclick="addanother_equip()"  class="bi bi-plus-circle"></i><p>Add Another Equipment</p></div> -->
+        </div>
+ <div class="fulllength" id="quotationnextback" style="margin-top:16px;">
+            <button class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
                     type="button" onclick="showContactSection()">
                     <div class="rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
                         style="background-color: #1C549E;">
@@ -456,41 +710,49 @@ if ($vendor_id) {
                     </div>
                     <p class="translate-x-1">Back</p>
                 </button>
-                <button class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
-                    type="button" onclick="showBillToSection()">
-                    <div class="bg-custom-blue rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
-                        style="background-color: #1C549E;" 
-                    >
-                    <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 1024 1024"
-                            height="18px"
-                            width="18px"
-                            transform="rotate(180)" 
-                        >
-                            <path
-                                d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
-                                fill="white" 
-                            ></path>
-                            <path
-                                d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
-                                fill="white" 
-                            ></path>
-                        </svg>
-                    </div>
-                    <p class="translate-x-1" >Next</p>
-                </button>
-            </div>
-        </div>
+
+<button
+  class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
+  type="button" onclick=" showBillToSection()"
+>
+  <div
+    class="bg-custom-blue rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
+    style="background-color: #1C549E;" 
+
+  >
+  <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 1024 1024"
+      height="18px"
+      width="18px"
+      transform="rotate(180)" 
+    >
+      <path
+        d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
+        fill="white" 
+      ></path>
+      <path
+        d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+        fill="white" 
+      ></path>
+    </svg>
+  </div>
+  <p class="translate-x-1" >Next</p>
+</button>
+
+</div>
+<br>
+
+
     </div>
+   
 
     <!-- ===================== BILL TO SECTION ===================== -->
     <div id="billToSection" class="generate_quote_container form-section hidden" > 
          <div id="contactpersonsectioncontainer" >
         <div class="headingpara" style="background: #2253a3; color: #fff; padding: 18px 0 14px 32px; border-radius: 8px 8px 0 0; margin: 0; font-size: 1.25rem; font-weight: 600; box-sizing: border-box;">
             Bill To Details
-        </div> 
-        <br>
+        </div>
             <div class="outer02" id="quoteouter02">
                 <div class="trial1">
                     <input type="text" name="billto" id="billto" class="input02" value="<?php echo htmlspecialchars($billto_detail['companyname'] ?? ''); ?>">
@@ -582,8 +844,7 @@ if ($vendor_id) {
         <div id="contactpersonsectioncontainer" >
         <div class="headingpara" style="background: #2253a3; color: #fff; padding: 18px 0 14px 32px; border-radius: 8px 8px 0 0; margin: 0; font-size: 1.25rem; font-weight: 600; box-sizing: border-box;">
             Ship To Details
-        </div> 
-        <br>
+        </div>
     
             <div class="outer02" style="margin-top:0;">
                 <div class="trial1">
@@ -873,25 +1134,28 @@ $('#shipto_contactperson').on('change', function() {
 });
 
 // --- Product Autocomplete and Autofill ---
+// Use index-based targeting for autofill
 function filterProducts(input) {
-    let $group = $(input).closest('.product-group');
-    let inputVal = $(input).val().toLowerCase();
-    let suggestions = $group.find('.productSuggestions')[0];
-    let $select = $group.find('.productSelect');
+    let $input = $(input);
+    let inputVal = $input.val().toLowerCase();
+    let suggestions = $input.siblings('.productSuggestions')[0];
+    let $select = $input.siblings('.productSelect');
     suggestions.innerHTML = '';
     let found = false;
+
+    // Find the index of this product serial input among all product serials
+    let idx = $('input.productSearch').index($input);
+
     vendorProducts.forEach(function(p) {
         if (
-            (p.product_name && p.product_name.toLowerCase().includes(inputVal)) ||
             (p.product_serial && p.product_serial.toLowerCase().includes(inputVal))
+            || (p.product_name && p.product_name.toLowerCase().includes(inputVal))
         ) {
             let div = document.createElement('div');
             div.className = 'suggestion-item';
-            div.textContent = p.product_name + ' (' + p.product_serial + ')';
+            div.textContent = p.product_serial + (p.product_name ? ' (' + p.product_name + ')' : '');
             div.onclick = function() {
-                // Set input to serial number, not product name
-                $group.find('.productSearch').val(p.product_serial);
-                // Ensure the select has the correct option and is selected
+                $input.val(p.product_serial);
                 let exists = $select.find('option[value="' + p.product_serial + '"]').length > 0;
                 if (!exists) {
                     $select.append($('<option>', {
@@ -901,8 +1165,9 @@ function filterProducts(input) {
                 }
                 $select.val(p.product_serial);
                 $(suggestions).hide();
-                autofillProductFields($group, p);
-                $group.find('.newProductDiv').addClass('hidden');
+                autofillProductFields(idx, p);
+                // Hide newProductDiv for this index
+                $('.newProductDiv').eq(idx).addClass('hidden');
             };
             suggestions.appendChild(div);
             found = true;
@@ -913,140 +1178,66 @@ function filterProducts(input) {
         div.className = 'suggestion-item';
         div.textContent = 'New Product';
         div.onclick = function() {
-            $group.find('.productSearch').val('New Product');
+            $input.val('New Product');
             $select.val('new_product');
             $(suggestions).hide();
-            showNewProductFields($group);
+            showNewProductFields(idx);
         };
         suggestions.appendChild(div);
     }
     suggestions.style.display = inputVal ? 'block' : 'none';
 }
+
 function showProductDropdown(input) {
-    let $group = $(input).closest('.product-group');
-    $group.find('.productSuggestions').show();
+    $(input).siblings('.productSuggestions').show();
 }
-function showNewProductFields($group) {
-    $group.find('.newProductDiv').removeClass('hidden');
-    $group.find('.product_name').val('');
-    $group.find('.product_uom').val('');
-    $group.find('.unit_price').val('');
+
+function showNewProductFields(idx) {
+    $('.newProductDiv').eq(idx).removeClass('hidden');
+    $('input.product_name').eq(idx).val('');
+    $('select.product_uom').eq(idx).val('');
+    $('input.unit_price').eq(idx).val('');
+    $('input.qty').eq(idx).val('');
+    $('input.price').eq(idx).val('');
 }
-function autofillProductFields($group, product) {
-    $group.find('.product_name').val(product.product_name || '');
-    $group.find('.product_uom').val(product.product_uom || '');
-    $group.find('.unit_price').val(product.unit_price || '');
-    $group.find('.qty').val(product.qty || '');
+
+function autofillProductFields(idx, product) {
+    $('input.product_name').eq(idx).val(product.product_name || '');
+    $('select.product_uom').eq(idx).val(product.product_uom || '');
+    $('input.unit_price').eq(idx).val(product.unit_price || '');
+    $('input.qty').eq(idx).val(product.qty || '');
     let unitPrice = parseFloat(product.unit_price) || 0;
     let qty = parseFloat(product.qty) || 0;
-    $group.find('.price').val((unitPrice * qty).toFixed(2));
-    $group.find('.newProductDiv').addClass('hidden');
+    $('input.price').eq(idx).val((unitPrice * qty).toFixed(2));
+    $('.newProductDiv').eq(idx).addClass('hidden');
 }
+
 function newProductCheck(select) {
-    let $group = $(select).closest('.product-group');
-    let val = $(select).val();
-    $group.find('.newProductDiv').toggleClass('hidden', val !== 'new_product');
+    let $select = $(select);
+    let idx = $('select.productSelect').index($select);
+    let val = $select.val();
     if (val === 'new_product') {
-        showNewProductFields($group);
+        showNewProductFields(idx);
     } else {
         let selected = vendorProducts.find(p => p.product_serial == val);
-        if (selected) autofillProductFields($group, selected);
+        if (selected) autofillProductFields(idx, selected);
     }
 }
 function autofillProductDetails(select) {
-    let $group = $(select).closest('.product-group');
-    let val = $(select).val();
+    let $select = $(select);
+    let idx = $('select.productSelect').index($select);
+    let val = $select.val();
     let selected = vendorProducts.find(p => p.product_serial == val);
-    if (selected) autofillProductFields($group, selected);
+    if (selected) autofillProductFields(idx, selected);
 }
 function calcProductPrice(input) {
-    let $group = $(input).closest('.product-group');
-    let unitPrice = parseFloat($group.find('.unit_price').val()) || 0;
-    let qty = parseFloat($group.find('.qty').val()) || 0;
-    $group.find('.price').val((unitPrice * qty).toFixed(2));
+    let $input = $(input);
+    let idx = $('input.unit_price, input.qty').index($input);
+    // Find the correct index for unit_price and qty
+    let unitPrice = parseFloat($('input.unit_price').eq(idx).val()) || 0;
+    let qty = parseFloat($('input.qty').eq(idx).val()) || 0;
+    $('input.price').eq(idx).val((unitPrice * qty).toFixed(2));
 }
-
-// Product repeater logic (max 5)
-let productCount = 1;
-const maxProducts = 5;
-
-function updateProductHeaders() {
-    $('#productRepeater .product-group').each(function(idx) {
-        let title = "Add Product Details";
-        if (idx === 0) title = "Add Product Details";
-        else title = `Add ${ordinal(idx+1)} Product Details`;
-        $(this).find('.product-header > .product-title').text(title);
-        // Show cross only if not the first group
-        if (idx === 0) {
-            $(this).find('.product-header > .remove-product-btn').hide();
-        } else {
-            $(this).find('.product-header > .remove-product-btn').show();
-        }
-    });
-}
-
-function ordinal(n) {
-    if (n === 1) return "First";
-    if (n === 2) return "Second";
-    if (n === 3) return "Third";
-    if (n === 4) return "Fourth";
-    if (n === 5) return "Fifth";
-    return n + "th";
-}
-
-function removeProductGroup(btn) {
-    $(btn).closest('.product-group').remove();
-    productCount--;
-    updateProductHeaders();
-    if (productCount < maxProducts) {
-        $('#addProductBtn').show();
-    }
-}
-
-$('#addProductBtn').on('click', function() {
-    if (productCount >= maxProducts) return;
-    let $first = $('#productRepeater .product-group').first();
-    let $clone = $first.clone(true, true);
-
-    // Reset all input values in the clone
-    $clone.find('input, select').each(function() {
-        if ($(this).is('select')) {
-            this.selectedIndex = 0;
-        } else {
-            $(this).val('');
-        }
-    });
-
-    // Update IDs for new group
-    $clone.find('.productSearch').attr('id', 'productSearch_' + productCount);
-    $clone.find('.productSelect').attr('id', 'productSelect_' + productCount);
-    $clone.find('.productSuggestions').attr('id', 'productSuggestions_' + productCount);
-
-    // Hide newProductDiv by default
-    $clone.find('.newProductDiv').addClass('hidden');
-
-    // Show remove button for all except the first
-    $clone.find('.remove-product-btn').show();
-
-    // Insert the new group
-    $('#productRepeater').append($clone);
-
-    productCount++;
-    updateProductHeaders();
-
-    // Hide add button if max reached
-    if (productCount >= maxProducts) {
-        $('#addProductBtn').hide();
-    }
-});
-
-// On page load, set header and remove button visibility
-$(function() {
-    updateProductHeaders();
-    if (productCount >= maxProducts) {
-        $('#addProductBtn').hide();
-    }
-});
 
 // Validate required fields before moving to next section
 function validateSection(sectionId) {
@@ -1130,6 +1321,54 @@ $('#vendorPOForm').on('submit', function(e) {
     setTimeout(function() {
         $('.was-required').attr('required', true).removeClass('was-required');
     }, 100);
+});
+
+// Add/Remove Product Logic
+const maxProducts = 5;
+// Helper to update product group indexes and field IDs/names
+function updateProductGroupIndexes() {
+    $('#productRepeater .product-group').each(function(idx, group) {
+        $(group).find('.productSearch').attr('id', 'productSearch_' + idx);
+        $(group).find('.productSelect').attr('id', 'productSelect_' + idx);
+    });
+    // Show remove button only if more than 1 group
+    $('#productRepeater .product-group').each(function(i, group) {
+        $(group).find('.remove-product-btn').toggle(i > 0);
+    });
+}
+
+// Add Product button logic
+$('#addProductBtn').on('click', function() {
+    let count = $('#productRepeater .product-group').length;
+    if (count >= maxProducts) return;
+    let $last = $('#productRepeater .product-group').last();
+    let $clone = $last.clone(true, true);
+
+    // Clear all input/select values in the clone
+    $clone.find('input, select').each(function() {
+        if (this.type === 'select-one') {
+            this.selectedIndex = 0;
+        } else {
+            $(this).val('');
+        }
+    });
+    $clone.find('.productSuggestions').hide().empty();
+    $clone.find('.newProductDiv').addClass('hidden');
+    $clone.insertAfter($last);
+    updateProductGroupIndexes();
+});
+
+// Remove Product button logic
+function removeProductGroup(btn) {
+    if ($('#productRepeater .product-group').length > 1) {
+        $(btn).closest('.product-group').remove();
+        updateProductGroupIndexes();
+    }
+}
+
+// Update indexes on page load
+$(function() {
+    updateProductGroupIndexes();
 });
 </script>
 </body>
