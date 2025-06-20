@@ -5,6 +5,18 @@ $companyname001=$_SESSION['companyname'];
 $enterprise=$_SESSION['enterprise'];
 
 include_once 'partials/_dbconnect.php'; // Include the database connection file
+
+// Handle status toggle POST
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['toggle_status']) && isset($_POST['fleet_snum']) && isset($_POST['new_status'])) {
+    $fleet_snum = intval($_POST['fleet_snum']);
+    $new_status = ($_POST['new_status'] === 'Working') ? 'Working' : 'Idle';
+    $anchor = isset($_POST['anchor']) ? preg_replace('/[^a-zA-Z0-9_\-]/', '', $_POST['anchor']) : '';
+    $update_status_sql = "UPDATE fleet1 SET status='$new_status' WHERE snum=$fleet_snum AND companyname='$companyname001'";
+    mysqli_query($conn, $update_status_sql);
+    header("Location: viewfleet2.php" . ($anchor ? "#$anchor" : ""));
+    exit();
+}
+
 $showAlert=false;
 $showAlert2=false;
 $showError=false;
@@ -179,22 +191,76 @@ else if (isset($_SESSION['error_message'])){
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
     <style>
         .center-block {
-        
-        
             width: 100%;
             height: 300px;
-            
         }
         .generate-btn{
             border:none;
             background-color:white;
-            /* border:1px solid red; */
             margin-top:70px;
         }
         .project-info{
             height:50px!important;
         }
     </style>
+    <script>
+function confirmStatusChange(event) {
+    if (!confirm('Are you sure you want to change the status of this fleet?')) {
+        event.preventDefault();
+        return false;
+    }
+    return true;
+}
+
+// Highcharts chart for Working/Idle assets
+window.addEventListener('DOMContentLoaded', function() {
+    Highcharts.chart('container', {
+        credits: { enabled: false },
+        chart: {
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            type: 'pie'
+        },
+        title: {
+            text: 'Fleet Status Distribution'
+        },
+        tooltip: {
+            pointFormat: '{series.name}: <b>{point.y}</b>',
+            valueSuffix: ' Assets'
+        },
+        accessibility: {
+            point: { valueSuffix: ' Assets' }
+        },
+        plotOptions: {
+            pie: {
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: { enabled: true, format: '{point.name}: {point.y}' },
+                showInLegend: true
+            }
+        },
+        series: [{
+            name: 'Count',
+            colorByPoint: true,
+            data: [
+                <?php
+                // Query for working and idle assets count
+                $sql_status_count = "SELECT status, COUNT(*) AS count FROM fleet1 WHERE companyname='$companyname001' GROUP BY status";
+                $result_status_count = mysqli_query($conn, $sql_status_count);
+                $data = '';
+                if ($result_status_count) {
+                    while ($row_status = mysqli_fetch_assoc($result_status_count)) {
+                        $data .= '{ name: "' . htmlspecialchars($row_status['status']) . '", y: ' . intval($row_status['count']) . ' },';
+                    }
+                }
+                echo rtrim($data, ',');
+                ?>
+            ]
+        }]
+    });
+});
+</script>
 </head>
 <body>
     <!-- Navbar section -->
@@ -760,7 +826,8 @@ if($showAlert_addfleet){
 <div class="chart_outer_cont">
     <div class="chartcontainer">
     <div class="container1234" style="margin-top: 5px;">
-        <div id="container" class="center-block"></div>
+        <div id="container" class="center-block">
+        </div>
     </div>
     <?php
 $sql_working_assets = "SELECT category, COUNT(*) AS working_asset_count 
@@ -865,8 +932,9 @@ GROUP BY category";
             if ($loop_count > 0 && $loop_count % 4 == 0) {
                 echo '</tr><tr>'; // Close current row and start a new row
             }
+            $anchorId = 'fleet_' . htmlspecialchars($row['snum']);
             echo '<td>';
-            echo '<div class="viewfleet_outer">';
+            echo '<div class="viewfleet_outer" id="' . $anchorId . '">';
             echo '<div class="fleetcard">';
             // Print the category short form
             echo $categoryShortForm . '-' . htmlspecialchars($row['assetcode']);
@@ -879,7 +947,8 @@ GROUP BY category";
             echo '<p>‣ Model: ' . htmlspecialchars($row['model']) . '</p>';
             echo '<p>‣ Registration: ' . htmlspecialchars($row['registration']) . '</p>';
             echo '<p>‣ Operator: <a class="operator_fullinfo" href="explore_operator.php?id=' . htmlspecialchars($row['snum']) . '&fname=' . htmlspecialchars($row['operator_fname']) . '">' . htmlspecialchars($row['operator_fname']) . '</a></p>';
-            echo '<p>‣ Status: ' . htmlspecialchars($row['status']) . '</p>';
+            echo '<p>‣ Status: <span class="fleet-status-label">' . htmlspecialchars($row['status']) . '</span></p>';
+            // echo '<p>‣ Status button ex: ' . htmlspecialchars($row['status']) . '</p>';
             echo '</div>';
         
             echo '<div class="viewfleet2_btncontainer">';
@@ -895,6 +964,19 @@ GROUP BY category";
             echo '<a ' . (empty($row['loadchart']) ? 'hidden' : '') . ' href="img/' . htmlspecialchars($row['loadchart']) . '" target="_blank">';
             echo '<i title="View & Download Load Chart" class="bi bi-download"></i>';
             echo '</a>';
+            // Add status toggle button
+            $toggleTo = ($row['status'] === 'Idle') ? 'Working' : 'Idle';
+            $toggleLabel = ($row['status'] === 'Idle') ? 'Set Working' : 'Set Idle';
+            echo '<form method="POST" action="viewfleet2.php" style="display:inline;margin-left:8px;">';
+            echo '<input type="hidden" name="fleet_snum" value="' . htmlspecialchars($row['snum']) . '">';
+            echo '<input type="hidden" name="new_status" value="' . $toggleTo . '">';
+            echo '<input type="hidden" name="anchor" value="' . $anchorId . '">';
+            echo '<button type="submit" name="toggle_status" title="Toggle Status" style="background:none;border:none;cursor:pointer;padding:0;" onclick="return confirmStatusChange(event);">';
+            echo ($row['status'] === 'Idle')
+                ? '<i class="fa-solid fa-toggle-off" style="color:#888;font-size:1.3em;"></i>'
+                : '<i class="fa-solid fa-toggle-on" style="color:#28a745;font-size:1.3em;"></i>';
+            echo '</button>';
+            echo '</form>';
             echo '</div>'; 
         
             echo '</div>'; // Close viewfleet_outer
@@ -1008,153 +1090,7 @@ function showNewClientInput() {
     // Clear the original input field as well
     clientNameInput.value = '';
 }
-        function expirynotification(){
-            document.getElementById("notification_bg").style.display = "block";
-        }
-
-function close_all_notification(comp_name){
-    window.location.href = "del_all_insaurance_notification.php?comp_name=" + comp_name;
-}
-function del_notification(del_noti) {
-    window.location.href = "del_notification.php?notification_id=" + del_noti;
-}
-        Highcharts.chart('container', {
-            credits: {
-                enabled: false
-            },
-            chart: {
-                plotBackgroundColor: null,
-                plotBorderWidth: null,
-                plotShadow: false,
-                type: 'pie',
-                
-            },
-            title: {
-                text: 'Fleet Statistics:'
-            },
-            tooltip: {
-                pointFormat: '{series.name}: <b>{point.y}</b>',
-                valueSuffix: ' Fleet'
-            },
-            accessibility: {
-                point: {
-                    valueSuffix: ' Fleet'
-                }
-            },
-            plotOptions: {
-                pie: {
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                        enabled: false
-                    },
-                    showInLegend: true
-                }
-            },
-            series: [{
-                name: 'Count',
-                colorByPoint: true,
-                data: [
-                    <?php
-                    $data = '';
-                    if ($getData->num_rows > 0){
-                        while ($row = $getData->fetch_object()){
-                            $data .= '{ name: "'.$row->status.'", y: '.$row->count.' },';
-                        }
-                    }
-                    echo $data;
-                    ?>
-                ]
-            }]
-        });
-
-
-//         function purchase_option() {
-//             const bedlengthdiv = document.getElementById("bedlengthdiv");
-
-//     const options = document.getElementsByClassName('awp_options');
-//     const options1 = document.getElementsByClassName('cq_options');
-//     const options2 = document.getElementsByClassName('earthmover_options');
-//     const options3 = document.getElementsByClassName('mhe_options');
-//     const options4 = document.getElementsByClassName('gee_options');
-//     const options5 = document.getElementsByClassName('trailor_options');
-//     const options6 = document.getElementsByClassName('generator_options');
-
-//     const first_select = document.getElementById('oem_fleet_type');
-//     const reg_container = document.getElementById('reg_container');
-//     const chassis_make_rental = document.getElementById('chassis_make_rental_outer');
-
-//     // Set the display style for all elements at once
-//     const displayStyle = (first_select.value === "Aerial Work Platform") ? "block" : "none";
-//     Array.from(options).forEach(option => option.style.display = displayStyle);
-
-//     const displayStyle1 = (first_select.value === "Concrete Equipment") ? "block" : "none";
-//     Array.from(options1).forEach(option => option.style.display = displayStyle1);
-
-//     const displayStyle2 = (first_select.value === "EarthMovers and Road Equipments") ? "block" : "none";
-//     Array.from(options2).forEach(option => option.style.display = displayStyle2);
-
-//     const displayStyle3 = (first_select.value === "Material Handling Equipments") ? "block" : "none";
-//     Array.from(options3).forEach(option => option.style.display = displayStyle3);
-
-//     const displayStyle4 = (first_select.value === "Ground Engineering Equipments") ? "block" : "none";
-//     Array.from(options4).forEach(option => option.style.display = displayStyle4);
-
-//     const displayStyle5 = (first_select.value === "Trailor and Truck") ? "block" : "none";
-//     Array.from(options5).forEach(option => option.style.display = displayStyle5);
-
-//     const displayStyle6 = (first_select.value === "Generator and Lighting") ? "block" : "none";
-//     Array.from(options6).forEach(option => option.style.display = displayStyle6);
-
-//     if(first_select.value==='Aerial Work Platform'){
-//         reg_container.style.display='block';
-//         reg_container.style.display='flex';
-//         reg_container.style.width='100%';
-//         chassis_make_rental.style.display='none';
-//     }
-//     else if(first_select.value ==='Trailor and Truck'){
-//         bedlengthdiv.style.display="flex";
-//     }
-
-//     else{
-//         reg_container.style.display='none';
-//     }
-
-// }
-function reg_input() {
-            const regestration_dd = document.getElementById("regestration_dd");
-            const registration_rental = document.getElementById("registration_rental");
-            const reg_container1=document.getElementById("reg_container");
-
-            if (regestration_dd && registration_rental) {
-                if (regestration_dd.value === 'Yes') {
-                    registration_rental.style.display = 'block';
-                    
-
-                } else {
-                    registration_rental.style.display = 'none';
-                }
-            }}
-
-
-            function applyfilter(){
-    const members_tablecontent=document.getElementById("members_tablecontent").style.display="none";
-    const members_tablecontent1=document.getElementById("members_tablecontent1").style.display="flex";
-}
-
-function showclientname() {
-    let currentstatusdd = document.getElementById("currentstatusdd");
-    let clientnamediv = document.getElementById("clientnamediv");
-
-    if (currentstatusdd.value === "Working") {
-        clientnamediv.style.display = "block";  // Corrected the way to set the display
-    } else {
-        clientnamediv.style.display = "none";  // Corrected the way to set the display
-    }
-}
-<script src="main.js"></script>
-
-
 </script>
+<script src="main.js"></script>
 </body>
 </html>

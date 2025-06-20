@@ -580,7 +580,7 @@ if (mysqli_num_rows($result_siteoffice) > 0) {
         <h3 class="contactheading">Site Office : <?php echo htmlspecialchars($row_site['heading']); ?>
         <a href="editsiteoffice.php?id=<?php echo $row_site['id'] ?>&clientid=<?php echo $row['id'] ?>" id="editregionalofficebutton" title="Edit Client"><i style="width: 22px; height: 22px;" class="bi bi-pencil"></i></a>
         </h3>
-        <h5 class="contactheading"><strong>Address: </strong><?php echo htmlspecialchars($row_site['address']); ?></h5>
+        <h5 class="contactheading"><strong>Address: </strong><?php echo htmlspecialchars($row_site['address']). ' <mark>(KAM - ' . $row_site['KAM'] . ')</mark>'; ?></h5> 
 
         <button class="tripupdate_generatecn" id="hqcontactbutton" onclick="sitecontactadd('<?php echo ($row_site['heading']); ?>')">Add <?php echo ($row_site['heading']); ?> Site Contact</button>
         <?php

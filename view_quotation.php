@@ -707,9 +707,13 @@ if (!empty($row5equipment['demob_charges2'])) {
 <p class="terms_condition">
     <strong>25. Quote Validity :</strong>Provided quotation rates will remain valid for a period of <?php echo $row['quote_validity'] ?>
 </p>
-<p class="terms_condition" style="<?php echo ($row['custom_terms'] === '24 .Custom Terms And Condition To Be Written Here If Any If Not Leave It , As It Is' || empty($row['custom_terms'])) ? 'display: none;' : ''; ?>">
-    <?php echo ($row['custom_terms'] === '26 .Custom Terms And Condition To Be Written Here If Any If Not Leave It , As It Is' || empty($row['custom_terms'])) ? '' : $row['custom_terms']; ?>
-</p>
+<p class="terms_condition"><Strong>26.Machine Stoppage Policy :</Strong>If the machine is stopped for any reason not caused by us, including payment delays or site issues, the rental charges will continue during the stoppage period until the machine resumes work.</p>
+
+<?php if (!empty($row['custom_terms']) && $row['custom_terms'] !== '27.Custom Terms And Condition To Be Written Here If Any If Not Leave It , As It Is') : ?>
+    <p class="terms_condition">
+        <?php echo $row['custom_terms']; ?>
+    </p>
+<?php endif; ?>
 <hr>
 <p class="sender_office_address">Office : <?php echo $row['sender_office_address'] ?></p>
 <p class="watermark">Powered By Fleet EIP.</p>
