@@ -9943,6 +9943,15 @@ margin-left: 5%;
     justify-content: center;
     flex-direction: column;
     gap: 8px;
+} 
+#billToSection{ 
+      width: 100%;
+    display: none;
+    /* display: flex; */
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
 }
 .capunitinput{
     width: 150px;
@@ -9957,6 +9966,17 @@ margin-left: 5%;
     gap: 8px;
 }
 #termssectioncontainer{
+    width: 100%;
+    display: none;
+    /* display: flex; */
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+
+} 
+
+#termssectioncontainer2{
     width: 100%;
     display: none;
     /* display: flex; */

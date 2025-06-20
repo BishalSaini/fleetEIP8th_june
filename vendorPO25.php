@@ -229,7 +229,7 @@ if ($vendor_id) {
         /* Use the same layout and field styles as generate_quotation.php */
         .vendorform { max-width: 700px; margin: 40px auto; background: #fafbfc; border: 1px solid #ddd; border-radius: 8px; padding: 32px 32px 24px 32px; }
        
-        . select { width: 100%; padding: 8px; font-size: 1.1rem; border: 1px solid #ccc; border-radius: 4px; }
+        .select { width: 100%; padding: 8px; font-size: 1.1rem; border: 1px solid #ccc; border-radius: 4px; }
         .placeholder2 { font-weight: 500; margin-bottom: 4px; display: block; }
         .suggestions { border: 1px solid #ccc; background: #fff; position: absolute; z-index: 10; width: 100%; max-height: 180px; overflow-y: auto; }
         .suggestion-item { padding: 8px; cursor: pointer; }

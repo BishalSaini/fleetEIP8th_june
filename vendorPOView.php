@@ -12,13 +12,13 @@ if ($enterprise === 'rental') {
     $dashboard_url = 'epc_dashboard.php';
 }
 
-// Fetch POs for this company (by vendor's companyname)
+// Fetch POs and product lines for this company
 $orders = [];
-$sql = "SELECT vpo.id, vpo.vendor_id, vpo.new_vendor_name, vpo.product_serial, vpo.new_product_serial, vpo.product_name, vpo.qty, vpo.price, vpo.created_at
-        FROM vendor_purchase_orders vpo
-        LEFT JOIN vendors v ON vpo.vendor_id = v.id
-        WHERE vpo.companyname = ?
-        ORDER BY vpo.created_at DESC";
+$sql = "SELECT po.id as po_id, po.vendor_id, po.vendor_name, pop.product_serial, pop.product_name, pop.qty, pop.unit_price, pop.total_price, po.created_at
+        FROM purchase_orders po
+        JOIN purchase_order_products pop ON po.id = pop.po_id
+        WHERE po.companyname = ?
+        ORDER BY po.created_at DESC, po.id DESC, pop.product_serial ASC";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $companyname);
 $stmt->execute();
@@ -159,7 +159,7 @@ $stmt_vendors->close();
     <div class="vendorpo-table-container">
         <div class="vendorpo-btn-container">
             <h2>Vendor Purchase Orders</h2>
-            <button class="vendorpo-btn" onclick="window.location.href='vendorPO.php'">
+            <button class="vendorpo-btn" onclick="window.location.href='vendorPO06.php'">
                 <i class="bi bi-plus-circle"></i> Generate PO
             </button>
         </div>
@@ -187,25 +187,25 @@ $stmt_vendors->close();
                         <?= htmlspecialchars(
                             $o['vendor_id'] && isset($vendorMap[$o['vendor_id']])
                             ? $vendorMap[$o['vendor_id']]
-                            : $o['new_vendor_name']
+                            : $o['vendor_name']
                         ) ?>
                     </td>
                     <td data-label="Product">
-                        <span class="fw-semibold"><?= htmlspecialchars($o['product_serial'] ? $o['product_serial'] : $o['new_product_serial']) ?></span>
+                        <span class="fw-semibold"><?= htmlspecialchars($o['product_serial']) ?></span>
                         <br>
                         <small class="text-muted"><?= htmlspecialchars($o['product_name']) ?></small>
                     </td>
                     <td data-label="Qty"><?= htmlspecialchars($o['qty']) ?></td>
-                    <td data-label="Price"><?= htmlspecialchars($o['price']) ?></td>
+                    <td data-label="Price"><?= htmlspecialchars($o['total_price']) ?></td>
                     <td data-label="Date"><?= date('d-M-Y', strtotime($o['created_at'])) ?></td>
                     <td data-label="Actions">
-                        <a href="vendorPO.php?edit=<?= $o['id'] ?>" class="vendorpo-icon" title="Edit">
+                        <a href="vendorPO06.php?edit=<?= $o['po_id'] ?>" class="vendorpo-icon" title="Edit">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <a href="vendorPODelete.php?id=<?= $o['id'] ?>" onclick="return confirmDelete();" class="vendorpo-icon" title="Delete">
+                        <a href="vendorPODelete.php?po_id=<?= $o['po_id'] ?>&product_serial=<?= urlencode($o['product_serial']) ?>" onclick="return confirmDelete();" class="vendorpo-icon" title="Delete">
                             <i class="bi bi-trash"></i>
                         </a>
-                        <a href="vendorPOPDF.php?id=<?= $o['id'] ?>" class="vendorpo-icon" title="PDF" target="_blank">
+                        <a href="vendorPOPDF.php?id=<?= $o['po_id'] ?>" class="vendorpo-icon" title="PDF" target="_blank">
                             <i class="bi bi-file-earmark-pdf"></i>
                         </a>
                     </td>
@@ -216,7 +216,7 @@ $stmt_vendors->close();
     </div>
 <script>
 function confirmDelete() {
-    return confirm("Are you sure you want to delete this Purchase Order?");
+    return confirm("Are you sure you want to delete this product line from the Purchase Order?");
 }
 </script>
 </body>
