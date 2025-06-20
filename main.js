@@ -2098,10 +2098,37 @@ function backtoequipementsection(){
 
     equipmentinfosectioncontainer.style.display='flex';
     termssectioncontainer.style.display='none';
+} 
 
+function termssection2() {
+    // Select all required input, select, and textarea fields
+    const requiredFields = document.querySelectorAll("input[required], select[required], textarea[required]");
+    let isValid = true;
 
+    requiredFields.forEach(field => {
+        // Check if the parent div is visible
+        if (field.closest("div")?.offsetParent !== null) {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.reportValidity(); // Show error message
+                return; // Stop checking after the first invalid field
+            }
+        }
+    });
 
+    if (isValid) {
+        // If all visible required fields are filled, move to the next section
+        document.getElementById("termssectioncontainer2").style.display = "flex";
+        document.getElementById("termssectioncontainer").style.display = "none";
+    }
+}
 
+function backtoequipementsection2(){
+    const equipmentinfosectioncontainer=document.getElementById("termssectioncontainer");
+    const termssectioncontainer=document.getElementById("termssectioncontainer2");
+
+    equipmentinfosectioncontainer.style.display='flex';
+    termssectioncontainer.style.display='none';
 }
 
 function showcurrentenrollmentform(){
