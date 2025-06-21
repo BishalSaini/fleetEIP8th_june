@@ -17,7 +17,8 @@ if (!$po) die('PO not found');
 $stmt2 = $conn->prepare("SELECT * FROM purchase_order_products WHERE po_id = ? ORDER BY product_serial ASC");
 $stmt2->bind_param("i", $po_id);
 $stmt2->execute();
-$products = $stmt2->get_result();
+$result2 = $stmt2->get_result();
+$products = $result2->fetch_all(MYSQLI_ASSOC);
 $stmt2->close();
 
 // Fetch logo if available
@@ -33,8 +34,9 @@ $stmt_logo->close();
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8">
-        <title>PO PDF</title>
+        <meta charset="UTF-8"> 
+        <link rel="icon" href="favicon.jpg" type="image/x-icon">
+        <title>PO - <?= htmlspecialchars($companyname) ?> - Purchase Order PDF</title>
         <style>
             body {
                 font-family: 'Segoe UI', Arial, sans-serif;

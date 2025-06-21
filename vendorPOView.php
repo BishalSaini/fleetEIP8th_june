@@ -43,7 +43,8 @@ $stmt_vendors->close();
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8">   
+    <link rel="icon" href="favicon.jpg" type="image/x-icon">
     <title>Vendor Purchase Orders</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="tiles.css">
@@ -109,6 +110,51 @@ $stmt_vendors->close();
         .vendorpo-icon:hover {
             background: #4067B5;
             color: #fff;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.18);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-box {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(34,83,163,0.18);
+            padding: 32px 28px 22px 28px;
+            min-width: 320px;
+            max-width: 90vw;
+            text-align: center;
+            position: relative;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2253a3;
+            margin-bottom: 10px;
+        }
+        .modal-msg {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 24px;
+        }
+        .modal-btn {
+            background: #2253a3;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background 0.18s;
+        }
+        .modal-btn:hover {
+            background: #1a237e;
         }
         @media screen and (max-width: 600px) {
             .vendorpo-table {
@@ -202,7 +248,7 @@ $stmt_vendors->close();
                         <a href="vendorPO06.php?edit=<?= $o['po_id'] ?>" class="vendorpo-icon" title="Edit">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <a href="vendorPODelete.php?po_id=<?= $o['po_id'] ?>&product_serial=<?= urlencode($o['product_serial']) ?>" onclick="return confirmDelete();" class="vendorpo-icon" title="Delete">
+                        <a href="#" onclick="return showDeleteModal('vendorPODelete.php?po_id=<?= $o['po_id'] ?>&product_serial=<?= urlencode($o['product_serial']) ?>');" class="vendorpo-icon" title="Delete">
                             <i class="bi bi-trash"></i>
                         </a>
                         <a href="vendorPOPDF.php?id=<?= $o['po_id'] ?>" class="vendorpo-icon" title="PDF" target="_blank">
@@ -214,10 +260,29 @@ $stmt_vendors->close();
             </tbody>
         </table>
     </div>
+<!-- Custom Delete Modal -->
+<div class="modal-overlay" id="deleteModalOverlay">
+    <div class="modal-box">
+        <div class="modal-title">Delete Confirmation</div>
+        <div class="modal-msg">Are you sure you want to delete this product line from the Purchase Order?</div>
+        <button class="modal-btn" id="modalOkBtn">OK</button>
+        <button class="modal-btn" id="modalCancelBtn">Cancel</button>
+    </div>
+</div>
 <script>
-function confirmDelete() {
-    return confirm("Are you sure you want to delete this product line from the Purchase Order?");
+let deleteUrl = '';
+function showDeleteModal(url) {
+    deleteUrl = url;
+    document.getElementById('deleteModalOverlay').style.display = 'flex';
+    return false;
 }
+document.getElementById('modalOkBtn').onclick = function() {
+    window.location.href = deleteUrl;
+};
+document.getElementById('modalCancelBtn').onclick = function() {
+    document.getElementById('deleteModalOverlay').style.display = 'none';
+    deleteUrl = '';
+};
 </script>
 </body>
 </html>
