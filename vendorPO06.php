@@ -7,9 +7,39 @@ $showAlertuser=false;
 session_start();
 if (isset($_POST['submit_po'])) {
     $vendor_id = $_POST['vendor_id'] ?? 0;
-    $vendor_name = $_POST['vendor_name'] ?? '';
+    $vendor_name = '';
+    if ($vendor_id) {
+        $stmt_vendor = $conn->prepare("SELECT vendor_name FROM vendors WHERE id = ?");
+        $stmt_vendor->bind_param("i", $vendor_id);
+        $stmt_vendor->execute();
+        $stmt_vendor->bind_result($vendor_name);
+        $stmt_vendor->fetch();
+        $stmt_vendor->close();
+    }
+    // Always get contact person name
+    $contact_person = '';
+    if (isset($_POST['contact_person_id']) && $_POST['contact_person_id'] === 'new_contact_person' && !empty($_POST['contact_person'])) {
+        $contact_person = $_POST['contact_person'];
+        $office_address = $_POST['to_address'] ?? '';
+        $contact_number = $_POST['contact_number'] ?? '';
+        $contact_email = $_POST['email_id'] ?? '';
+        // Insert new contact person into vendor_regional_office with extra fields
+        $stmt_new_cp = $conn->prepare("INSERT INTO vendor_regional_office (vendor_id, contact_person, office_address, contact_number, contact_email) VALUES (?, ?, ?, ?, ?)");
+        $stmt_new_cp->bind_param("issss", $vendor_id, $contact_person, $office_address, $contact_number, $contact_email);
+        $stmt_new_cp->execute();
+        $stmt_new_cp->close();
+    } elseif (isset($_POST['contact_person_id']) && is_numeric($_POST['contact_person_id'])) {
+        // Fetch name from vendor_contacts
+        $contact_id = intval($_POST['contact_person_id']);
+        $stmt_cp = $conn->prepare("SELECT contact_person FROM vendor_regional_office WHERE id = ?");
+        $stmt_cp->bind_param("i", $contact_id);
+        $stmt_cp->execute();
+        $stmt_cp->bind_result($contact_person);
+        $stmt_cp->fetch();
+        $stmt_cp->close();
+    }
+    // Always use the contact person name from the input field
     $salutation = $_POST['salutation_dd'] ?? '';
-    $contact_person = $_POST['contact_person'] ?? '';
     $new_contact_person = $_POST['new_contact_person'] ?? '';
     $to_address = $_POST['to_address'] ?? '';
     $contact_number = $_POST['contact_number'] ?? '';
@@ -20,25 +50,27 @@ if (isset($_POST['submit_po'])) {
     $bill_to_gstin = $_POST['bill_to_gstin'] ?? '';
     $bill_to_pan = $_POST['bill_to_pan'] ?? '';
     $bill_to_contact = $_POST['bill_to_contact'] ?? '';
+    $bill_contact_number = $_POST['bill_contact_number'] ?? '';
     $bill_to_email = $_POST['bill_to_email'] ?? '';
     $ship_to_name = $_POST['ship_to_name'] ?? '';
     $ship_to_address = $_POST['ship_to_address'] ?? '';
     $ship_to_gstin = $_POST['ship_to_gstin'] ?? '';
     $ship_to_pan = $_POST['ship_to_pan'] ?? '';
     $ship_to_contact = $_POST['ship_to_contact'] ?? '';
-    $ship_to_email = $_POST['ship_to_email'] ?? '';
+    $ship_contact_number = $_POST['ship_contact_number'] ?? '';
+    $ship_to_email = $_POST['ship_to_email'] ?? ''; 
 
     // Insert main PO (header) data
     $stmt = $conn->prepare("INSERT INTO purchase_orders (
         vendor_id, vendor_name, salutation, contact_person, new_contact_person, to_address, contact_number, email_id, companyname,
-        bill_to_name, bill_to_address, bill_to_gstin, bill_to_pan, bill_to_contact, bill_to_email,
-        ship_to_name, ship_to_address, ship_to_gstin, ship_to_pan, ship_to_contact, ship_to_email
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        bill_to_name, bill_to_address, bill_to_gstin, bill_to_pan, bill_to_contact, bill_contact_number, bill_to_email,
+        ship_to_name, ship_to_address, ship_to_gstin, ship_to_pan, ship_to_contact, ship_contact_number, ship_to_email
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param(
-        "issssssssssssssssssss",
+        "issssssssssssssssssssss",
         $vendor_id, $vendor_name, $salutation, $contact_person, $new_contact_person, $to_address, $contact_number, $email_id, $companyname,
-        $bill_to_name, $bill_to_address, $bill_to_gstin, $bill_to_pan, $bill_to_contact, $bill_to_email,
-        $ship_to_name, $ship_to_address, $ship_to_gstin, $ship_to_pan, $ship_to_contact, $ship_to_email
+        $bill_to_name, $bill_to_address, $bill_to_gstin, $bill_to_pan, $bill_to_contact, $bill_contact_number, $bill_to_email,
+        $ship_to_name, $ship_to_address, $ship_to_gstin, $ship_to_pan, $ship_to_contact, $ship_contact_number, $ship_to_email
     );
     if ($stmt->execute()) {
         $po_id = $stmt->insert_id;
@@ -91,6 +123,27 @@ while ($row = $result_vendors->fetch_assoc()) {
 }
 $stmt_vendors->close();
 
+$edit_mode = false;
+$edit_po = [];
+$edit_products = [];
+if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
+    $edit_mode = true;
+    $edit_po_id = intval($_GET['edit']);
+    // Fetch PO header
+    $stmt = $conn->prepare("SELECT * FROM purchase_orders WHERE id = ?");
+    $stmt->bind_param("i", $edit_po_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $edit_po = $result->fetch_assoc();
+    $stmt->close();
+    // Fetch product lines
+    $stmt2 = $conn->prepare("SELECT * FROM purchase_order_products WHERE po_id = ? ORDER BY product_serial ASC");
+    $stmt2->bind_param("i", $edit_po_id);
+    $stmt2->execute();
+    $result2 = $stmt2->get_result();
+    $edit_products = $result2->fetch_all(MYSQLI_ASSOC);
+    $stmt2->close();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -254,9 +307,10 @@ $stmt_vendors->close();
                                 id="vendor_name"
                                 class="input02"
                                 placeholder=""
-                                autocomplete="off"/>
+                                autocomplete="off"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['vendor_name']) : ''; ?>"/>
                             <input type="hidden" id="vendorSelect" name="vendor"/>
-                            <input type="hidden" id="vendor_id" name="vendor_id"/>
+                            <input type="hidden" id="vendor_id" name="vendor_id" value="<?php echo $edit_mode ? htmlspecialchars($edit_po['vendor_id']) : ''; ?>"/>
                             <ul
                                 id="vendorDropdown"
                                 class="dropdown-menu show"
@@ -265,12 +319,12 @@ $stmt_vendors->close();
                         </div>
                         <div class="trial1" id="salute_dd">
                             <select name="salutation_dd" class="input02" required="required">
-                                <option value="Mr">Mr</option>
-                                <option value="Ms">Ms</option>
+                                <option value="Mr" <?php echo $edit_mode && $edit_po['salutation'] === 'Mr' ? 'selected' : ''; ?>>Mr</option>
+                                <option value="Ms" <?php echo $edit_mode && $edit_po['salutation'] === 'Ms' ? 'selected' : ''; ?>>Ms</option>
                             </select>
                         </div>
                         <div class="trial1" id="contactSelectouter">
-                            <select id="vendorContactSelect" name="contact_person" class="input02">
+                            <select id="vendorContactSelect" name="contact_person_id" class="input02" data-selected-contact="<?php echo $edit_mode ? htmlspecialchars($edit_po['contact_person']) : ''; ?>">
                                 <option value="" disabled="disabled" selected="selected">Select Contact Person</option>
                                 <!-- Options will be loaded by JS -->
                                 <option value="new_contact_person">New Contact Person</option>
@@ -294,7 +348,8 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="vendor_address"
                                 name="to_address"
-                                class="input02">
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['to_address']) : ''; ?>">
                             <label for="vendor_address" class="placeholder2">Office Address</label>
                         </div>
 
@@ -304,7 +359,8 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="vendor_contact_number"
                                 name="contact_number"
-                                class="input02">
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['contact_number']) : ''; ?>">
                             <label for="vendor_contact_number" class="placeholder2">Contact Number</label>
                         </div>
 
@@ -314,7 +370,8 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="vendor_email"
                                 name="email_id"
-                                class="input02">
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['email_id']) : ''; ?>">
                             <label for="vendor_email" class="placeholder2">Contact Email</label>
                         </div>
                     </div>
@@ -360,7 +417,8 @@ $stmt_vendors->close();
                                 name="product_serial_1"
                                 class="input02 product-autocomplete"
                                 autocomplete="off"
-                                required="required">
+                                required="required"
+                                value="<?php echo $edit_mode && isset($edit_products[0]) ? htmlspecialchars($edit_products[0]['product_serial']) : ''; ?>">
                             <ul
                                 id="productSerialDropdown_1"
                                 class="dropdown-menu show product-dropdown"
@@ -375,7 +433,8 @@ $stmt_vendors->close();
                                 name="product_name_1"
                                 class="input02 product-autocomplete"
                                 autocomplete="off"
-                                required="required">
+                                required="required"
+                                value="<?php echo $edit_mode && isset($edit_products[0]) ? htmlspecialchars($edit_products[0]['product_name']) : ''; ?>">
                             <ul
                                 id="productNameDropdown_1"
                                 class="dropdown-menu show product-dropdown"
@@ -385,11 +444,11 @@ $stmt_vendors->close();
                         <div class="trial1 ">
                             <select class="input02" name="product_uom_1" id="product_uom_1" required="required">
                                 <option value="" disabled="disabled" selected="selected">Select UoM</option>
-                                <option value="set">Set</option>
-                                <option value="nos">Nos</option>
-                                <option value="kgs">Kgs</option>
-                                <option value="meter">Meter</option>
-                                <option value="litre">Litre</option>
+                                <option value="set" <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
+                                <option value="nos" <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
+                                <option value="kgs" <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
+                                <option value="meter" <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
+                                <option value="litre" <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
                             </select>
                             <label for="product_uom_1" class="placeholder2">UoM (Unit of Measurement)</label>
                         </div>
@@ -401,11 +460,12 @@ $stmt_vendors->close();
                                 id="unit_price_1"
                                 name="unit_price_1"
                                 class="input02"
-                                required="required">
+                                required="required"
+                                value="<?php echo $edit_mode && isset($edit_products[0]) ? htmlspecialchars($edit_products[0]['unit_price']) : ''; ?>">
                             <label for="unit_price_1" class="placeholder2">Unit Price</label>
                         </div>
                         <div class="trial1" id="contact_number1">
-                            <input type="text" placeholder="" id="qty_1" name="qty_1" class="input02" required="required">
+                            <input type="text" placeholder="" id="qty_1" name="qty_1" class="input02" required="required" value="<?php echo $edit_mode && isset($edit_products[0]) ? htmlspecialchars($edit_products[0]['qty']) : ''; ?>">
                             <label for="qty_1" class="placeholder2">QTY</label>
                         </div>
                         <div class="trial1 ">
@@ -416,7 +476,8 @@ $stmt_vendors->close();
                                 name="total_price_1"
                                 class="input02"
                                 readonly="readonly"
-                                required="required">
+                                required="required"
+                                value="<?php echo $edit_mode && isset($edit_products[0]) ? htmlspecialchars($edit_products[0]['total_price']) : ''; ?>">
                             <label for="total_price_1" class="placeholder2">Price (Unit Price × Qty)</label>
                         </div>
                     </div>
@@ -443,7 +504,7 @@ $stmt_vendors->close();
                                     name="product_serial_2"
                                     class="input02 product-autocomplete"
                                     autocomplete="off"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[1]) ? htmlspecialchars($edit_products[1]['product_serial']) : ''; ?>">
                                 <ul
                                     id="productSerialDropdown_2"
                                     class="dropdown-menu show product-dropdown"
@@ -458,7 +519,7 @@ $stmt_vendors->close();
                                     name="product_name_2"
                                     class="input02 product-autocomplete"
                                     autocomplete="off"
-                                >
+                                    value="<?php echo $edit_mode && isset($edit_products[1]) ? htmlspecialchars($edit_products[1]['product_name']) : ''; ?>">
                                 <ul
                                     id="productNameDropdown_2"
                                     class="dropdown-menu show product-dropdown"
@@ -472,11 +533,11 @@ $stmt_vendors->close();
                                     id="product_uom_2"
                                     >
                                     <option value="" disabled="disabled" selected="selected">Select UoM</option>
-                                    <option value="set">Set</option>
-                                    <option value="nos">Nos</option>
-                                    <option value="kgs">Kgs</option>
-                                    <option value="meter">Meter</option>
-                                    <option value="litre">Litre</option>
+                                    <option value="set" <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
+                                    <option value="nos" <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
+                                    <option value="kgs" <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
+                                    <option value="meter" <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
+                                    <option value="litre" <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
                                 </select>
                                 <label for="product_uom_2" class="placeholder2">UoM (Unit of Measurement)</label>
                             </div>
@@ -489,7 +550,7 @@ $stmt_vendors->close();
                                     id="unit_price_2"
                                     name="unit_price_2"
                                     class="input02"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[1]) ? htmlspecialchars($edit_products[1]['unit_price']) : ''; ?>">
                                 <label for="unit_price_2" class="placeholder2">Unit Price</label>
                             </div>
                             <div class="trial1" id="contact_number1">
@@ -499,7 +560,7 @@ $stmt_vendors->close();
                                     id="qty_2"
                                     name="qty_2"
                                     class="input02"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[1]) ? htmlspecialchars($edit_products[1]['qty']) : ''; ?>">
                                 <label for="qty_2" class="placeholder2">QTY</label>
                             </div>
                             <div class="trial1 ">
@@ -510,7 +571,7 @@ $stmt_vendors->close();
                                     name="total_price_2"
                                     class="input02"
                                     readonly="readonly"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[1]) ? htmlspecialchars($edit_products[1]['total_price']) : ''; ?>">
                                 <label for="total_price_2" class="placeholder2">Price (Unit Price × Qty)</label>
                             </div>
                         </div>
@@ -534,7 +595,7 @@ $stmt_vendors->close();
                                     name="product_serial_3"
                                     class="input02 product-autocomplete"
                                     autocomplete="off"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[2]) ? htmlspecialchars($edit_products[2]['product_serial']) : ''; ?>">
                                 <ul
                                     id="productSerialDropdown_3"
                                     class="dropdown-menu show product-dropdown"
@@ -549,7 +610,7 @@ $stmt_vendors->close();
                                     name="product_name_3"
                                     class="input02 product-autocomplete"
                                     autocomplete="off"
-                                >
+                                    value="<?php echo $edit_mode && isset($edit_products[2]) ? htmlspecialchars($edit_products[2]['product_name']) : ''; ?>">
                                 <ul
                                     id="productNameDropdown_3"
                                     class="dropdown-menu show product-dropdown"
@@ -563,11 +624,11 @@ $stmt_vendors->close();
                                     id="product_uom_3"
                                     >
                                     <option value="" disabled="disabled" selected="selected">Select UoM</option>
-                                    <option value="set">Set</option>
-                                    <option value="nos">Nos</option>
-                                    <option value="kgs">Kgs</option>
-                                    <option value="meter">Meter</option>
-                                    <option value="litre">Litre</option>
+                                    <option value="set" <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
+                                    <option value="nos" <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
+                                    <option value="kgs" <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
+                                    <option value="meter" <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
+                                    <option value="litre" <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
                                 </select>
                                 <label for="product_uom_3" class="placeholder2">UoM (Unit of Measurement)</label>
                             </div>
@@ -580,7 +641,7 @@ $stmt_vendors->close();
                                     id="unit_price_3"
                                     name="unit_price_3"
                                     class="input02"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[2]) ? htmlspecialchars($edit_products[2]['unit_price']) : ''; ?>">
                                 <label for="unit_price_3" class="placeholder2">Unit Price</label>
                             </div>
                             <div class="trial1" id="contact_number1">
@@ -590,7 +651,7 @@ $stmt_vendors->close();
                                     id="qty_3"
                                     name="qty_3"
                                     class="input02"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[2]) ? htmlspecialchars($edit_products[2]['qty']) : ''; ?>">
                                 <label for="qty_3" class="placeholder2">QTY</label>
                             </div>
                             <div class="trial1 ">
@@ -601,7 +662,7 @@ $stmt_vendors->close();
                                     name="total_price_3"
                                     class="input02"
                                     readonly="readonly"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[2]) ? htmlspecialchars($edit_products[2]['total_price']) : ''; ?>">
                                 <label for="total_price_3" class="placeholder2">Price (Unit Price × Qty)</label>
                             </div>
                         </div>
@@ -625,7 +686,7 @@ $stmt_vendors->close();
                                     name="product_serial_4"
                                     class="input02 product-autocomplete"
                                     autocomplete="off"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[3]) ? htmlspecialchars($edit_products[3]['product_serial']) : ''; ?>">
                                 <ul
                                     id="productSerialDropdown_4"
                                     class="dropdown-menu show product-dropdown"
@@ -640,7 +701,7 @@ $stmt_vendors->close();
                                     name="product_name_4"
                                     class="input02 product-autocomplete"
                                     autocomplete="off"
-                                >
+                                    value="<?php echo $edit_mode && isset($edit_products[3]) ? htmlspecialchars($edit_products[3]['product_name']) : ''; ?>">
                                 <ul
                                     id="productNameDropdown_4"
                                     class="dropdown-menu show product-dropdown"
@@ -654,11 +715,11 @@ $stmt_vendors->close();
                                     id="product_uom_4"
                                     >
                                     <option value="" disabled="disabled" selected="selected">Select UoM</option>
-                                    <option value="set">Set</option>
-                                    <option value="nos">Nos</option>
-                                    <option value="kgs">Kgs</option>
-                                    <option value="meter">Meter</option>
-                                    <option value="litre">Litre</option>
+                                    <option value="set" <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
+                                    <option value="nos" <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
+                                    <option value="kgs" <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
+                                    <option value="meter" <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
+                                    <option value="litre" <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
                                 </select>
                                 <label for="product_uom_4" class="placeholder2">UoM (Unit of Measurement)</label>
                             </div>
@@ -671,7 +732,7 @@ $stmt_vendors->close();
                                     id="unit_price_4"
                                     name="unit_price_4"
                                     class="input02"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[3]) ? htmlspecialchars($edit_products[3]['unit_price']) : ''; ?>">
                                 <label for="unit_price_4" class="placeholder2">Unit Price</label>
                             </div>
                             <div class="trial1" id="contact_number1">
@@ -681,7 +742,7 @@ $stmt_vendors->close();
                                     id="qty_4"
                                     name="qty_4"
                                     class="input02"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[3]) ? htmlspecialchars($edit_products[3]['qty']) : ''; ?>">
                                 <label for="qty_4" class="placeholder2">QTY</label>
                             </div>
                             <div class="trial1 ">
@@ -692,7 +753,7 @@ $stmt_vendors->close();
                                     name="total_price_4"
                                     class="input02"
                                     readonly="readonly"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[3]) ? htmlspecialchars($edit_products[3]['total_price']) : ''; ?>">
                                 <label for="total_price_4" class="placeholder2">Price (Unit Price × Qty)</label>
                             </div>
                         </div>
@@ -716,7 +777,7 @@ $stmt_vendors->close();
                                     name="product_serial_5"
                                     class="input02 product-autocomplete"
                                     autocomplete="off"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[4]) ? htmlspecialchars($edit_products[4]['product_serial']) : ''; ?>">
                                 <ul
                                     id="productSerialDropdown_5"
                                     class="dropdown-menu show product-dropdown"
@@ -731,7 +792,7 @@ $stmt_vendors->close();
                                     name="product_name_5"
                                     class="input02 product-autocomplete"
                                     autocomplete="off"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[4]) ? htmlspecialchars($edit_products[4]['product_name']) : ''; ?>">
                                 <ul
                                     id="productNameDropdown_5"
                                     class="dropdown-menu show product-dropdown"
@@ -745,11 +806,11 @@ $stmt_vendors->close();
                                     id="product_uom_5"
                                     >
                                     <option value="" disabled="disabled" selected="selected">Select UoM</option>
-                                    <option value="set">Set</option>
-                                    <option value="nos">Nos</option>
-                                    <option value="kgs">Kgs</option>
-                                    <option value="meter">Meter</option>
-                                    <option value="litre">Litre</option>
+                                    <option value="set" <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
+                                    <option value="nos" <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
+                                    <option value="kgs" <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
+                                    <option value="meter" <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
+                                    <option value="litre" <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
                                 </select>
                                 <label for="product_uom_5" class="placeholder2">UoM (Unit of Measurement)</label>
                             </div>
@@ -762,7 +823,7 @@ $stmt_vendors->close();
                                     id="unit_price_5"
                                     name="unit_price_5"
                                     class="input02"
-                                >
+                                    value="<?php echo $edit_mode && isset($edit_products[4]) ? htmlspecialchars($edit_products[4]['unit_price']) : ''; ?>">
                                 <label for="unit_price_5" class="placeholder2">Unit Price</label>
                             </div>
                             <div class="trial1" id="contact_number1">
@@ -772,7 +833,7 @@ $stmt_vendors->close();
                                     id="qty_5"
                                     name="qty_5"
                                     class="input02"
-                                    >
+                                    value="<?php echo $edit_mode && isset($edit_products[4]) ? htmlspecialchars($edit_products[4]['qty']) : ''; ?>">
                                 <label for="qty_5" class="placeholder2">QTY</label>
                             </div>
                             <div class="trial1 ">
@@ -783,7 +844,7 @@ $stmt_vendors->close();
                                     name="total_price_5"
                                     class="input02"
                                     readonly="readonly"
-                                >
+                                    value="<?php echo $edit_mode && isset($edit_products[4]) ? htmlspecialchars($edit_products[4]['total_price']) : ''; ?>">
                                 <label for="total_price_5" class="placeholder2">Price (Unit Price × Qty)</label>
                             </div>
                         </div>
@@ -849,7 +910,8 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="bill_to_name"
                                 name="bill_to_name"
-                                class="input02">
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_name']) : ''; ?>">
                             <label for="bill_to_name" class="placeholder2">Bill To (Company Name)</label>
                         </div>
                         <div class="trial1">
@@ -858,7 +920,8 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="bill_to_address"
                                 name="bill_to_address"
-                                class="input02">
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_address']) : ''; ?>">
                             <label for="bill_to_address" class="placeholder2">Address</label>
                         </div>
                         <div class="trial1">
@@ -867,7 +930,8 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="bill_to_gstin"
                                 name="bill_to_gstin"
-                                class="input02">
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_gstin']) : ''; ?>">
                             <label for="bill_to_gstin" class="placeholder2">GSTIN
                             </label>
                         </div>
@@ -879,7 +943,8 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="bill_to_pan"
                                 name="bill_to_pan"
-                                class="input02">
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_pan']) : ''; ?>">
                             <label for="bill_to_pan" class="placeholder2">PAN</label>
                         </div>
                         <div class="trial1">
@@ -888,17 +953,30 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="bill_to_contact"
                                 name="bill_to_contact"
-                                class="input02">
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_contact']) : ''; ?>">
                             <label for="bill_to_contact" class="placeholder2">Contact Person</label>
+                        </div> 
+                        <div class="trial1" >
+                            <input
+                                type="text"
+                                placeholder=""
+                                id="bill_contact_number"
+                                name="bill_contact_number"
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_contact_number']) : ''; ?>">
+                            <label for="bill_contact_number" class="placeholder2">Contact Number</label>
                         </div>
                         <div class="trial1">
                             <input
                                 type="email"
                                 placeholder=""
-                                id="bill_to_email"
+                                id="bill_to_contact_no"
                                 name="bill_to_email"
-                                class="input02">
-                            <label for="bill_to_email" class="placeholder2">Contact No</label>
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_email']) : ''; ?>"
+                                autocomplete="off">
+                            <label for="bill_to_contact_no" class="placeholder2">Contact Email</label>
                         </div>
                     </div>
                     <div class="fulllength" id="billtonextback">
@@ -958,7 +1036,8 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="ship_to_name"
                                 name="ship_to_name"
-                                class="input02">
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_name']) : ''; ?>">
                             <label for="ship_to_name" class="placeholder2">Ship To (Company Name)</label>
                         </div>
                         <div class="trial1">
@@ -967,8 +1046,9 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="ship_to_address"
                                 name="ship_to_address"
-                                class="input02">
-                            <label for="ship_to_address" class="placeholder2">Address</label>
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_address']) : ''; ?>">
+                            <label for="ship_to_address" class="placeholder2" autocomplete="off">Address</label>
                         </div>
                         <div class="trial1">
                             <input
@@ -976,7 +1056,8 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="ship_to_gstin"
                                 name="ship_to_gstin"
-                                class="input02">
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_gstin']) : ''; ?>">
                             <label for="ship_to_gstin" class="placeholder2">GSTIN</label>
                         </div>
                     </div>
@@ -987,7 +1068,8 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="ship_to_pan"
                                 name="ship_to_pan"
-                                class="input02">
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_pan']) : ''; ?>">
                             <label for="ship_to_pan" class="placeholder2">PAN</label>
                         </div>
                         <div class="trial1">
@@ -996,17 +1078,30 @@ $stmt_vendors->close();
                                 placeholder=""
                                 id="ship_to_contact"
                                 name="ship_to_contact"
-                                class="input02">
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_contact']) : ''; ?>">
                             <label for="ship_to_contact" class="placeholder2">Contact Person</label>
-                        </div>
-                        <div class="trial1">
+                        </div> 
+                        <div class="trial1" >
                             <input
                                 type="text"
                                 placeholder=""
-                                id="ship_to_email"
+                                id="ship_contact_number"
+                                name="ship_contact_number"
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_contact_number']) : ''; ?>">
+                            <label for="ship_contact_number" class="placeholder2">Contact Number</label> 
+                        </div>
+                        <div class="trial1">
+                            <input
+                                type="email"
+                                placeholder=""
+                                id="ship_to_contact_no"
                                 name="ship_to_email"
-                                class="input02">
-                            <label for="ship_to_email" class="placeholder2">Contact No</label>
+                                class="input02"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_email']) : ''; ?>"
+                                autocomplete="off">
+                            <label for="ship_to_contact_no" class="placeholder2">Contact Email</label>
                         </div>
                     </div>
 
@@ -1418,6 +1513,9 @@ $stmt_vendors->close();
                     2: window.seco_equip,
                     3: window.third_equipment
                         ? window.third_equipment
+
+
+                       
                         : function () {},
                     4: window.fourth_equipment
                         ? window.fourth_equipment
@@ -1491,14 +1589,21 @@ $stmt_vendors->close();
                 // Helper to load contact persons and always add "New Contact Person"
                 function loadContactPersons(data) {
                     let $select = $('#vendorContactSelect');
+                    let selectedContact = $select.data('selected-contact');
                     $select.empty();
                     $select.append(
                         '<option value="" disabled selected>Select Contact Person</option>'
                     );
+                    let selectedId = '';
                     if (data && data.length > 0) {
                         data.forEach(function (person) {
+                            let selected = '';
+                            if (selectedContact && person.contact_person === selectedContact) {
+                                selected = ' selected';
+                                selectedId = person.id;
+                            }
                             $select.append(
-                                '<option value="' + person.id + '">' + person.contact_person + '</option>'
+                                '<option value="' + person.id + '"' + selected + '>' + person.contact_person + '</option>'
                             );
                         });
                     }
@@ -1506,6 +1611,10 @@ $stmt_vendors->close();
                         '<option value="new_contact_person">New Contact Person</option>'
                     );
                     $('#newContactPersonInput').hide();
+                    // If in edit mode and a contact is selected, trigger change
+                    if (selectedId) {
+                        $select.val(selectedId).trigger('change');
+                    }
                 }
 
                 // On vendor select
@@ -1586,180 +1695,19 @@ $stmt_vendors->close();
                 // When page loads, always ensure "New Contact Person" is present
                 loadContactPersons([]);
 
-                // Hide dropdown on outside click
-                $(document).on('click', function (e) {
-                    if (!$(e.target).closest('#vendorSelectouter').length) {
-                        $('#vendorDropdown').hide();
-                    }
-                });
-            });
-        </script>
-        <script>
-            $(document).ready(function () {
-                // --- Product Autocomplete ---
-                function showProductDropdown($input, $dropdown, data) {
-                    $dropdown.empty();
-                    if (data.length === 0) {
-                        $dropdown.hide();
-                        return;
-                    }
-                    data.forEach(function (item) {
-                        $dropdown.append(
-                            $('<li>').css({'list-style': 'none', 'padding': '8px 16px', 'cursor': 'pointer', 'border-bottom': '1px solid #eee'}).html(
-                                '<strong>' + item.product_serial + '</strong> - ' + item.product_name
-                            ).data('product', item)
-                        );
-                    });
-                    $dropdown.show();
-                }
-
-                function fetchProductSuggestions(query, vendor_id, type, callback) {
-                    $.ajax({
-                        url: 'fetch_product.php',
-                        method: 'POST',
-                        dataType: 'json',
-                        data: {
-                            search: query,
-                            vendor_id: vendor_id,
-                            type: type
-                        },
-                        success: function (data) {
-                            callback(data);
-                        }
-                    });
-                }
-
-                function fillProductFields(product) {
-                    $('#product_serial').val(product.product_serial);
-                    $('#product_name').val(product.product_name);
-                    $('#product_uom').val(product.product_uom);
-                    $('#unit_price').val(product.unit_price);
-                    $('#qty').val(product.qty);
-                    $('#total_price').val(product.unit_price * product.qty);
-                    $('#productSerialDropdown, #productNameDropdown').hide();
-                }
-
-                // Autocomplete for product_serial
-                $('#product_serial').on('keyup focus', function () {
-                    let query = $(this)
-                        .val()
-                        .trim();
-                    let vendor_id = $('#vendor_id').val();
-                    if (!query || !vendor_id) {
-                        $('#productSerialDropdown').hide();
-                        return;
-                    }
-                    fetchProductSuggestions(query, vendor_id, 'serial', function (data) {
-                        showProductDropdown($('#product_serial'), $('#productSerialDropdown'), data);
-                    });
-                });
-
-                // Autocomplete for product_name
-                $('#product_name').on('keyup focus', function () {
-                    let query = $(this)
-                        .val()
-                        .trim();
-                    let vendor_id = $('#vendor_id').val();
-                    if (!query || !vendor_id) {
-                        $('#productNameDropdown').hide();
-                        return;
-                    }
-                    fetchProductSuggestions(query, vendor_id, 'name', function (data) {
-                        showProductDropdown($('#product_name'), $('#productNameDropdown'), data);
-                    });
-                });
-
-                // On selecting from dropdown (serial)
-                $(document).on('click', '#productSerialDropdown li', function () {
-                    let product = $(this).data('product');
-                    fillProductFields(product);
-                });
-
-                // On selecting from dropdown (name)
-                $(document).on('click', '#productNameDropdown li', function () {
-                    let product = $(this).data('product');
-                    fillProductFields(product);
-                });
-
-                // Hide dropdowns on outside click
-                $(document).on('click', function (e) {
-                    if (!$(e.target).closest('#product_serial').length) {
-                        $('#productSerialDropdown').hide();
-                    }
-                    if (!$(e.target).closest('#product_name').length) {
-                        $('#productNameDropdown').hide();
-                    }
-                });
-
-                // Autofill total price on qty or unit price change
-                $('#unit_price, #qty').on('input', function () {
-                    let price = parseFloat($('#unit_price').val()) || 0;
-                    let qty = parseFloat($('#qty').val()) || 0;
-                    $('#total_price').val(price * qty);
-                });
-
-                // Vendor autocomplete
-                $('#vendor_name').on('keyup focus', function () {
-                    let query = $(this)
-                        .val()
-                        .trim();
-                    if (query.length === 0) {
-                        $('#vendorDropdown').hide();
-                        return;
-                    }
-                    $.ajax({
-                        url: 'fetch_vendor.php',
-                        method: 'POST',
-                        data: {
-                            search: query
-                        },
-                        success: function (data) {
-                            if (data.trim() !== '') {
-                                $('#vendorDropdown')
-                                    .html(data)
-                                    .show();
-                            } else {
-                                $('#vendorDropdown').hide();
-                            }
-                        }
-                    });
-                });
-
-                // Helper to load contact persons and always add "New Contact Person"
-                function loadContactPersons(data) {
-                    let $select = $('#vendorContactSelect');
-                    $select.empty();
-                    $select.append(
-                        '<option value="" disabled selected>Select Contact Person</option>'
-                    );
-                    if (data && data.length > 0) {
-                        data.forEach(function (person) {
-                            $select.append(
-                                '<option value="' + person.id + '">' + person.contact_person + '</option>'
-                            );
-                        });
-                    }
-                    $select.append(
-                        '<option value="new_contact_person">New Contact Person</option>'
-                    );
-                    $('#newContactPersonInput').hide();
-                }
-
-                // On vendor select
-                $(document).on('click', '#vendorDropdown li', function () {
-                    let selected = $(this).text();
-                    $('#vendor_name').val(selected);
-                    $('#vendorSelect').val(selected);
-                    $('#vendorDropdown').hide();
-
-                    // Fetch vendor id and then contact persons
+                // --- Auto-select vendor and contact person in edit mode ---
+                <?php if ($edit_mode): ?>
+                var editVendorName = <?php echo json_encode($edit_po['vendor_name']); ?>;
+                var editContactPerson = <?php echo json_encode($edit_po['contact_person']); ?>;
+                if (editVendorName) {
+                    // Set vendor name field
+                    $('#vendor_name').val(editVendorName);
+                    // Trigger vendor selection logic to load contacts
                     $.ajax({
                         url: 'get_vendor_id.php',
                         method: 'POST',
                         dataType: 'json',
-                        data: {
-                            vendor_name: selected
-                        },
+                        data: { vendor_name: editVendorName },
                         success: function (res) {
                             if (res && res.vendor_id) {
                                 $('#vendor_id').val(res.vendor_id);
@@ -1768,67 +1716,34 @@ $stmt_vendors->close();
                                     url: 'get_vendor_contacts.php',
                                     method: 'POST',
                                     dataType: 'json',
-                                    data: {
-                                        vendor_id: res.vendor_id
-                                    },
+                                    data: { vendor_id: res.vendor_id },
                                     success: function (data) {
-                                        loadContactPersons(data);
-                                        $('#vendor_email').val('');
-                                        $('#vendor_contact_number').val('');
-                                        $('#vendor_address').val('');
+                                        // Load contacts and select the correct one
+                                        let $select = $('#vendorContactSelect');
+                                        $select.empty();
+                                        $select.append('<option value="" disabled>Select Contact Person</option>');
+                                        let selectedId = '';
+                                        if (data && data.length > 0) {
+                                            data.forEach(function (person) {
+                                                let selected = '';
+                                                if (editContactPerson && person.contact_person === editContactPerson) {
+                                                    selected = ' selected';
+                                                    selectedId = person.id;
+                                                }
+                                                $select.append('<option value="' + person.id + '"' + selected + '>' + person.contact_person + '</option>');
+                                            });
+                                        }
+                                        $select.append('<option value="new_contact_person">New Contact Person</option>');
+                                        if (selectedId) {
+                                            $select.val(selectedId).trigger('change');
+                                        }
                                     }
                                 });
                             }
                         }
                     });
-                });
-
-                // On contact person select, autofill details or show input for new contact
-                // person
-                $('#vendorContactSelect').on('change', function () {
-                    let contact_id = $(this).val();
-                    if (contact_id === 'new_contact_person') {
-                        $('#vendorContactSelect').hide();
-                        $('#vendorContactInput').show().val('');
-                        $('#vendor_email').val('');
-                        $('#vendor_contact_number').val('');
-                        $('#vendor_address').val('');
-                    } else if (contact_id) {
-                        $('#vendorContactInput').hide();
-                        $('#vendorContactSelect').show();
-                        $.ajax({
-                            url: 'get_contact_details.php',
-                            method: 'POST',
-                            dataType: 'json',
-                            data: {
-                                contact_id: contact_id
-                            },
-                            success: function (data) {
-                                if (data) {
-                                    $('#vendor_email').val(data.email);
-                                    $('#vendor_contact_number').val(data.contact_number);
-                                    $('#vendor_address').val(data.office_address);
-                                }
-                            }
-                        });
-                    } else {
-                        $('#vendorContactInput').hide();
-                        $('#vendorContactSelect').show();
-                        $('#vendor_email').val('');
-                        $('#vendor_contact_number').val('');
-                        $('#vendor_address').val('');
-                    }
-                });
-
-                // When page loads, always ensure "New Contact Person" is present
-                loadContactPersons([]);
-
-                // Hide dropdown on outside click
-                $(document).on('click', function (e) {
-                    if (!$(e.target).closest('#vendorSelectouter').length) {
-                        $('#vendorDropdown').hide();
-                    }
-                });
+                }
+                <?php endif; ?>
             });
         </script>
         <script>
