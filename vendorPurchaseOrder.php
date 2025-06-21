@@ -16,7 +16,7 @@ if (isset($_POST['submit_po'])) {
         $stmt_vendor->fetch();
         $stmt_vendor->close();
     }
-    // Always get contact person name
+
     $contact_person = '';
     if (isset($_POST['contact_person_id']) && $_POST['contact_person_id'] === 'new_contact_person' && !empty($_POST['contact_person'])) {
         $contact_person = $_POST['contact_person'];
@@ -38,7 +38,7 @@ if (isset($_POST['submit_po'])) {
         $stmt_cp->fetch();
         $stmt_cp->close();
     }
-    // Always use the contact person name from the input field
+
     $salutation = $_POST['salutation_dd'] ?? '';
     $new_contact_person = $_POST['new_contact_person'] ?? '';
     $to_address = $_POST['to_address'] ?? '';
@@ -60,7 +60,6 @@ if (isset($_POST['submit_po'])) {
     $ship_contact_number = $_POST['ship_contact_number'] ?? '';
     $ship_to_email = $_POST['ship_to_email'] ?? ''; 
 
-    // Insert main PO (header) data
     $stmt = $conn->prepare("INSERT INTO purchase_orders (
         vendor_id, vendor_name, salutation, contact_person, new_contact_person, to_address, contact_number, email_id, companyname,
         bill_to_name, bill_to_address, bill_to_gstin, bill_to_pan, bill_to_contact, bill_contact_number, bill_to_email,
@@ -75,7 +74,7 @@ if (isset($_POST['submit_po'])) {
     if ($stmt->execute()) {
         $po_id = $stmt->insert_id;
         $stmt->close();
-        // Insert product lines for each product if present
+  
         $stmt2 = $conn->prepare("INSERT INTO purchase_order_products (
             po_id, product_serial, product_name, product_uom, unit_price, qty, total_price
         ) VALUES (?, ?, ?, ?, ?, ?, ?)");
@@ -162,7 +161,7 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
         <link
             rel="stylesheet"
             href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
-        <!-- Remove duplicate jQuery and unnecessary inline JS includes -->
+
         <style><?php include "style.css" ?></style>
         <script><?php include "main.js" ?></script>
         <script><?php include "autofill.js" ?></script>
@@ -310,7 +309,11 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 autocomplete="off"
                                 value="<?php echo $edit_mode ? htmlspecialchars($edit_po['vendor_name']) : ''; ?>"/>
                             <input type="hidden" id="vendorSelect" name="vendor"/>
-                            <input type="hidden" id="vendor_id" name="vendor_id" value="<?php echo $edit_mode ? htmlspecialchars($edit_po['vendor_id']) : ''; ?>"/>
+                            <input
+                                type="hidden"
+                                id="vendor_id"
+                                name="vendor_id"
+                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['vendor_id']) : ''; ?>"/>
                             <ul
                                 id="vendorDropdown"
                                 class="dropdown-menu show"
@@ -319,12 +322,20 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                         </div>
                         <div class="trial1" id="salute_dd">
                             <select name="salutation_dd" class="input02" required="required">
-                                <option value="Mr" <?php echo $edit_mode && $edit_po['salutation'] === 'Mr' ? 'selected' : ''; ?>>Mr</option>
-                                <option value="Ms" <?php echo $edit_mode && $edit_po['salutation'] === 'Ms' ? 'selected' : ''; ?>>Ms</option>
+                                <option
+                                    value="Mr"
+                                    <?php echo $edit_mode && $edit_po['salutation'] === 'Mr' ? 'selected' : ''; ?>>Mr</option>
+                                <option
+                                    value="Ms"
+                                    <?php echo $edit_mode && $edit_po['salutation'] === 'Ms' ? 'selected' : ''; ?>>Ms</option>
                             </select>
                         </div>
                         <div class="trial1" id="contactSelectouter">
-                            <select id="vendorContactSelect" name="contact_person_id" class="input02" data-selected-contact="<?php echo $edit_mode ? htmlspecialchars($edit_po['contact_person']) : ''; ?>">
+                            <select
+                                id="vendorContactSelect"
+                                name="contact_person_id"
+                                class="input02"
+                                data-selected-contact="<?php echo $edit_mode ? htmlspecialchars($edit_po['contact_person']) : ''; ?>">
                                 <option value="" disabled="disabled" selected="selected">Select Contact Person</option>
                                 <!-- Options will be loaded by JS -->
                                 <option value="new_contact_person">New Contact Person</option>
@@ -442,13 +453,27 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                             <label for="product_name_1" class="placeholder2">Product Name (Code HSN/SAC)</label>
                         </div>
                         <div class="trial1 ">
-                            <select class="input02" name="product_uom_1" id="product_uom_1" required="required">
+                            <select
+                                class="input02"
+                                name="product_uom_1"
+                                id="product_uom_1"
+                                required="required">
                                 <option value="" disabled="disabled" selected="selected">Select UoM</option>
-                                <option value="set" <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
-                                <option value="nos" <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
-                                <option value="kgs" <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
-                                <option value="meter" <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
-                                <option value="litre" <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
+                                <option
+                                    value="set"
+                                    <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
+                                <option
+                                    value="nos"
+                                    <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
+                                <option
+                                    value="kgs"
+                                    <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
+                                <option
+                                    value="meter"
+                                    <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
+                                <option
+                                    value="litre"
+                                    <?php echo $edit_mode && isset($edit_products[0]) && $edit_products[0]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
                             </select>
                             <label for="product_uom_1" class="placeholder2">UoM (Unit of Measurement)</label>
                         </div>
@@ -465,7 +490,14 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                             <label for="unit_price_1" class="placeholder2">Unit Price</label>
                         </div>
                         <div class="trial1" id="contact_number1">
-                            <input type="text" placeholder="" id="qty_1" name="qty_1" class="input02" required="required" value="<?php echo $edit_mode && isset($edit_products[0]) ? htmlspecialchars($edit_products[0]['qty']) : ''; ?>">
+                            <input
+                                type="text"
+                                placeholder=""
+                                id="qty_1"
+                                name="qty_1"
+                                class="input02"
+                                required="required"
+                                value="<?php echo $edit_mode && isset($edit_products[0]) ? htmlspecialchars($edit_products[0]['qty']) : ''; ?>">
                             <label for="qty_1" class="placeholder2">QTY</label>
                         </div>
                         <div class="trial1 ">
@@ -527,17 +559,23 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 <label for="product_name_2" class="placeholder2">Product Name (Code HSN/SAC)</label>
                             </div>
                             <div class="trial1 ">
-                                <select
-                                    class="input02"
-                                    name="product_uom_2"
-                                    id="product_uom_2"
-                                    >
+                                <select class="input02" name="product_uom_2" id="product_uom_2">
                                     <option value="" disabled="disabled" selected="selected">Select UoM</option>
-                                    <option value="set" <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
-                                    <option value="nos" <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
-                                    <option value="kgs" <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
-                                    <option value="meter" <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
-                                    <option value="litre" <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
+                                    <option
+                                        value="set"
+                                        <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
+                                    <option
+                                        value="nos"
+                                        <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
+                                    <option
+                                        value="kgs"
+                                        <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
+                                    <option
+                                        value="meter"
+                                        <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
+                                    <option
+                                        value="litre"
+                                        <?php echo $edit_mode && isset($edit_products[1]) && $edit_products[1]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
                                 </select>
                                 <label for="product_uom_2" class="placeholder2">UoM (Unit of Measurement)</label>
                             </div>
@@ -618,17 +656,23 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 <label for="product_name_3" class="placeholder2">Product Name (Code HSN/SAC)</label>
                             </div>
                             <div class="trial1 ">
-                                <select
-                                    class="input02"
-                                    name="product_uom_3"
-                                    id="product_uom_3"
-                                    >
+                                <select class="input02" name="product_uom_3" id="product_uom_3">
                                     <option value="" disabled="disabled" selected="selected">Select UoM</option>
-                                    <option value="set" <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
-                                    <option value="nos" <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
-                                    <option value="kgs" <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
-                                    <option value="meter" <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
-                                    <option value="litre" <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
+                                    <option
+                                        value="set"
+                                        <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
+                                    <option
+                                        value="nos"
+                                        <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
+                                    <option
+                                        value="kgs"
+                                        <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
+                                    <option
+                                        value="meter"
+                                        <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
+                                    <option
+                                        value="litre"
+                                        <?php echo $edit_mode && isset($edit_products[2]) && $edit_products[2]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
                                 </select>
                                 <label for="product_uom_3" class="placeholder2">UoM (Unit of Measurement)</label>
                             </div>
@@ -709,17 +753,23 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 <label for="product_name_4" class="placeholder2">Product Name (Code HSN/SAC)</label>
                             </div>
                             <div class="trial1 ">
-                                <select
-                                    class="input02"
-                                    name="product_uom_4"
-                                    id="product_uom_4"
-                                    >
+                                <select class="input02" name="product_uom_4" id="product_uom_4">
                                     <option value="" disabled="disabled" selected="selected">Select UoM</option>
-                                    <option value="set" <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
-                                    <option value="nos" <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
-                                    <option value="kgs" <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
-                                    <option value="meter" <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
-                                    <option value="litre" <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
+                                    <option
+                                        value="set"
+                                        <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
+                                    <option
+                                        value="nos"
+                                        <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
+                                    <option
+                                        value="kgs"
+                                        <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
+                                    <option
+                                        value="meter"
+                                        <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
+                                    <option
+                                        value="litre"
+                                        <?php echo $edit_mode && isset($edit_products[3]) && $edit_products[3]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
                                 </select>
                                 <label for="product_uom_4" class="placeholder2">UoM (Unit of Measurement)</label>
                             </div>
@@ -800,17 +850,23 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 <label for="product_name_5" class="placeholder2">Product Name (Code HSN/SAC)</label>
                             </div>
                             <div class="trial1 ">
-                                <select
-                                    class="input02"
-                                    name="product_uom_5"
-                                    id="product_uom_5"
-                                    >
+                                <select class="input02" name="product_uom_5" id="product_uom_5">
                                     <option value="" disabled="disabled" selected="selected">Select UoM</option>
-                                    <option value="set" <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
-                                    <option value="nos" <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
-                                    <option value="kgs" <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
-                                    <option value="meter" <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
-                                    <option value="litre" <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
+                                    <option
+                                        value="set"
+                                        <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'set' ? 'selected' : ''; ?>>Set</option>
+                                    <option
+                                        value="nos"
+                                        <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'nos' ? 'selected' : ''; ?>>Nos</option>
+                                    <option
+                                        value="kgs"
+                                        <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'kgs' ? 'selected' : ''; ?>>Kgs</option>
+                                    <option
+                                        value="meter"
+                                        <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'meter' ? 'selected' : ''; ?>>Meter</option>
+                                    <option
+                                        value="litre"
+                                        <?php echo $edit_mode && isset($edit_products[4]) && $edit_products[4]['product_uom'] === 'litre' ? 'selected' : ''; ?>>Litre</option>
                                 </select>
                                 <label for="product_uom_5" class="placeholder2">UoM (Unit of Measurement)</label>
                             </div>
@@ -956,8 +1012,8 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 class="input02"
                                 value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_contact']) : ''; ?>">
                             <label for="bill_to_contact" class="placeholder2">Contact Person</label>
-                        </div> 
-                        <div class="trial1" >
+                        </div>
+                        <div class="trial1">
                             <input
                                 type="text"
                                 placeholder=""
@@ -1081,8 +1137,8 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 class="input02"
                                 value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_contact']) : ''; ?>">
                             <label for="ship_to_contact" class="placeholder2">Contact Person</label>
-                        </div> 
-                        <div class="trial1" >
+                        </div>
+                        <div class="trial1">
                             <input
                                 type="text"
                                 placeholder=""
@@ -1090,7 +1146,7 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 name="ship_contact_number"
                                 class="input02"
                                 value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_contact_number']) : ''; ?>">
-                            <label for="ship_contact_number" class="placeholder2">Contact Number</label> 
+                            <label for="ship_contact_number" class="placeholder2">Contact Number</label>
                         </div>
                         <div class="trial1">
                             <input
@@ -1129,7 +1185,8 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
 
                         <button
                             class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
-                           name="submit_po" type="submit">
+                            name="submit_po"
+                            type="submit">
                             <div
                                 class="bg-custom-blue rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
                                 style="background-color: #1C549E;">
@@ -1514,8 +1571,6 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                     3: window.third_equipment
                         ? window.third_equipment
 
-
-                       
                         : function () {},
                     4: window.fourth_equipment
                         ? window.fourth_equipment
@@ -1603,7 +1658,8 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 selectedId = person.id;
                             }
                             $select.append(
-                                '<option value="' + person.id + '"' + selected + '>' + person.contact_person + '</option>'
+                                '<option value="' + person.id + '"' + selected + '>' + person.contact_person +
+                                '</option>'
                             );
                         });
                     }
@@ -1613,7 +1669,9 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                     $('#newContactPersonInput').hide();
                     // If in edit mode and a contact is selected, trigger change
                     if (selectedId) {
-                        $select.val(selectedId).trigger('change');
+                        $select
+                            .val(selectedId)
+                            .trigger('change');
                     }
                 }
 
@@ -1661,7 +1719,9 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                     let contact_id = $(this).val();
                     if (contact_id === 'new_contact_person') {
                         $('#vendorContactSelect').hide();
-                        $('#vendorContactInput').show().val('');
+                        $('#vendorContactInput')
+                            .show()
+                            .val('');
                         $('#vendor_email').val('');
                         $('#vendor_contact_number').val('');
                         $('#vendor_address').val('');
@@ -1707,7 +1767,9 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                         url: 'get_vendor_id.php',
                         method: 'POST',
                         dataType: 'json',
-                        data: { vendor_name: editVendorName },
+                        data: {
+                            vendor_name: editVendorName
+                        },
                         success: function (res) {
                             if (res && res.vendor_id) {
                                 $('#vendor_id').val(res.vendor_id);
@@ -1716,7 +1778,9 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                     url: 'get_vendor_contacts.php',
                                     method: 'POST',
                                     dataType: 'json',
-                                    data: { vendor_id: res.vendor_id },
+                                    data: {
+                                        vendor_id: res.vendor_id
+                                    },
                                     success: function (data) {
                                         // Load contacts and select the correct one
                                         let $select = $('#vendorContactSelect');
@@ -1730,12 +1794,19 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                                     selected = ' selected';
                                                     selectedId = person.id;
                                                 }
-                                                $select.append('<option value="' + person.id + '"' + selected + '>' + person.contact_person + '</option>');
+                                                $select.append(
+                                                    '<option value="' + person.id + '"' + selected + '>' + person.contact_person +
+                                                    '</option>'
+                                                );
                                             });
                                         }
-                                        $select.append('<option value="new_contact_person">New Contact Person</option>');
+                                        $select.append(
+                                            '<option value="new_contact_person">New Contact Person</option>'
+                                        );
                                         if (selectedId) {
-                                            $select.val(selectedId).trigger('change');
+                                            $select
+                                                .val(selectedId)
+                                                .trigger('change');
                                         }
                                     }
                                 });
