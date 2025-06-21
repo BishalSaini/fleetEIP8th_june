@@ -54,10 +54,10 @@ $stmt_vendors->close();
             padding: 20px;
         }
         .vendorpo-btn-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+             display: flex!important;
+             justify-content: space-between!important;
+             align-items: center!important;
+              margin-bottom: 20px!important;
         }
         .vendorpo-btn {
             background-color: white;
@@ -205,8 +205,24 @@ $stmt_vendors->close();
     <div class="vendorpo-table-container">
         <div class="vendorpo-btn-container">
             <h2>Vendor Purchase Orders</h2>
-            <button class="vendorpo-btn" onclick="window.location.href='vendorPO06.php'">
+           <!--  <button class="vendorpo-btn" onclick="window.location.href='vendorPO06.php'">
                 <i class="bi bi-plus-circle"></i> Generate PO
+            </button> -->  
+              <button class="generate-btn" onclick="window.location.href='vendorPurchaseOrder.php'"> 
+            <article class="article-wrapper" style="height:65px;" onclick="location.href='generate_quotation.php'" > 
+  <div class="rounded-lg container-projectss ">
+    </div>
+    <div class="project-info">
+      <div class="flex-pr">
+        <div class="project-title text-nowrap">Add PO</div>
+          <div class="project-hover">
+            <svg style="color: black;" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" color="black" stroke-linejoin="round" stroke-linecap="round" viewBox="0 0 24 24" stroke-width="2" fill="none" stroke="currentColor"><line y2="12" x2="19" y1="12" x1="5"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </div>
+          </div>
+          <div class="types">
+        </div>
+    </div>
+</article> 
             </button>
         </div>
         <table class="vendorpo-table">
