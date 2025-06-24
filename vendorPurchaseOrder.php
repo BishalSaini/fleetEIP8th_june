@@ -6,9 +6,23 @@ $showAlertuser=false;
 
 session_start();
 if (isset($_POST['submit_po'])) {
+    // --- Vendor logic ---
     $vendor_id = $_POST['vendor_id'] ?? 0;
     $vendor_name = '';
-    if ($vendor_id) {
+    $is_new_vendor = false;
+
+    // Check if new vendor name is provided
+    if (isset($_POST['is_new_vendor']) && $_POST['is_new_vendor'] == '1' && !empty($_POST['vendor_name'])) {
+        $vendor_name = trim($_POST['vendor_name']);
+        $companyname = $_POST['comp_name_trial'] ?? '';
+        // Insert new vendor
+        $stmt_new_vendor = $conn->prepare("INSERT INTO vendors (vendor_name, companyname) VALUES (?, ?)");
+        $stmt_new_vendor->bind_param("ss", $vendor_name, $companyname);
+        $stmt_new_vendor->execute();
+        $vendor_id = $stmt_new_vendor->insert_id;
+        $stmt_new_vendor->close();
+        $is_new_vendor = true;
+    } elseif ($vendor_id) {
         $stmt_vendor = $conn->prepare("SELECT vendor_name FROM vendors WHERE id = ?");
         $stmt_vendor->bind_param("i", $vendor_id);
         $stmt_vendor->execute();
@@ -60,6 +74,42 @@ if (isset($_POST['submit_po'])) {
     $ship_contact_number = $_POST['ship_contact_number'] ?? '';
     $ship_to_email = $_POST['ship_to_email'] ?? ''; 
 
+    // --- Insert new Bill To contact if not found ---
+    if (!empty($bill_to_contact)) {
+        $company = $_SESSION['companyname'] ?? '';
+        if ($bill_to_contact && ($bill_contact_number || $bill_to_email)) {
+            $stmt = $conn->prepare("SELECT sno FROM team_members WHERE name=? AND company_name=? LIMIT 1");
+            $stmt->bind_param("ss", $bill_to_contact, $company);
+            $stmt->execute();
+            $stmt->store_result();
+            if ($stmt->num_rows == 0) {
+                $stmt->close();
+                $stmt = $conn->prepare("INSERT INTO team_members (name, mob_number, email, company_name) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param("ssss", $bill_to_contact, $bill_contact_number, $bill_to_email, $company);
+                $stmt->execute();
+            }
+            $stmt->close();
+        }
+    }
+
+    // --- Insert new Ship To contact if not found ---
+    if (!empty($ship_to_contact)) {
+        $company = $_SESSION['companyname'] ?? '';
+        if ($ship_to_contact && ($ship_contact_number || $ship_to_email)) {
+            $stmt = $conn->prepare("SELECT sno FROM team_members WHERE name=? AND company_name=? LIMIT 1");
+            $stmt->bind_param("ss", $ship_to_contact, $company);
+            $stmt->execute();
+            $stmt->store_result();
+            if ($stmt->num_rows == 0) {
+                $stmt->close();
+                $stmt = $conn->prepare("INSERT INTO team_members (name, mob_number, email, company_name) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param("ssss", $ship_to_contact, $ship_contact_number, $ship_to_email, $company);
+                $stmt->execute();
+            }
+            $stmt->close();
+        }
+    }
+
     $stmt = $conn->prepare("INSERT INTO purchase_orders (
         vendor_id, vendor_name, salutation, contact_person, new_contact_person, to_address, contact_number, email_id, companyname,
         bill_to_name, bill_to_address, bill_to_gstin, bill_to_pan, bill_to_contact, bill_contact_number, bill_to_email,
@@ -110,6 +160,16 @@ if ($enterprise === 'rental') {
 elseif ($enterprise === 'epc') {
     $dashboard_url = 'epc_dashboard.php';
 }  
+
+// Fetch company details for autofill (bill to/ship to)
+$autofill_company_name = '';
+$autofill_company_address = '';
+$stmt_basic = $conn->prepare("SELECT companyname, company_address FROM basic_details WHERE companyname = ? LIMIT 1");
+$stmt_basic->bind_param("s", $companyname001);
+$stmt_basic->execute();
+$stmt_basic->bind_result($autofill_company_name, $autofill_company_address);
+$stmt_basic->fetch();
+$stmt_basic->close();
 
 // Fetch vendors for this company
 $vendors = [];
@@ -314,6 +374,7 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 id="vendor_id"
                                 name="vendor_id"
                                 value="<?php echo $edit_mode ? htmlspecialchars($edit_po['vendor_id']) : ''; ?>"/>
+                            <input type="hidden" id="is_new_vendor" name="is_new_vendor" value="0"/>
                             <ul
                                 id="vendorDropdown"
                                 class="dropdown-menu show"
@@ -520,7 +581,7 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                         hidden="hidden">
 
                     <div class="addbuttonicon" id="second_addequipbtn">
-                        <i onclick="other_quotation()" class="bi bi-plus-circle">Add Another Equipment</i>
+                        <i onclick="other_quotation()" class="bi bi-plus-circle">Add Another Product</i>
                     </div>
                     <div class="otherquipquote" id="new_out1">
                         <br>
@@ -614,7 +675,7 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                             </div>
                         </div>
                         <div class="addbuttonicon" id="third_addequipbtn">
-                            <i onclick="third_vehicle()" class="bi bi-plus-circle">Add Another Equipment</i>
+                            <i onclick="third_vehicle()" class="bi bi-plus-circle">Add Another Product</i>
                         </div>
                     </div>
 
@@ -711,7 +772,7 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                             </div>
                         </div>
                         <div class="addbuttonicon" id="fourth_addequipbtn">
-                            <i onclick="fourth_quotation()" class="bi bi-plus-circle">Add Another Equipment</i>
+                            <i onclick="fourth_quotation()" class="bi bi-plus-circle">Add Another Product</i>
                         </div>
                     </div>
 
@@ -808,7 +869,7 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                             </div>
                         </div>
                         <div class="addbuttonicon" id="fifth_addequipbtn">
-                            <i onclick="fifth_quotation()" class="bi bi-plus-circle">Add Another Equipment</i>
+                            <i onclick="fifth_quotation()" class="bi bi-plus-circle">Add Another Product</i>
                         </div>
                     </div>
 
@@ -967,7 +1028,13 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 id="bill_to_name"
                                 name="bill_to_name"
                                 class="input02"
-                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_name']) : ''; ?>">
+                                value="<?php
+                                    if ($edit_mode) {
+                                        echo htmlspecialchars($edit_po['bill_to_name']);
+                                    } else {
+                                        echo htmlspecialchars($autofill_company_name);
+                                    }
+                                ?>">
                             <label for="bill_to_name" class="placeholder2">Bill To (Company Name)</label>
                         </div>
                         <div class="trial1">
@@ -977,7 +1044,13 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 id="bill_to_address"
                                 name="bill_to_address"
                                 class="input02"
-                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_address']) : ''; ?>">
+                                value="<?php
+                                    if ($edit_mode) {
+                                        echo htmlspecialchars($edit_po['bill_to_address']);
+                                    } else {
+                                        echo htmlspecialchars($autofill_company_address);
+                                    }
+                                ?>">
                             <label for="bill_to_address" class="placeholder2">Address</label>
                         </div>
                         <div class="trial1">
@@ -1003,14 +1076,16 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_pan']) : ''; ?>">
                             <label for="bill_to_pan" class="placeholder2">PAN</label>
                         </div>
-                        <div class="trial1">
+                        <div class="trial1" style="position:relative;">
                             <input
                                 type="text"
                                 placeholder=""
                                 id="bill_to_contact"
                                 name="bill_to_contact"
-                                class="input02"
+                                class="input02 team-member-autocomplete"
+                                autocomplete="off"
                                 value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_contact']) : ''; ?>">
+                            <ul id="billToContactDropdown" class="dropdown-menu show" style="display:none; position:absolute; top:100%; left:0; width:100%; z-index:1000; background:#fff; border:1px solid #ccc; border-radius:0 0 4px 4px; max-height:180px; overflow-y:auto; padding:0; margin:0;"></ul>
                             <label for="bill_to_contact" class="placeholder2">Contact Person</label>
                         </div>
                         <div class="trial1">
@@ -1093,7 +1168,13 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 id="ship_to_name"
                                 name="ship_to_name"
                                 class="input02"
-                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_name']) : ''; ?>">
+                                value="<?php
+                                    if ($edit_mode) {
+                                        echo htmlspecialchars($edit_po['ship_to_name']);
+                                    } else {
+                                        echo htmlspecialchars($autofill_company_name);
+                                    }
+                                ?>">
                             <label for="ship_to_name" class="placeholder2">Ship To (Company Name)</label>
                         </div>
                         <div class="trial1">
@@ -1103,7 +1184,13 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 id="ship_to_address"
                                 name="ship_to_address"
                                 class="input02"
-                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_address']) : ''; ?>">
+                                value="<?php
+                                    if ($edit_mode) {
+                                        echo htmlspecialchars($edit_po['ship_to_address']);
+                                    } else {
+                                        echo htmlspecialchars($autofill_company_address);
+                                    }
+                                ?>">
                             <label for="ship_to_address" class="placeholder2" autocomplete="off">Address</label>
                         </div>
                         <div class="trial1">
@@ -1128,14 +1215,16 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_pan']) : ''; ?>">
                             <label for="ship_to_pan" class="placeholder2">PAN</label>
                         </div>
-                        <div class="trial1">
+                        <div class="trial1" style="position:relative;">
                             <input
                                 type="text"
                                 placeholder=""
                                 id="ship_to_contact"
                                 name="ship_to_contact"
-                                class="input02"
+                                class="input02 team-member-autocomplete"
+                                autocomplete="off"
                                 value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_contact']) : ''; ?>">
+                            <ul id="shipToContactDropdown" class="dropdown-menu show" style="display:none; position:absolute; top:100%; left:0; width:100%; z-index:1000; background:#fff; border:1px solid #ccc; border-radius:0 0 4px 4px; max-height:180px; overflow-y:auto; padding:0; margin:0;"></ul>
                             <label for="ship_to_contact" class="placeholder2">Contact Person</label>
                         </div>
                         <div class="trial1">
@@ -1546,6 +1635,7 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
             // Close suggestions when clicking outside
             document.addEventListener('click', function (event) {
                 const suggestions = document.getElementById('suggestions');
+
                 const input = document.getElementById('clientSearch');
                 if (suggestions && !suggestions.contains(event.target) && event.target !== input) {
                     suggestions.style.display = 'none';
@@ -1616,9 +1706,7 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
             $(document).ready(function () {
                 // Vendor autocomplete
                 $('#vendor_name').on('keyup focus', function () {
-                    let query = $(this)
-                        .val()
-                        .trim();
+                    let query = $(this).val().trim();
                     if (query.length === 0) {
                         $('#vendorDropdown').hide();
                         return;
@@ -1626,19 +1714,60 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                     $.ajax({
                         url: 'fetch_vendor.php',
                         method: 'POST',
-                        data: {
-                            search: query
-                        },
+                        data: { search: query },
                         success: function (data) {
-                            if (data.trim() !== '') {
-                                $('#vendorDropdown')
-                                    .html(data)
-                                    .show();
-                            } else {
-                                $('#vendorDropdown').hide();
+                            let hasResults = data.trim() !== '';
+                            let dropdownHtml = data;
+                            // If no results, add "New Vendor Name" option
+                            if (!hasResults) {
+                                dropdownHtml = '<li class="new-vendor-option" style="color:blue;">New Vendor Name</li>';
                             }
+                            $('#vendorDropdown').html(dropdownHtml).show();
                         }
                     });
+                });
+
+                // On vendor dropdown select
+                $(document).on('click', '#vendorDropdown li', function () {
+                    let selected = $(this).text();
+                    if ($(this).hasClass('new-vendor-option')) {
+                        // New vendor: clear hidden vendor_id, set flag, allow typing
+                        $('#vendor_id').val('');
+                        $('#vendorSelect').val('');
+                        $('#vendor_name').val('').focus();
+                        $('#is_new_vendor').val('1');
+                    } else {
+                        $('#vendor_name').val(selected);
+                        $('#vendorSelect').val(selected);
+                        $('#vendorDropdown').hide();
+                        $('#is_new_vendor').val('0');
+                        // ...existing code for fetching vendor_id and contacts...
+                        $.ajax({
+                            url: 'get_vendor_id.php',
+                            method: 'POST',
+                            dataType: 'json',
+                            data: { vendor_name: selected },
+                            success: function (res) {
+                                if (res && res.vendor_id) {
+                                    $('#vendor_id').val(res.vendor_id);
+                                    // Fetch contact persons for this vendor id
+                                    $.ajax({
+                                        url: 'get_vendor_contacts.php',
+                                        method: 'POST',
+                                        dataType: 'json',
+                                        data: { vendor_id: res.vendor_id },
+                                        success: function (data) {
+                                            loadContactPersons(data);
+                                            $('#vendor_email').val('');
+                                            $('#vendor_contact_number').val('');
+                                            $('#vendor_address').val('');
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    $('#vendorDropdown').hide();
                 });
 
                 // Helper to load contact persons and always add "New Contact Person"
@@ -1674,44 +1803,6 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                             .trigger('change');
                     }
                 }
-
-                // On vendor select
-                $(document).on('click', '#vendorDropdown li', function () {
-                    let selected = $(this).text();
-                    $('#vendor_name').val(selected);
-                    $('#vendorSelect').val(selected);
-                    $('#vendorDropdown').hide();
-
-                    // Fetch vendor id and then contact persons
-                    $.ajax({
-                        url: 'get_vendor_id.php',
-                        method: 'POST',
-                        dataType: 'json',
-                        data: {
-                            vendor_name: selected
-                        },
-                        success: function (res) {
-                            if (res && res.vendor_id) {
-                                $('#vendor_id').val(res.vendor_id);
-                                // Fetch contact persons for this vendor id
-                                $.ajax({
-                                    url: 'get_vendor_contacts.php',
-                                    method: 'POST',
-                                    dataType: 'json',
-                                    data: {
-                                        vendor_id: res.vendor_id
-                                    },
-                                    success: function (data) {
-                                        loadContactPersons(data);
-                                        $('#vendor_email').val('');
-                                        $('#vendor_contact_number').val('');
-                                        $('#vendor_address').val('');
-                                    }
-                                });
-                            }
-                        }
-                    });
-                });
 
                 // On contact person select, autofill details or show input for new contact
                 // person
@@ -1930,6 +2021,153 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                     $('#total_price_' + group).val(price * qty);
                 });
 
+            });
+        </script>
+        <script>
+            $(document).ready(function () {
+                // --- Team Member Autocomplete for Bill To and Ship To Contact Person ---
+                function showTeamMemberDropdown($dropdown, data, query) {
+                    $dropdown.empty();
+                    let found = false;
+                    if (data.length > 0) {
+                        data.forEach(function (item) {
+                            $dropdown.append(
+                                $('<li>')
+                                    .css({'list-style': 'none', 'padding': '8px 16px', 'cursor': 'pointer', 'border-bottom': '1px solid #eee'})
+                                    .html(item.name + ' (' + item.email + ')')
+                                    .data('member', item)
+                            );
+                        });
+                        found = true;
+                    }
+                    // If not found, show "Add as new" option
+                    if (!found && query) {
+                        $dropdown.append(
+                            $('<li>')
+                                .addClass('add-new-member')
+                                .css({'color': 'blue', 'cursor': 'pointer', 'padding': '8px 16px'})
+                                .text('Add "' + query + '" as new contact')
+                                .data('newname', query)
+                        );
+                    }
+                    $dropdown.show();
+                }
+
+                function fetchTeamMemberSuggestions(query, callback) {
+                    $.ajax({
+                        url: 'fetch_team_member.php',
+                        method: 'POST',
+                        dataType: 'json',
+                        data: { search: query, company: $('#comp_name_trial').val() },
+                        success: function (data) {
+                            callback(data);
+                        }
+                    });
+                }
+
+                // Delegate autocomplete for bill_to_contact
+                $('#bill_to_contact').on('keyup focus', function () {
+                    var $input = $(this);
+                    var query = $input.val().trim();
+                    var $dropdown = $('#billToContactDropdown');
+                    if (!query) {
+                        $dropdown.hide();
+                        return;
+                    }
+                    fetchTeamMemberSuggestions(query, function (data) {
+                        showTeamMemberDropdown($dropdown, data, query);
+                    });
+                });
+
+                // Delegate autocomplete for ship_to_contact
+                $('#ship_to_contact').on('keyup focus', function () {
+                    var $input = $(this);
+                    var query = $input.val().trim();
+                    var $dropdown = $('#shipToContactDropdown');
+                    if (!query) {
+                        $dropdown.hide();
+                        return;
+                    }
+                    fetchTeamMemberSuggestions(query, function (data) {
+                        showTeamMemberDropdown($dropdown, data, query);
+                    });
+                });
+
+                // On dropdown select for Bill To
+                $(document).on('click', '#billToContactDropdown li', function () {
+                    var $li = $(this);
+                    if ($li.hasClass('add-new-member')) {
+                        // Use input fields instead of prompt
+                        var name = $li.data('newname');
+                        var mob_number = $('#bill_contact_number').val();
+                        var email = $('#bill_to_contact_no').val();
+                        var company = $('#comp_name_trial').val();
+                        // Optionally, you can get address from another input if needed
+                        $.post('fetch_team_member.php', {
+                            create: 1,
+                            name: name,
+                            mob_number: mob_number,
+                            address: '', // No address field in form
+                            email: email,
+                            company: company
+                        }, function (resp) {
+                            var member = {};
+                            try { member = JSON.parse(resp); } catch(e){}
+                            $('#bill_to_contact').val(member.name || name);
+                            $('#bill_contact_number').val(member.mob_number || mob_number);
+                            $('#bill_to_contact_no').val(member.email || email);
+                            $('#billToContactDropdown').hide();
+                        });
+                    } else {
+                        var member = $li.data('member');
+                        $('#bill_to_contact').val(member.name);
+                        $('#bill_contact_number').val(member.mob_number);
+                        $('#bill_to_contact_no').val(member.email);
+                        $('#billToContactDropdown').hide();
+                    }
+                });
+
+                // On dropdown select for Ship To
+                $(document).on('click', '#shipToContactDropdown li', function () {
+                    var $li = $(this);
+                    if ($li.hasClass('add-new-member')) {
+                        var name = $li.data('newname');
+                        var mob_number = $('#ship_contact_number').val();
+                        var email = $('#ship_to_contact_no').val();
+                        var company = $('#comp_name_trial').val();
+                        $.post('fetch_team_member.php', {
+                            create: 1,
+                            name: name,
+                            mob_number: mob_number,
+                            address: '', // No address field in form
+                            email: email,
+                            company: company
+                        }, function (resp) {
+                            var member = {};
+                            try { member = JSON.parse(resp); } catch(e){}
+                            $('#ship_to_contact').val(member.name || name);
+                            $('#ship_contact_number').val(member.mob_number || mob_number);
+                            $('#ship_to_contact_no').val(member.email || email);
+                            $('#shipToContactDropdown').hide();
+                        });
+                    } else {
+                        var member = $li.data('member');
+                        $('#ship_to_contact').val(member.name);
+                        $('#ship_contact_number').val(member.mob_number);
+                        $('#ship_to_contact_no').val(member.email);
+                        $('#shipToContactDropdown').hide();
+                    }
+                });
+
+                // Hide dropdowns on outside click
+                $(document).on('click', function (e) {
+                    if (!$(e.target).closest('#bill_to_contact').length && !$(e.target).closest('#billToContactDropdown').length) {
+                        $('#billToContactDropdown').hide();
+                    }
+                    if (!$(e.target).closest('#ship_to_contact').length && !$(e.target).closest('#shipToContactDropdown').length) {
+                        $('#shipToContactDropdown').hide();
+                    }
+                });
             });
         </script>
 
