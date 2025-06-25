@@ -171,6 +171,16 @@ $stmt_basic->bind_result($autofill_company_name, $autofill_company_address);
 $stmt_basic->fetch();
 $stmt_basic->close();
 
+// --- Fetch GSTIN and PAN from registration_details for autofill ---
+$autofill_gstin = '';
+$autofill_pan = '';
+$stmt_reg = $conn->prepare("SELECT gst_new, pancard_new FROM registration_details WHERE company_name = ? LIMIT 1");
+$stmt_reg->bind_param("s", $companyname001);
+$stmt_reg->execute();
+$stmt_reg->bind_result($autofill_gstin, $autofill_pan);
+$stmt_reg->fetch();
+$stmt_reg->close();
+
 // Fetch vendors for this company
 $vendors = [];
 $stmt_vendors = $conn->prepare("SELECT id, vendor_name FROM vendors WHERE companyname = ? ORDER BY vendor_name ASC");
@@ -1060,7 +1070,13 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 id="bill_to_gstin"
                                 name="bill_to_gstin"
                                 class="input02"
-                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_gstin']) : ''; ?>">
+                                value="<?php
+                                    if ($edit_mode) {
+                                        echo htmlspecialchars($edit_po['bill_to_gstin']);
+                                    } else {
+                                        echo htmlspecialchars($autofill_gstin);
+                                    }
+                                ?>">
                             <label for="bill_to_gstin" class="placeholder2">GSTIN
                             </label>
                         </div>
@@ -1073,7 +1089,13 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 id="bill_to_pan"
                                 name="bill_to_pan"
                                 class="input02"
-                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['bill_to_pan']) : ''; ?>">
+                                value="<?php
+                                    if ($edit_mode) {
+                                        echo htmlspecialchars($edit_po['bill_to_pan']);
+                                    } else {
+                                        echo htmlspecialchars($autofill_pan);
+                                    }
+                                ?>"> 
                             <label for="bill_to_pan" class="placeholder2">PAN</label>
                         </div>
                         <div class="trial1" style="position:relative;">
@@ -1200,7 +1222,13 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 id="ship_to_gstin"
                                 name="ship_to_gstin"
                                 class="input02"
-                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_gstin']) : ''; ?>">
+                                value="<?php
+                                    if ($edit_mode) {
+                                        echo htmlspecialchars($edit_po['ship_to_gstin']);
+                                    } else {
+                                        echo htmlspecialchars($autofill_gstin);
+                                    }
+                                ?>">
                             <label for="ship_to_gstin" class="placeholder2">GSTIN</label>
                         </div>
                     </div>
@@ -1212,7 +1240,13 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 id="ship_to_pan"
                                 name="ship_to_pan"
                                 class="input02"
-                                value="<?php echo $edit_mode ? htmlspecialchars($edit_po['ship_to_pan']) : ''; ?>">
+                                value="<?php
+                                    if ($edit_mode) {
+                                        echo htmlspecialchars($edit_po['ship_to_pan']);
+                                    } else {
+                                        echo htmlspecialchars($autofill_pan);
+                                    }
+                                ?>">
                             <label for="ship_to_pan" class="placeholder2">PAN</label>
                         </div>
                         <div class="trial1" style="position:relative;">
