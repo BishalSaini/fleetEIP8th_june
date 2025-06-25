@@ -60,20 +60,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_submit'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
     <style> 
-    .vendorform {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .vendor-detail-container {
-            max-width: 500px;
-            margin: 40px auto;
-            padding: 24px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: #fafbfc;
-        }
+    body {
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    .main-center-flex {
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    .createregionalofficecontainer {
+        margin: 0 auto;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }  
+
+    .hqcontactcontainer{ 
+        margin: 0 auto;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    
         .vendor-detail-container h2 {
             margin-top: 0;
         }
@@ -124,12 +139,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_submit'])) {
     </style>
     <script>
         function toggleRegionalOfficeForm() {
-            var form = document.getElementById('regionalOfficeForm');
-            form.style.display = (form.style.display === 'block') ? 'none' : 'block';
+            var regionalForm = document.getElementById('createregionalofficeform');
+            var productForm = document.getElementById('hqcontactform');
+            if (regionalForm.style.display === 'block') {
+                regionalForm.style.display = 'none';
+            } else {
+                regionalForm.style.display = 'block';
+                productForm.style.display = 'none';
+            }
         }
         function toggleProductForm() {
-            var form = document.getElementById('productForm');
-            form.style.display = (form.style.display === 'block') ? 'none' : 'block';
+            var regionalForm = document.getElementById('createregionalofficeform');
+            var productForm = document.getElementById('hqcontactform');
+            if (productForm.style.display === 'block') {
+                productForm.style.display = 'none';
+            } else {
+                productForm.style.display = 'block';
+                regionalForm.style.display = 'none';
+            }
         }
     </script>
 </head>
@@ -147,136 +174,124 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_submit'])) {
     </div>
 </div>
 
-<!-- <div class="vendor-detail-container">
-    <?php if ($vendor): ?>
-        <h2><?php echo htmlspecialchars($vendor['vendor_name']); ?></h2>
-        <p><strong>Category:</strong> <?php echo htmlspecialchars($vendor['vendor_category']); ?></p>
-        <p><strong>Code:</strong> <?php echo htmlspecialchars($vendor['vendor_code']); ?></p>
-        <p><strong>Office Address:</strong> <?php echo htmlspecialchars($vendor['office_address']); ?></p>
-    <?php else: ?>
-        <p>Vendor not found.</p>
+<div class="main-center-flex">
+    <?php if ($showSuccess): ?>
+        <div class="success-msg">Regional office created successfully!</div>
+    <?php elseif ($showError): ?>
+        <div class="error-msg">Failed to create regional office. Please try again.</div>
     <?php endif; ?>
-</div> -->
 
-
-<?php if ($showSuccess): ?>
-    <div class="success-msg">Regional office created successfully!</div>
-<?php elseif ($showError): ?>
-    <div class="error-msg">Failed to create regional office. Please try again.</div>
-<?php endif; ?>
-
-<?php if ($vendor): ?>
-    <div style="display: flex; flex-direction: column; align-items: center;">
-        <div style="display: flex; flex-direction: row; gap: 16px; margin:24px 0 12px 0;">
-            <button class="regional-office-btn" onclick="toggleRegionalOfficeForm()" style="min-width:220px; margin:0;">
-                Create Regional Office
-            </button>
-            <button class="regional-office-btn" onclick="toggleProductForm()" style="min-width:220px; background:#2253a3; margin:0;">
-                Add Product
-            </button>
+    <?php if ($vendor): ?>
+        <div style="display: flex; flex-direction: column; align-items: center; width:100%;">
+            <div style="display: flex; flex-direction: row; gap: 16px; margin:24px 0 12px 0;">
+                <button class="regional-office-btn" onclick="toggleRegionalOfficeForm()" style="min-width:220px; margin:0;">
+                    Create Regional Office
+                </button>
+                <button class="regional-office-btn" onclick="toggleProductForm()" style="min-width:220px; background:#2253a3; margin:0;">
+                    Add Product
+                </button>
+            </div>
+            <form class="createregionaloffice" id="createregionalofficeform" method="POST" autocomplete="off" style="display:none;">
+                <div class="createregionalofficecontainer">
+                    <p class="headingpara">Create Regional Office</p>
+                    <div class="trial1" style="margin-bottom:16px;">
+                        <input type="text" placeholder="" name="regional_office_address" class="input02" required style="font-size:1.1rem;">
+                        <label for="" class="placeholder2">Regional Office Address</label>
+                    </div>
+                    <div class="trial1" style="margin-bottom:16px;">
+                        <select name="regional_office_state" class="input02" required style="font-size:1.1rem;">
+                            <option value="" disabled selected>Select State</option>
+                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                            <option value="Assam">Assam</option>
+                            <option value="Bihar">Bihar</option>
+                            <option value="Chandigarh">Chandigarh</option>
+                            <option value="Chhattisgarh">Chhattisgarh</option>
+                            <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Goa">Goa</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Haryana">Haryana</option>
+                            <option value="Himachal Pradesh">Himachal Pradesh</option>
+                            <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                            <option value="Jharkhand">Jharkhand</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Kerala">Kerala</option>
+                            <option value="Ladakh">Ladakh</option>
+                            <option value="Lakshadweep">Lakshadweep</option>
+                            <option value="Madhya Pradesh">Madhya Pradesh</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Manipur">Manipur</option>
+                            <option value="Meghalaya">Meghalaya</option>
+                            <option value="Mizoram">Mizoram</option>
+                            <option value="Nagaland">Nagaland</option>
+                            <option value="Odisha">Odisha</option>
+                            <option value="Puducherry">Puducherry</option>
+                            <option value="Punjab">Punjab</option>
+                            <option value="Rajasthan">Rajasthan</option>
+                            <option value="Sikkim">Sikkim</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Telangana">Telangana</option>
+                            <option value="Tripura">Tripura</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="Uttarakhand">Uttarakhand</option>
+                            <option value="West Bengal">West Bengal</option>
+                        </select>
+                        <label for="" class="placeholder2">State</label>
+                    </div>
+                    <div class="trial1" style="margin-bottom:16px;">
+                        <input type="text" placeholder="" name="regional_office_contact_person" class="input02" required style="font-size:1.1rem;">
+                        <label for="" class="placeholder2">Contact Person</label>
+                    </div>
+                    <div class="trial1" style="margin-bottom:16px;">
+                        <input type="text" placeholder="" name="regional_office_contact_number" class="input02" required style="font-size:1.1rem;">
+                        <label for="" class="placeholder2">Contact Number</label>
+                    </div>
+                    <div class="trial1" style="margin-bottom:16px;">
+                        <input type="email" placeholder="" name="regional_office_contact_email" class="input02" required style="font-size:1.1rem;">
+                        <label for="" class="placeholder2">Contact Email</label>
+                    </div>
+                    <button type="submit" name="regional_office_submit" class="epc-button" >SUBMIT</button>
+                </div>
+            </form>
+            <!-- Product Form -->
+            <form class="hqcontact" id="hqcontactform" method="POST" autocomplete="off" >
+               <div class="hqcontactcontainer">
+                    <p class="headingpara" >Add Product</p>
+                    <div class="trial1" style="margin-bottom:16px;">
+                        <input type="text" placeholder="" name="product_serial" class="input02" required style="font-size:1.1rem;">
+                        <label for="" class="placeholder2">Product Serial Number/Code</label>
+                    </div>
+                    <div class="trial1" style="margin-bottom:16px;">
+                        <input type="text" placeholder="" name="product_name" class="input02" required style="font-size:1.1rem;">
+                        <label for="" class="placeholder2">Product Name (Code HSN/SAC)</label>
+                    </div>
+                    <div class="trial1" style="margin-bottom:16px;">
+                        <select name="product_uom" class="input02" required style="font-size:1.1rem;">
+                            <option value="" disabled selected>Select UoM</option>
+                            <option value="set">Set</option>
+                            <option value="nos">Nos</option>
+                            <option value="kgs">Kgs</option>
+                            <option value="meter">Meter</option>
+                            <option value="litre">Litre</option>
+                        </select>
+                        <label class="placeholder2">UoM (Unit of Measurement)</label>
+                    </div>
+                    <div class="trial1" style="margin-bottom:16px;">
+                        <input type="number" placeholder="" step="0.01" min="0" name="unit_price" id="unit_price" class="input02" required style="font-size:1.1rem;">
+                        <label for="" class="placeholder2">Unit Price</label>
+                    </div>
+                    <div class="trial1" style="margin-bottom:16px;">
+                        <input type="number" placeholder="" step="1" min="1" name="qty" id="qty" class="input02" required style="font-size:1.1rem;">
+                        <label for="" class="placeholder2">Qty</label>
+                    </div>
+                    <button type="submit" name="product_submit" class="epc-button" >SUBMIT</button>
+                </div>
+            </form>
         </div>
-        <form id="regionalOfficeForm" class="vendorform" method="POST" autocomplete="off" style="display:none; margin-top: 20px;">
-            <div class="rentalclientcontainer" style="min-width:420px; max-width:520px; padding: 32px 32px 24px 32px;">
-                <p class="headingpara" style="background:#2253a3;color:#fff;padding:16px 0 12px 18px;border-radius:2px 2px 0 0;margin:-16px -16px 24px -16px;font-size:1.15rem;font-weight:600;">Add Regional Office</p>
-                <div class="trial1" style="margin-bottom:16px;">
-                    <input type="text" placeholder="" name="regional_office_address" class="input02" required style="font-size:1.1rem;">
-                    <label for="" class="placeholder2">Regional Office Address</label>
-                </div>
-                <div class="trial1" style="margin-bottom:16px;">
-                    <select name="regional_office_state" class="input02" required style="font-size:1.1rem;">
-                        <option value="" disabled selected>Select State</option>
-                        <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
-                        <option value="Andhra Pradesh">Andhra Pradesh</option>
-                        <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-                        <option value="Assam">Assam</option>
-                        <option value="Bihar">Bihar</option>
-                        <option value="Chandigarh">Chandigarh</option>
-                        <option value="Chhattisgarh">Chhattisgarh</option>
-                        <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
-                        <option value="Delhi">Delhi</option>
-                        <option value="Goa">Goa</option>
-                        <option value="Gujarat">Gujarat</option>
-                        <option value="Haryana">Haryana</option>
-                        <option value="Himachal Pradesh">Himachal Pradesh</option>
-                        <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                        <option value="Jharkhand">Jharkhand</option>
-                        <option value="Karnataka">Karnataka</option>
-                        <option value="Kerala">Kerala</option>
-                        <option value="Ladakh">Ladakh</option>
-                        <option value="Lakshadweep">Lakshadweep</option>
-                        <option value="Madhya Pradesh">Madhya Pradesh</option>
-                        <option value="Maharashtra">Maharashtra</option>
-                        <option value="Manipur">Manipur</option>
-                        <option value="Meghalaya">Meghalaya</option>
-                        <option value="Mizoram">Mizoram</option>
-                        <option value="Nagaland">Nagaland</option>
-                        <option value="Odisha">Odisha</option>
-                        <option value="Puducherry">Puducherry</option>
-                        <option value="Punjab">Punjab</option>
-                        <option value="Rajasthan">Rajasthan</option>
-                        <option value="Sikkim">Sikkim</option>
-                        <option value="Tamil Nadu">Tamil Nadu</option>
-                        <option value="Telangana">Telangana</option>
-                        <option value="Tripura">Tripura</option>
-                        <option value="Uttar Pradesh">Uttar Pradesh</option>
-                        <option value="Uttarakhand">Uttarakhand</option>
-                        <option value="West Bengal">West Bengal</option>
-                    </select>
-                    <label for="" class="placeholder2">State</label>
-                </div>
-                <div class="trial1" style="margin-bottom:16px;">
-                    <input type="text" placeholder="" name="regional_office_contact_person" class="input02" required style="font-size:1.1rem;">
-                    <label for="" class="placeholder2">Contact Person</label>
-                </div>
-                <div class="trial1" style="margin-bottom:16px;">
-                    <input type="text" placeholder="" name="regional_office_contact_number" class="input02" required style="font-size:1.1rem;">
-                    <label for="" class="placeholder2">Contact Number</label>
-                </div>
-                <div class="trial1" style="margin-bottom:16px;">
-                    <input type="email" placeholder="" name="regional_office_contact_email" class="input02" required style="font-size:1.1rem;">
-                    <label for="" class="placeholder2">Contact Email</label>
-                </div>
-                <button type="submit" name="regional_office_submit" class="epc-button" style="width:100%;background:#2253a3;font-size:1.1rem;font-weight:600;padding:12px 0;">SUBMIT</button>
-            </div>
-        </form>
-        <!-- Product Form -->
-        <form id="productForm" class="vendorform" method="POST" autocomplete="off" style="display:none; margin-top: 20px;">
-            <div class="rentalclientcontainer" style="min-width:420px; max-width:520px; padding: 32px 32px 24px 32px;">
-                <p class="headingpara" style="background:#2253a3;color:#fff;padding:16px 0 12px 18px;border-radius:2px 2px 0 0;margin:-16px -16px 24px -16px;font-size:1.15rem;font-weight:600;">Add Product</p>
-                <div class="trial1" style="margin-bottom:16px;">
-                    <input type="text" name="product_serial" class="input02" required style="font-size:1.1rem;">
-                    <label class="placeholder2">Product Serial Number/Code</label>
-                </div>
-                <div class="trial1" style="margin-bottom:16px;">
-                    <input type="text" name="product_name" class="input02" required style="font-size:1.1rem;">
-                    <label class="placeholder2">Product Name (Code HSN/SAC)</label>
-                </div>
-                <div class="trial1" style="margin-bottom:16px;">
-                    <select name="product_uom" class="input02" required style="font-size:1.1rem;">
-                        <option value="" disabled selected>Select UoM</option>
-                        <option value="set">Set</option>
-                        <option value="nos">Nos</option>
-                        <option value="kgs">Kgs</option>
-                        <option value="meter">Meter</option>
-                        <option value="litre">Litre</option>
-                        <!-- Add more as needed -->
-                    </select>
-                    <label class="placeholder2">UoM (Unit of Measurement)</label>
-                </div>
-                <div class="trial1" style="margin-bottom:16px;">
-                    <input type="number" step="0.01" min="0" name="unit_price" id="unit_price" class="input02" required style="font-size:1.1rem;">
-                    <label class="placeholder2">Unit Price</label>
-                </div>
-                <div class="trial1" style="margin-bottom:16px;">
-                    <input type="number" step="1" min="1" name="qty" id="qty" class="input02" required style="font-size:1.1rem;">
-                    <label class="placeholder2">Qty</label>
-                </div>
-                <button type="submit" name="product_submit" class="epc-button" style="width:100%;background:#2253a3;font-size:1.1rem;font-weight:600;padding:12px 0;">SUBMIT</button>
-            </div>
-        </form>
-    </div>
-<?php endif; ?> 
-
+    <?php endif; ?> 
+</div>
 <?php
 // Show all regional offices for this vendor
 if ($vendor_id > 0) {
