@@ -50,20 +50,8 @@ if ($regional_id > 0) {
 <head>
     <meta charset="UTF-8">
     <title>Edit Vendor Regional Office</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        .vendorform {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 60vh;
-        }
-        .rentalclientcontainer {
-            min-width: 420px;
-            max-width: 520px;
-            padding: 32px 32px 24px 32px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css"> 
+    
 </head>
 <body>
 <div class="navbar1">
@@ -85,9 +73,9 @@ if ($regional_id > 0) {
 <?php endif; ?>
 
 <?php if ($regional): ?>
-    <form class="vendorform" method="POST" autocomplete="off" style="margin-top: 20px;">
+    <form action="editVendorRegional.php" class="createregionaloffice" id="createregionalofficeform" method="POST" autocomplete="off" style="display: flex; margin-top: 20px;">
         <div class="rentalclientcontainer">
-            <p class="headingpara" style="background:#2253a3;color:#fff;padding:16px 0 12px 18px;border-radius:2px 2px 0 0;margin:-16px -16px 24px -16px;font-size:1.15rem;font-weight:600;">Edit Regional Office</p>
+            <p class="headingpara" >Edit Regional Office</p>
             <div class="trial1" style="margin-bottom:16px;">
                 <input type="text" placeholder="" name="regional_office_address" class="input02" required style="font-size:1.1rem;" value="<?php echo htmlspecialchars($regional['office_address']); ?>">
                 <label for="" class="placeholder2">Regional Office Address</label>
@@ -123,7 +111,7 @@ if ($regional_id > 0) {
                 <input type="email" placeholder="" name="regional_office_contact_email" class="input02" required style="font-size:1.1rem;" value="<?php echo htmlspecialchars($regional['contact_email']); ?>">
                 <label for="" class="placeholder2">Contact Email</label>
             </div>
-            <button type="submit" name="update_regional_office" class="epc-button" style="width:100%;background:#2253a3;font-size:1.1rem;font-weight:600;padding:12px 0;">SUBMIT</button>
+            <button type="submit" name="update_regional_office" class="epc-button" >SUBMIT</button>
         </div>
     </form>
 <?php else: ?>
