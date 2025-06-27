@@ -15,7 +15,7 @@ if (!$search || !$vendor_id || !in_array($type, ['serial', 'name'])) {
 $field = $type === 'serial' ? 'product_serial' : 'product_name';
 
 $stmt = $conn->prepare(
-    "SELECT product_serial, product_name, product_uom, unit_price, qty 
+    "SELECT product_serial, product_name, product_uom, unit_price, qty, gst, cgst, sgst, price_after_gst, price_after_cgst, price_after_sgst 
      FROM vendor_products 
      WHERE vendor_id = ? AND $field LIKE CONCAT('%', ?, '%') 
      ORDER BY product_serial ASC LIMIT 10"
@@ -27,11 +27,17 @@ $result = $stmt->get_result();
 $products = [];
 while ($row = $result->fetch_assoc()) {
     $products[] = [
-        'product_serial' => $row['product_serial'],
-        'product_name'   => $row['product_name'],
-        'product_uom'    => $row['product_uom'],
-        'unit_price'     => $row['unit_price'],
-        'qty'            => $row['qty']
+        'product_serial'      => $row['product_serial'],
+        'product_name'        => $row['product_name'],
+        'product_uom'         => $row['product_uom'],
+        'unit_price'          => $row['unit_price'],
+        'qty'                 => $row['qty'],
+        'gst'                 => $row['gst'],
+        'cgst'                => $row['cgst'],
+        'sgst'                => $row['sgst'],
+        'price_after_gst'     => $row['price_after_gst'],
+        'price_after_cgst'    => $row['price_after_cgst'],
+        'price_after_sgst'    => $row['price_after_sgst']
     ];
 }
 $stmt->close();
