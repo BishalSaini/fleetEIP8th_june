@@ -213,21 +213,47 @@ $stmt_logo->close();
                         <th>HSN/SAC</th>
                         <th>Qty & UOM</th>
                         <th>Rate per Unit</th>
-                        <th>Disc</th>
                         <th>Net Amount</th>
+                        <th>GST (%)</th>
+                        <th>CGST (%)</th>
+                        <th>SGST (%)</th>
+                        <th>Price After GST</th>
+                        <th>Price After CGST</th>
+                        <th>Price After SGST</th>
                     </tr>
-                    <?php $i=1; $total=0; foreach ($products as $prod): ?>
+                    <?php
+                    $i=1;
+                    $total=0;
+                    $total_gst=0;
+                    $total_cgst=0;
+                    $total_sgst=0;
+                    $total_after_gst=0;
+                    $total_after_cgst=0;
+                    $total_after_sgst=0;
+                    foreach ($products as $prod):
+                        $total += $prod['total_price'];
+                        $total_gst += $prod['gst'];
+                        $total_cgst += $prod['cgst'];
+                        $total_sgst += $prod['sgst'];
+                        $total_after_gst += $prod['price_after_gst'];
+                        $total_after_cgst += $prod['price_after_cgst'];
+                        $total_after_sgst += $prod['price_after_sgst'];
+                    ?>
                     <tr>
                         <td class="right"><?= $i++ ?></td>
                         <td><?= htmlspecialchars($prod['product_name']) ?></td>
                         <td><?= htmlspecialchars($prod['product_serial']) ?></td>
-                        <td class="right"><?= htmlspecialchars($prod['qty']) ?>
-                            <?= htmlspecialchars($prod['product_uom']) ?></td>
+                        <td class="right"><?= htmlspecialchars($prod['qty']) ?> <?= htmlspecialchars($prod['product_uom']) ?></td>
                         <td class="right"><?= number_format($prod['unit_price'],2) ?></td>
-                        <td class="right">-</td>
                         <td class="right"><?= number_format($prod['total_price'],2) ?></td>
+                        <td class="right"><?= rtrim(rtrim(number_format($prod['gst'],2), '0'), '.') ?>%</td>
+                        <td class="right"><?= rtrim(rtrim(number_format($prod['cgst'],2), '0'), '.') ?>%</td>
+                        <td class="right"><?= rtrim(rtrim(number_format($prod['sgst'],2), '0'), '.') ?>%</td>
+                        <td class="right"><?= number_format($prod['price_after_gst'],2) ?></td>
+                        <td class="right"><?= number_format($prod['price_after_cgst'],2) ?></td>
+                        <td class="right"><?= number_format($prod['price_after_sgst'],2) ?></td>
                     </tr>
-                    <?php $total += $prod['total_price']; endforeach; ?>
+                    <?php endforeach; ?>
                 </table>
             </div>
             <table class="totals">
@@ -236,16 +262,37 @@ $stmt_logo->close();
                     <td class="right"><?= number_format($total,2) ?></td>
                 </tr>
                 <tr>
-                    <td class="right bold">CGST:</td>
-                    <td class="right">-</td>
+                    <td class="right bold">
+                        GST Total
+                        <?php if (!empty($products)) echo '(' . rtrim(rtrim(number_format($products[0]['gst'],2), '0'), '.') . '%)'; ?>:
+                    </td>
+                    <td class="right"><?= number_format($total_gst,2) ?></td>
                 </tr>
                 <tr>
-                    <td class="right bold">SGST:</td>
-                    <td class="right">-</td>
+                    <td class="right bold">
+                        CGST Total
+                        <?php if (!empty($products)) echo '(' . rtrim(rtrim(number_format($products[0]['cgst'],2), '0'), '.') . '%)'; ?>:
+                    </td>
+                    <td class="right"><?= number_format($total_cgst,2) ?></td>
                 </tr>
                 <tr>
-                    <td class="right bold">Invoice Total:</td>
-                    <td class="right bold"><?= number_format($total,2) ?></td>
+                    <td class="right bold">
+                        SGST Total
+                        <?php if (!empty($products)) echo '(' . rtrim(rtrim(number_format($products[0]['sgst'],2), '0'), '.') . '%)'; ?>:
+                    </td>
+                    <td class="right"><?= number_format($total_sgst,2) ?></td>
+                </tr>
+                <tr>
+                    <td class="right bold">Invoice Total (After GST):</td>
+                    <td class="right bold"><?= number_format($total_after_gst,2) ?></td>
+                </tr>
+                <tr>
+                    <td class="right bold">Invoice Total (After CGST):</td>
+                    <td class="right bold"><?= number_format($total_after_cgst,2) ?></td>
+                </tr>
+                <tr>
+                    <td class="right bold">Invoice Total (After SGST):</td>
+                    <td class="right bold"><?= number_format($total_after_sgst,2) ?></td>
                 </tr>
             </table>
             <div class="footer">
