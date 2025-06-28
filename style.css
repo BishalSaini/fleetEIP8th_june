@@ -9985,6 +9985,17 @@ margin-left: 5%;
     flex-direction: column;
     gap: 8px;
 
+} 
+
+#termssectioncontainer3{
+    width: 100%;
+    display: none;
+    /* display: flex; */
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+
 }
 
 /* Styles for the quotationnavigatebutton with Reduced Size */
