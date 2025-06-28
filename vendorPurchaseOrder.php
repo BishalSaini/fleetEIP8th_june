@@ -334,7 +334,13 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
             }
             .product-dropdown li:hover {
                 background: #f1f1f1;
+            }  
+
+            #quotationnextback{ 
+                gap:8px;
             }
+
+            
         </style>
 
     </head>
@@ -1592,7 +1598,7 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                                 <label for="bill_to_contact_no" class="placeholder2">Contact Email</label>
                             </div>
                         </div>
-                        <div class="fulllength" id="billtonextback">
+                        <div class="fulllength" id="quotationnextback">
                             <button
                                 class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
                                 type="button"
@@ -1748,11 +1754,114 @@ if (isset($_GET['edit']) && intval($_GET['edit']) > 0) {
                             </div>
                         </div>
 
-                        <div class="fulllength" id="billtonextback">
+                        <div class="fulllength" id="quotationnextback">
                             <button
                                 class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
                                 type="button"
                                 onclick="backtoequipementsection2()">
+                                <div
+                                    class="rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
+                                    style="background-color: #1C549E;">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewbox="0 0 1024 1024"
+                                        height="18px"
+                                        width="18px">
+                                        <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z" fill="white"></path>
+                                        <path
+                                            d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+                                            fill="white"></path>
+                                    </svg>
+                                </div>
+                                <p class="translate-x-1">Back</p>
+                            </button> 
+
+                            <br>
+
+                             <button
+                                class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
+                                type="button"
+                                onclick="termssection3()">
+                                <div
+                                    class="bg-custom-blue rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
+                                    style="background-color: #1C549E;">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewbox="0 0 1024 1024"
+                                        height="18px"
+                                        width="18px"
+                                        transform="rotate(180)">
+                                        <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z" fill="white"></path>
+                                        <path
+                                            d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+                                            fill="white"></path>
+                                    </svg>
+                                </div>
+                                <p class="translate-x-1">Next</p>
+                            </button>
+                        </div>
+                        <br>
+                    </div> 
+
+                    <div id="termssectioncontainer3">
+                        <p class="headingpara">Terms And Section</p>
+                        <div class="outer02">
+                            <div class="trial1">
+                                <select
+                                    id="payment_terms"
+                                    name="payment_terms"
+                                    class="input02"
+                                    required>
+                                    <option value="" disabled <?php if (!$edit_mode || empty($edit_po['payment_terms'])) echo 'selected'; ?>>Select Payment Terms</option>
+                                    <option value="Within 30 days" <?php if ($edit_mode && $edit_po['payment_terms'] === 'Within 30 days') echo 'selected'; ?>>Within 30 days</option>
+                                    <option value="Advance Payment" <?php if ($edit_mode && $edit_po['payment_terms'] === 'Advance Payment') echo 'selected'; ?>>Advance Payment</option>
+                                    <option value="50% Advance, 50% on Delivery" <?php if ($edit_mode && $edit_po['payment_terms'] === '50% Advance, 50% on Delivery') echo 'selected'; ?>>50% Advance, 50% on Delivery</option>
+                                </select>
+                                <label for="payment_terms" class="placeholder2">Payment Terms</label>
+                            </div> 
+                            </div> 
+                              <div class="outer02">
+                            <div class="trial1">
+                                <select
+                                    id="transport_mode"
+                                    name="transport_mode"
+                                    class="input02"
+                                    required>
+                                    <option value="" disabled <?php if (!$edit_mode || empty($edit_po['transport_mode'])) echo 'selected'; ?>>Select Transport Mode</option>
+                                    <option value="Self Pick" <?php if ($edit_mode && isset($edit_po['transport_mode']) && $edit_po['transport_mode'] === 'Self Pick') echo 'selected'; ?>>Self Pick</option>
+                                    <option value="Courier" <?php if ($edit_mode && isset($edit_po['transport_mode']) && $edit_po['transport_mode'] === 'Courier') echo 'selected'; ?>>Courier</option>
+                                    <option value="Transport" <?php if ($edit_mode && isset($edit_po['transport_mode']) && $edit_po['transport_mode'] === 'Transport') echo 'selected'; ?>>Transport</option>
+                                </select>
+                                <label for="transport_mode" class="placeholder2">Transport Mode</label>
+                            </div>  
+                             </div>  
+                              <div class="outer02">
+                            <div class="trial1">
+                                <textarea
+                                    id="remarks"
+                                    name="remarks"
+                                    class="input02"
+                                    rows="3"
+                                    placeholder=""><?php echo $edit_mode ? htmlspecialchars($edit_po['remarks']) : ''; ?></textarea>
+                                <label for="remarks" class="placeholder2">Remarks</label>
+                            </div>
+                        </div>
+                        <div class="outer02">
+                            <div class="trial1" style="width:100%;">
+                                <label style="font-weight:600;">Standard Terms and Conditions:</label>
+                                <ul style="margin-top:8px; margin-bottom:0; padding-left:20px;">
+                                    <li>Interest at 18% per annum will be charged if payment is not received as per the payment terms.</li>
+                                    <li>Wear parts, rubber, and electric parts are not covered under warranty.</li>
+                                    <li>All other parts are covered with a 6-month warranty as per Putzmeister policy.</li>
+                                    <li>Sale is subject to the terms and conditions of sale and delivery of the company</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="fulllength" id="quotationnextback">
+                            <button
+                                class="quotationnavigatebutton bg-white text-center w-30 rounded-lg h-10 relative text-black text-sm font-semibold group"
+                                type="button"
+                                onclick="backtoequipementsection3()">
                                 <div
                                     class="rounded-md h-8 w-1/4 flex items-center justify-center absolute left-1 top-[2px] group-hover:w-[110px] z-10 duration-300"
                                     style="background-color: #1C549E;">
