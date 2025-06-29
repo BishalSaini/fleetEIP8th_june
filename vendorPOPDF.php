@@ -205,6 +205,26 @@ $stmt_logo->close();
                     </div>
                 </div>
             </div>
+            <!-- Add PO Terms Section -->
+            <div class="section" style="margin-bottom: 10px;">
+                <div style="display: flex; flex-direction: column; gap: 8px; max-width: 600px;">
+                    <div>
+                        <span class="section-title-inline">Payment Terms:</span>
+                        <span><?= htmlspecialchars($po['payment_terms'] ?? '') ?></span>
+                    </div>
+                    <div>
+                        <span class="section-title-inline">Transport Mode:</span>
+                        <span><?= htmlspecialchars($po['transport_mode'] ?? '') ?></span>
+                    </div>
+                    <?php if (!empty($po['remarks'])): ?>
+                    <div>
+                        <span class="section-title-inline">Remarks:</span>
+                        <span><?= nl2br(htmlspecialchars($po['remarks'])) ?></span>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <!-- End PO Terms Section -->
             <div class="section">
                 <table>
                     <tr>
@@ -296,9 +316,25 @@ $stmt_logo->close();
                 </tr>
             </table>
             <div class="footer">
-                <div>Terms of delivery: Customer Account</div>
-                <div>Mode of Transport: Self Pick</div>
-                <div>Payment terms: 0030 Within 30 days net</div>
+                <?php if (!empty($po['terms_of_delivery'])): ?>
+                <div>Terms of delivery: <?= htmlspecialchars($po['terms_of_delivery']) ?></div>
+                <?php endif; ?>
+                <?php if (!empty($po['transport_mode'])): ?>
+                <div>Mode of Transport: <?= htmlspecialchars($po['transport_mode']) ?></div>
+                <?php endif; ?>
+                <?php if (!empty($po['payment_terms'])): ?>
+                <div>Payment terms: <?= htmlspecialchars($po['payment_terms']) ?></div>
+                <?php endif; ?>
+            </div>
+            <!-- Standard Terms and Conditions Section -->
+            <div style="margin-top:30px; font-size:13px; color:#333;">
+                <strong>Standard Terms and Conditions:</strong>
+                <ul style="margin:8px 0 0 18px; padding:0;">
+                    <li>Interest at 18% per annum will be charged if payment is not received as per the payment terms.</li>
+                    <li>Wear parts, rubber, and electric parts are not covered under warranty.</li>
+                    <li>All other parts are covered with a 6-month warranty as per Putzmeister policy.</li>
+                    <li>Sale is subject to the terms and conditions of sale and delivery of the company.</li>
+                </ul>
             </div>
         </div>
         <script
