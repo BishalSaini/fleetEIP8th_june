@@ -72,7 +72,10 @@ if (isset($_POST['submit_po'])) {
     $ship_to_pan = $_POST['ship_to_pan'] ?? '';
     $ship_to_contact = $_POST['ship_to_contact'] ?? '';
     $ship_contact_number = $_POST['ship_contact_number'] ?? '';
-    $ship_to_email = $_POST['ship_to_email'] ?? ''; 
+    $ship_to_email = $_POST['ship_to_email'] ?? '';  
+    $payment_terms = $_POST['payment_terms'] ?? '';
+    $transport_mode = $_POST['transport_mode'] ?? '';
+    $remarks = $_POST['remarks'] ?? '';
 
     // --- Insert new Bill To contact if not found ---
     if (!empty($bill_to_contact)) {
@@ -110,17 +113,28 @@ if (isset($_POST['submit_po'])) {
         }
     }
 
-    $stmt = $conn->prepare("INSERT INTO purchase_orders (
-        vendor_id, vendor_name, salutation, contact_person, new_contact_person, to_address, contact_number, email_id, companyname,
-        bill_to_name, bill_to_address, bill_to_gstin, bill_to_pan, bill_to_contact, bill_contact_number, bill_to_email,
-        ship_to_name, ship_to_address, ship_to_gstin, ship_to_pan, ship_to_contact, ship_contact_number, ship_to_email
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param(
-        "issssssssssssssssssssss",
-        $vendor_id, $vendor_name, $salutation, $contact_person, $new_contact_person, $to_address, $contact_number, $email_id, $companyname,
-        $bill_to_name, $bill_to_address, $bill_to_gstin, $bill_to_pan, $bill_to_contact, $bill_contact_number, $bill_to_email,
-        $ship_to_name, $ship_to_address, $ship_to_gstin, $ship_to_pan, $ship_to_contact, $ship_contact_number, $ship_to_email
-    );
+$stmt = $conn->prepare("INSERT INTO purchase_orders (
+    vendor_id, vendor_name, salutation, contact_person, new_contact_person,
+    to_address, contact_number, email_id, companyname,
+    bill_to_name, bill_to_address, bill_to_gstin, bill_to_pan, bill_to_contact,
+    bill_contact_number, bill_to_email,
+    ship_to_name, ship_to_address, ship_to_gstin, ship_to_pan, ship_to_contact,
+    ship_contact_number, ship_to_email,
+    payment_terms, transport_mode, remarks
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+
+$stmt->bind_param(
+    "isssssssssssssssssssssssss",
+    $vendor_id, $vendor_name, $salutation, $contact_person, $new_contact_person,
+    $to_address, $contact_number, $email_id, $companyname,
+    $bill_to_name, $bill_to_address, $bill_to_gstin, $bill_to_pan, $bill_to_contact,
+    $bill_contact_number, $bill_to_email,
+    $ship_to_name, $ship_to_address, $ship_to_gstin, $ship_to_pan, $ship_to_contact,
+    $ship_contact_number, $ship_to_email,
+    $payment_terms, $transport_mode, $remarks
+);
+
     if ($stmt->execute()) {
         $po_id = $stmt->insert_id;
         $stmt->close();

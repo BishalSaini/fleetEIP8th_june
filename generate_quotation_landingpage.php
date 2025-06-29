@@ -41,19 +41,23 @@ if(isset($_POST['quote_status_btn'])){
   $generated_By = !empty($_POST['generated_By']) ? $_POST['generated_By'] : null;
   $current_status_ = !empty($_POST['current_status_']) ? $_POST['current_status_'] : null;
 
-
   $enquiry_close = !empty($_POST['enquiry_close']) ? $_POST['enquiry_close'] : null;
   $postponed_date = !empty($_POST['postponed_date']) ? $_POST['postponed_date'] : null;
   $lost_to = !empty($_POST['lost_to']) ? $_POST['lost_to'] : null;
   $regretted_reason = !empty($_POST['regretted_reason']) ? $_POST['regretted_reason'] : null;
   $unique_id=$_POST['unique_id'];
-  
 
+  // New fields for 'Won' status
+  $client_name = isset($_POST['client_name']) ? $_POST['client_name'] : null;
+  $crane_dispatch_date = isset($_POST['crane_dispatch_date']) ? $_POST['crane_dispatch_date'] : null;
+  $crane_dispatch_time = isset($_POST['crane_dispatch_time']) ? $_POST['crane_dispatch_time'] : null;
+  $rental_fix = isset($_POST['rental_fix']) ? $_POST['rental_fix'] : null;
+  $mob_price = isset($_POST['mob_price']) ? $_POST['mob_price'] : null;
+  $demob_price = isset($_POST['demob_price']) ? $_POST['demob_price'] : null;
 
   $check_query = "SELECT * FROM `quotation_status` WHERE `ref_no` = '$stats_ref_no' AND `companyname` = '$stats_compname'";
   $check_result = mysqli_query($conn, $check_query);
 
-  
   if(mysqli_num_rows($check_result) > 0){
     // Update query
     $sql_crnt_status = "UPDATE `quotation_status` SET 
@@ -63,21 +67,28 @@ if(isset($_POST['quote_status_btn'])){
                         `regretted_reason` = '$regretted_reason', 
                         `lost_to` = '$lost_to', 
                         `postponed_date` = '$postponed_date', 
-                        `unique_id`='$unique_id'
+                        `unique_id`='$unique_id',
+                        `client_name` = '$client_name',
+                        `crane_dispatch_date` = '$crane_dispatch_date',
+                        `crane_dispatch_time` = '$crane_dispatch_time',
+                        `rental_fix` = '$rental_fix',
+                        `mob_price` = '$mob_price',
+                        `demob_price` = '$demob_price'
                         WHERE `ref_no` = '$stats_ref_no' AND `companyname` = '$stats_compname'";
   } else {
     // Insert query
-    $sql_crnt_status = "INSERT INTO `quotation_status` (`unique_id`,`ref_no`, `generated_by`, `companyname`, `current_status`, `inquiry_closed_reason`, `regretted_reason`, `lost_to`, `postponed_date`) 
-                        VALUES ('$unique_id','$stats_ref_no', '$generated_By', '$stats_compname', '$current_status_', '$enquiry_close', '$regretted_reason', '$lost_to', '$postponed_date')";
+    $sql_crnt_status = "INSERT INTO `quotation_status` 
+                        (`unique_id`,`ref_no`, `generated_by`, `companyname`, `current_status`, `inquiry_closed_reason`, `regretted_reason`, `lost_to`, `postponed_date`, `client_name`, `crane_dispatch_date`, `crane_dispatch_time`, `rental_fix`, `mob_price`, `demob_price`) 
+                        VALUES 
+                        ('$unique_id','$stats_ref_no', '$generated_By', '$stats_compname', '$current_status_', '$enquiry_close', '$regretted_reason', '$lost_to', '$postponed_date', '$client_name', '$crane_dispatch_date', '$crane_dispatch_time', '$rental_fix', '$mob_price', '$demob_price')";
   }
-$result_new_=mysqli_query($conn,$sql_crnt_status);
-if($result_new_){
-  $showAlert=true;
-}
-else{
-  $showError=true;
-}
-
+  $result_new_=mysqli_query($conn,$sql_crnt_status);
+  if($result_new_){
+    $showAlert=true;
+  }
+  else{
+    $showError=true;
+  }
 }
 
 
@@ -484,8 +495,44 @@ if ($result_quote_stats === false) {
                             <option value="Won">Won</option>
                             <option value="Lost">Lost</option>
                         </select>
-                    </div>
-                    
+                    </div> 
+
+                    <!-- Fields visible only when status is 'Won' -->
+                    <div class="trial1 won-only" id="client_name_<?php echo $row['ref_no']; ?>" style="display: none;">
+                        <input type="text" name="client_name" placeholder="" class="input02">
+                        <label class="placeholder2">Client Name</label>
+                    </div>  
+
+                    <div class="trial1 won-only" id="crane_dispatch_date_<?php echo $row['ref_no']; ?>" style="display: none;">
+                        <input type="date" name="crane_dispatch_date" placeholder="" class="input02">
+                        <label class="placeholder2">Crane Dispatch Date</label>
+                    </div> 
+
+                    <div class="trial1 won-only" id="crane_dispatch_time_<?php echo $row['ref_no']; ?>" style="display: none;">
+                        <input type="time" name="crane_dispatch_time" id="crane_dispatch_time_input_<?php echo $row['ref_no']; ?>" class="input02">
+                        <label class="placeholder2">Crane Dispatch Time</label>
+                    </div> 
+
+                    <div class="trial1 won-only" id="rental_fix_<?php echo $row['ref_no']; ?>" style="display: none;">
+                        <select name="rental_fix" class="input02">
+                            <option value="" disabled selected>Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                        <label class="placeholder2">Is Rental FIX?</label>
+                    </div>  
+
+                    <div class="trial1 won-only" id="mob_price_<?php echo $row['ref_no']; ?>" style="display: none;">
+                        <input type="text" name="mob_price" placeholder="" class="input02">
+                        <label class="placeholder2">Mob Price</label>
+                    </div>   
+
+                    <div class="trial1 won-only" id="demob_price_<?php echo $row['ref_no']; ?>" style="display: none;">
+                        <input type="text" name="demob_price" placeholder="" class="input02">
+                        <label class="placeholder2">Demob Price</label>
+                    </div>   
+                    <!-- End won-only fields -->
+
                     <div class="trial1 reason-dd" id="enquiry_closed_dd_<?php echo $row['ref_no']; ?>" style="display: none;">
                         <select name="enquiry_close" class="input02" onchange="enquiry_info()">
                             <option value="" disabled selected>Inquiry Closed Reason</option>
@@ -553,24 +600,85 @@ function status_change(status, ref_no) {
     const lost_to = document.getElementById(`lost_to_${ref_no}`);
     const regretted_reason = document.getElementById(`regretted_reason_${ref_no}`);
 
+    // Won-only fields
+    const client_name = document.getElementById(`client_name_${ref_no}`);
+    const crane_dispatch_date = document.getElementById(`crane_dispatch_date_${ref_no}`);
+    const crane_dispatch_time = document.getElementById(`crane_dispatch_time_${ref_no}`);
+    const crane_dispatch_time_input = document.getElementById(`crane_dispatch_time_input_${ref_no}`);
+    const rental_fix = document.getElementById(`rental_fix_${ref_no}`);
+    const mob_price = document.getElementById(`mob_price_${ref_no}`);
+    const demob_price = document.getElementById(`demob_price_${ref_no}`);
+
     if (status === 'Closed') {
         enquiry_closed_dd.style.display = 'block';
         postponed_to.style.display = 'none';
         lost_to.style.display = 'none';
         regretted_reason.style.display = 'none';
+        // Hide won-only fields
+        if (client_name) client_name.style.display = 'none';
+        if (crane_dispatch_date) crane_dispatch_date.style.display = 'none';
+        if (crane_dispatch_time) crane_dispatch_time.style.display = 'none';
+        if (rental_fix) rental_fix.style.display = 'none';
+        if (mob_price) mob_price.style.display = 'none';
+        if (demob_price) demob_price.style.display = 'none';
     } else if (status === 'Lost') {
         lost_to.style.display = 'block';
         enquiry_closed_dd.style.display = 'none';
         postponed_to.style.display = 'none';
         regretted_reason.style.display = 'none';
+        // Hide won-only fields
+        if (client_name) client_name.style.display = 'none';
+        if (crane_dispatch_date) crane_dispatch_date.style.display = 'none';
+        if (crane_dispatch_time) crane_dispatch_time.style.display = 'none';
+        if (rental_fix) rental_fix.style.display = 'none';
+        if (mob_price) mob_price.style.display = 'none';
+        if (demob_price) demob_price.style.display = 'none';
     } else if (status === 'Regretted') {
         regretted_reason.style.display = 'block';
         enquiry_closed_dd.style.display = 'none';
         postponed_to.style.display = 'none';
         lost_to.style.display = 'none';
+        // Hide won-only fields
+        if (client_name) client_name.style.display = 'none';
+        if (crane_dispatch_date) crane_dispatch_date.style.display = 'none';
+        if (crane_dispatch_time) crane_dispatch_time.style.display = 'none';
+        if (rental_fix) rental_fix.style.display = 'none';
+        if (mob_price) mob_price.style.display = 'none';
+        if (demob_price) demob_price.style.display = 'none';
     } else if (status === 'Postponed') {
         postponed_to.style.display = 'block';
         enquiry_closed_dd.style.display = 'none';
+        lost_to.style.display = 'none';
+        regretted_reason.style.display = 'none';
+        // Hide won-only fields
+        if (client_name) client_name.style.display = 'none';
+        if (crane_dispatch_date) crane_dispatch_date.style.display = 'none';
+        if (crane_dispatch_time) crane_dispatch_time.style.display = 'none';
+        if (rental_fix) rental_fix.style.display = 'none';
+        if (mob_price) mob_price.style.display = 'none';
+        if (demob_price) demob_price.style.display = 'none';
+    } else if (status === 'Won') {
+        // Show won-only fields
+        if (client_name) client_name.style.display = 'block';
+        if (crane_dispatch_date) crane_dispatch_date.style.display = 'block';
+        if (crane_dispatch_time) crane_dispatch_time.style.display = 'block';
+        if (rental_fix) rental_fix.style.display = 'block';
+        if (mob_price) mob_price.style.display = 'block';
+        if (demob_price) demob_price.style.display = 'block';
+        // Set current time in 12-hour format with AM/PM if input is empty
+        if (crane_dispatch_time_input && !crane_dispatch_time_input.value) {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+            crane_dispatch_time_input.value = hours + ':' + minutesStr + ' ' + ampm;
+        }
+        // Hide other reason fields
+        enquiry_closed_dd.style.display = 'none';
+        postponed_to.style.display = 'none';
         lost_to.style.display = 'none';
         regretted_reason.style.display = 'none';
     } else {
@@ -578,6 +686,13 @@ function status_change(status, ref_no) {
         postponed_to.style.display = 'none';
         lost_to.style.display = 'none';
         regretted_reason.style.display = 'none';
+        // Hide won-only fields
+        if (client_name) client_name.style.display = 'none';
+        if (crane_dispatch_date) crane_dispatch_date.style.display = 'none';
+        if (crane_dispatch_time) crane_dispatch_time.style.display = 'none';
+        if (rental_fix) rental_fix.style.display = 'none';
+        if (mob_price) mob_price.style.display = 'none';
+        if (demob_price) demob_price.style.display = 'none';
     }
 }
 function enquiry_info() {
