@@ -580,7 +580,7 @@ if (mysqli_num_rows($result_siteoffice) > 0) {
         <h3 class="contactheading">Site Office : <?php echo htmlspecialchars($row_site['heading']); ?>
         <a href="editsiteoffice.php?id=<?php echo $row_site['id'] ?>&clientid=<?php echo $row['id'] ?>" id="editregionalofficebutton" title="Edit Client"><i style="width: 22px; height: 22px;" class="bi bi-pencil"></i></a>
         </h3>
-        <h5 class="contactheading"><strong>Address: </strong><?php echo htmlspecialchars($row_site['address']). ' <mark>(KAM - ' . $row_site['KAM'] . ')</mark>'; ?></h5> 
+        <h5 class="contactheading"><strong>Address: </strong><?php echo htmlspecialchars($row_site['address']). ' <mark>(KAM - ' . (isset($row_site['KAM']) ? $row_site['KAM'] : '-') . ')</mark>'; ?></h5> 
 
         <button class="tripupdate_generatecn" id="hqcontactbutton" onclick="sitecontactadd('<?php echo ($row_site['heading']); ?>')">Add <?php echo ($row_site['heading']); ?> Site Contact</button>
         <?php
@@ -662,6 +662,12 @@ if (mysqli_num_rows($result_siteoffice) > 0) {
     <?php 
    $left="SELECT * FROM `rentalclients` where companyname='$companyname001' and clientname='$client_name' AND status = 'left'";
    $resultleft=mysqli_query($conn,$left);
+   // Fetch all client names for the dropdown
+   $clientlist = [];
+   $clientlist_query = mysqli_query($conn, "SELECT DISTINCT clientname FROM rentalclient_basicdetail WHERE companyname='$companyname001'");
+   while($cl = mysqli_fetch_assoc($clientlist_query)) {
+       $clientlist[] = $cl['clientname'];
+   }
    if(mysqli_num_rows($resultleft)>0){ ?>
    <h3 id="exemployeeid" class="fulllength">Ex Employee`s</h3>
                 <table class="hqdetailstable">
@@ -686,25 +692,39 @@ if (mysqli_num_rows($result_siteoffice) > 0) {
                         <a href="viewexemployee.php?id=<?php echo $rowleft['id'] ?>&clientid=<?php echo $row['id'] ?>" title="Edit"><i style="width: 22px; height: 22px;" class="bi bi-file-earmark-text"></i></a>
                             <a href="delete_site_officecontact.php?id=<?php echo $rowleft['id'] ?>&clientid=<?php echo $row['id'] ?>" title="Delete"><i style="width: 22px; height: 22px;" class="bi bi-trash"></i></a>
                             <a onclick="return confirmexit();" href="joinedagaincompany.php?id=<?php echo $rowleft['id'] ?>&clientid=<?php echo $row['id'] ?>" title="Joined the company again"><i class="bi bi-person-check" style="width: 22px; height: 22px;"></i></a>
-
+                            <!-- Join Another Company Icon -->
+                            <a href="javascript:void(0);" onclick="openJoinCompanyModal(<?php echo $rowleft['id']; ?>)" title="Join Another Company"><i class="bi bi-person-plus" style="width: 22px; height: 22px;"></i></a>
                         </div>
-                    </td>
-
+                </td>
                 </tr>
-
-
-
       <?php  } ?>   
         </table>
-
   <?php }
     ?>
-
-    
-
-
-
-
+<!-- Modal for Join Another Company -->
+<div id="joinCompanyModal" class="modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); align-items:center; justify-content:center;">
+  <div class="hqcontactcontainer" style="background:#fff; padding:32px 24px 24px 24px; border-radius:10px; min-width:320px; max-width:95vw; position:relative; box-shadow:0 2px 16px rgba(0,0,0,0.15); display:flex; flex-direction:column; gap:12px;">
+    <span style="position:absolute; top:10px; right:18px; cursor:pointer; font-size:26px; color:#888;" onclick="closeJoinCompanyModal()">&times;</span>
+    <form action="join_another_company.php" method="POST" id="joinCompanyForm" autocomplete="off" style="width:95%;">
+      <p class="headingpara" style="margin-bottom:18px;">Join Another Company</p>
+      <input type="hidden" name="ex_employee_id" id="modal_ex_employee_id">
+      <input type="hidden" name="current_clientid" value="<?php echo $row['id']; ?>">
+      <div class="trial1">
+        <select name="new_clientname" id="modal_new_clientname" class="input02" required>
+          <option value="" disabled selected>Select Client</option>
+          <?php foreach($clientlist as $cname) { ?>
+            <option value="<?php echo htmlspecialchars($cname); ?>"><?php echo htmlspecialchars($cname); ?></option>
+          <?php } ?>
+        </select>
+        <label for="modal_new_clientname" class="placeholder2">Client Name</label>
+      </div>
+      <div style="display:flex; justify-content:center; gap:10px; margin-top:18px;">
+        <button type="submit" class="epc-button" style="min-width:80px;">Join</button>
+        <button type="button" onclick="closeJoinCompanyModal()" class="epc-button" style="background:#eee; color:#333; min-width:80px;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 </body>
 <script>
         function confirmexit(){
@@ -731,7 +751,7 @@ if (mysqli_num_rows($result_siteoffice) > 0) {
     const regionalofficecontactperson = document.getElementById("regionalofficecontactperson");
     const sitecontactperson = document.getElementById("sitecontactperson");
     const createregionalofficeform = document.getElementById("createregionalofficeform");
-    const siteaddressform=document.getElementById("siteaddressform");
+    const siteaddressform = document.getElementById("siteaddressform");
 
 
     // Hide all forms
@@ -817,5 +837,21 @@ function sitecontactadd(siteheading){
 
     }
 
+    // Modal logic for Join Another Company
+function openJoinCompanyModal(exEmployeeId) {
+    document.getElementById('modal_ex_employee_id').value = exEmployeeId;
+    document.getElementById('modal_new_clientname').selectedIndex = 0;
+    document.getElementById('joinCompanyModal').style.display = 'flex';
+}
+function closeJoinCompanyModal() {
+    document.getElementById('joinCompanyModal').style.display = 'none';
+}
+// Optional: Close modal when clicking outside the modal content
+window.onclick = function(event) {
+    var modal = document.getElementById('joinCompanyModal');
+    if (event.target === modal) {
+        closeJoinCompanyModal();
+    }
+}
 </script>
 </html>
