@@ -19,7 +19,22 @@ $showAlert = false;
 $showError = false;
 $show_celebration=false;
 
-$sql = "SELECT * FROM `quotation_generated` where company_name='$companyname001'  order by ref_no DESC";
+// Pagination setup
+$quotations_per_page = 10;
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$offset = ($page - 1) * $quotations_per_page;
+
+// Count total quotations for pagination
+$sql_count = "SELECT COUNT(*) as total FROM `quotation_generated` WHERE company_name='$companyname001'";
+$result_count = mysqli_query($conn, $sql_count);
+$total_quotations = 0;
+if ($row_count = mysqli_fetch_assoc($result_count)) {
+    $total_quotations = intval($row_count['total']);
+}
+$total_pages = ceil($total_quotations / $quotations_per_page);
+
+// Fetch only current page quotations
+$sql = "SELECT * FROM `quotation_generated` WHERE company_name='$companyname001' ORDER BY ref_no DESC LIMIT $quotations_per_page OFFSET $offset";
 $result = mysqli_query($conn, $sql);
 ?>
 <?php
@@ -177,6 +192,67 @@ body {
   display: inline-block; /* Ensure icon width and height are respected */
   text-align: center; /* Center icon within its container */
   line-height: 22px; /* Ensure icon is vertically centered */
+}
+
+.pagination-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.pagination-btn {
+  color: #4067B5;
+  padding: 6px 14px;
+  text-decoration: none;
+  border: 1px solid #4067B5;
+  margin: 0 2px;
+  border-radius: 4px;
+  background: #fff;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+  min-width: 36px;
+  text-align: center;
+  display: inline-block;
+}
+
+.pagination-btn:hover {
+  background: #4067B5;
+  color: #fff;
+}
+
+.pagination-btn.active {
+  background: #4067B5;
+  color: #fff;
+  border: 1px solid #4067B5;
+  pointer-events: none;
+}
+
+.pagination-ellipsis {
+  padding: 6px 8px;
+  color: #888;
+  background: none;
+  border: none;
+  font-size: 16px;
+  min-width: 20px;
+  pointer-events: none;
+}
+
+/* Responsive for pagination */
+@media screen and (max-width: 600px) {
+  .pagination-nav {
+    width: 100%;
+    font-size: 14px;
+    gap: 0;
+  }
+  .pagination-btn {
+    padding: 6px 8px;
+    font-size: 13px;
+    min-width: 28px;
+  }
 }
 
 @media screen and (max-width: 600px) {
@@ -584,6 +660,52 @@ if ($result_quote_stats === false) {
   </tbody>
 </table>
 
+<!-- Pagination Controls -->
+<?php if ($total_pages > 1): ?>
+<div style="text-align:center; margin:20px 0;">
+    <nav class="pagination-nav">
+        <?php if ($page > 1): ?>
+            <a href="?page=1" class="pagination-btn">First</a>
+            <a href="?page=<?php echo $page-1; ?>" class="pagination-btn">&laquo; Prev</a>
+        <?php endif; ?>
+
+        <?php
+        // Show first page, ellipsis, 2 before, current, 2 after, ellipsis, last page
+        $visible = 2; // pages before/after current
+        if ($total_pages <= 7) {
+            // Show all pages if few
+            for ($i = 1; $i <= $total_pages; $i++) {
+                echo '<a href="?page='.$i.'" class="pagination-btn'.($i==$page?' active':'').'">'.$i.'</a>';
+            }
+        } else {
+            // Always show first page
+            echo '<a href="?page=1" class="pagination-btn'.($page==1?' active':'').'">1</a>';
+            // Ellipsis if needed
+            if ($page > $visible + 2) {
+                echo '<span class="pagination-ellipsis">...</span>';
+            }
+            // Middle pages
+            $start = max(2, $page - $visible);
+            $end = min($total_pages - 1, $page + $visible);
+            for ($i = $start; $i <= $end; $i++) {
+                echo '<a href="?page='.$i.'" class="pagination-btn'.($i==$page?' active':'').'">'.$i.'</a>';
+            }
+            // Ellipsis if needed
+            if ($page < $total_pages - $visible - 1) {
+                echo '<span class="pagination-ellipsis">...</span>';
+            }
+            // Always show last page
+            echo '<a href="?page='.$total_pages.'" class="pagination-btn'.($page==$total_pages?' active':'').'">'.$total_pages.'</a>';
+        }
+        ?>
+
+        <?php if ($page < $total_pages): ?>
+            <a href="?page=<?php echo $page+1; ?>" class="pagination-btn">Next &raquo;</a>
+            <a href="?page=<?php echo $total_pages; ?>" class="pagination-btn">Last</a>
+        <?php endif; ?>
+    </nav>
+</div>
+<?php endif; ?>
 </body>
 <script>
 function toggleModal(modalId) {
