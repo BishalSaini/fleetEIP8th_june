@@ -67,9 +67,9 @@ echo json_encode([
     "projectlocation" => "",
     "hourshift" => ""
 ]);
-?>
-    "closed_km" => "",
-    "night_closed_hmr" => "",
-    "night_closed_km" => ""
-]);
+/* "closed_km" => "",
+"night_closed_hmr" => "",
+"night_closed_km" => ""
+]);  */
+
 ?>

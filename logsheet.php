@@ -229,9 +229,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
             </div> 
-
-            <div class="outer02"> 
-            <div class="trial1">
+               <!-- New Equipment Fields (hidden by default, shown when "Choose New Equipment" is selected) -->
+            <div class="outer02" id="new_equipment_fields" style="display:none;">
+                <div class="trial1">
                     <select id="new_fleet_category" class="input02" onchange="updateFleetTypeOptions()" required>
                         <option value="" disabled selected>Select Fleet Category</option>
                         <option value="Aerial Work Platform">Aerial Work Platform</option>
@@ -412,8 +412,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <button class="epc-button">Submit</button>
 
-            <!-- New Equipment Fields (hidden by default, shown when "Choose New Equipment" is selected) -->
-        
         </div>
     </form>
 </body>
@@ -576,7 +574,8 @@ dateInput.addEventListener('change', function () {
         equipmentmodel: equipmentmodel
     });
 
-    fetch(`fetch_combined_details.php?${params.toString()}`)
+    // Fetch previous logsheet closed_hmr/closed_km for autofill
+    fetch(`fetch_prev_logsheet.php?${params.toString()}`)
         .then(response => response.json())
         .then(data => {
             let startHmrValue = '';
@@ -585,7 +584,6 @@ dateInput.addEventListener('change', function () {
             if (data && data.match_found) {
                 startHmrValue = data.closed_hmr || '';
                 startKmrValue = data.closed_km || '';
-                // Autofill additional fields
                 document.getElementById('clientname').value = data.clientname || '';
                 document.getElementById('workingdays').value = data.workingdays || '';
                 document.getElementById('workingconditions').value = data.conditions || '';
@@ -598,7 +596,6 @@ dateInput.addEventListener('change', function () {
         .catch(error => {
             document.getElementById('start_hmr_container').value = '';
             document.getElementById('kmr').value = '';
-            // Clear additional fields on error
             document.getElementById('clientname').value = '';
             document.getElementById('workingdays').value = '';
             document.getElementById('workingconditions').value = '';
@@ -647,8 +644,13 @@ function updateAssetCodeDropdown() {
 function onAssetCodeChange() {
     var assetCode = document.getElementById('assetcode').value;
     var newFields = document.getElementById('new_equipment_fields');
+    var fleetCategory = document.getElementById('fleet_category').value;
     if (assetCode === "New Equipment") {
         newFields.style.display = "flex";
+        // Set the fleet category below to match the selected one above
+        var newFleetCategory = document.getElementById('new_fleet_category');
+        newFleetCategory.value = fleetCategory;
+        updateFleetTypeOptions();
         // Clear autofill fields
         document.getElementById('equipmenttype').value = '';
         document.getElementById('equipmentmake').value = '';
