@@ -10632,3 +10632,16 @@ margin-left: 5%;
     width: 80%;
     gap: 3px;
  }
+
+ .join_anothercompanyofrm{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 90%;
+    margin-left: 5%;
+ }
+ .joinanothercompanyformouter{
+    /* border: 1px solid gray; */
+    border-radius: 8px;
+box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+ }

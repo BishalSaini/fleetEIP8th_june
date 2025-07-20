@@ -704,12 +704,11 @@ if (mysqli_num_rows($result_siteoffice) > 0) {
 <!-- Modal for Join Another Company -->
 <div id="joinCompanyModal" class="modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); align-items:center; justify-content:center;">
   <div class="hqcontactcontainer" style="background:#fff; padding:32px 24px 24px 24px; border-radius:10px; min-width:320px; max-width:95vw; position:relative; box-shadow:0 2px 16px rgba(0,0,0,0.15); display:flex; flex-direction:column; gap:12px;">
-    <span style="position:absolute; top:10px; right:18px; cursor:pointer; font-size:26px; color:#888;" onclick="closeJoinCompanyModal()">&times;</span>
-    <form action="join_another_company.php" method="POST" id="joinCompanyForm" autocomplete="off" style="width:95%;">
+    <form action="join_another_company.php" class="joinanothercompanyformouter" method="POST" id="joinCompanyForm" autocomplete="off" style="width:95%;">
       <p class="headingpara" style="margin-bottom:18px;">Join Another Company</p>
       <input type="hidden" name="ex_employee_id" id="modal_ex_employee_id">
       <input type="hidden" name="current_clientid" value="<?php echo $row['id']; ?>">
-      <div class="trial1">
+      <div class="trial1 join_anothercompanyofrm">
         <select name="new_clientname" id="modal_new_clientname" class="input02" required>
           <option value="" disabled selected>Select Client</option>
           <?php foreach($clientlist as $cname) { ?>

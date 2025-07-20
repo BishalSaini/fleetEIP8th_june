@@ -2,6 +2,7 @@
 include_once 'partials/_dbconnect.php';
 session_start();
 $companyname = $_SESSION['companyname'] ?? '';
+
 $enterprise = $_SESSION['enterprise'] ?? '';
 $dashboard_url = '';
 if ($enterprise === 'rental') {
@@ -76,25 +77,6 @@ $stmt_vendors->close();
             background-color: #2253a3;
             color: #fff;
         }
-        .vendorpo-table {
-            width: 100%;
-            font-size: 13px;
-            border-collapse: collapse;
-            margin-top: 20px;
-            margin: 0 auto;
-            padding: 10px;
-        }
-        .vendorpo-table, .vendorpo-table th, .vendorpo-table td {
-            border: 1px solid #4067B5 !important;
-        }
-        .vendorpo-table th, .vendorpo-table td {
-            padding: 8px !important;
-            text-align: left !important;
-        }
-        .vendorpo-table .table-heading {
-            background-color: #4067B5 !important;
-            color: white !important;
-        }
         .vendorpo-icon {
             background-color: #B4C5E4;
             color: black;
@@ -166,14 +148,14 @@ $stmt_vendors->close();
             .vendorpo-table tr {
                 border-bottom: 1px solid #4067B5;
                 display: block;
-                margin-bottom: 10px;
+               
             }
             .vendorpo-table td {
                 border-bottom: none;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                padding: 10px 0;
+                
             }
             .vendorpo-table td:before {
                 content: attr(data-label);
@@ -214,7 +196,8 @@ $stmt_vendors->close();
     </div>
     <div class="project-info">
       <div class="flex-pr">
-        <div class="project-title text-nowrap">Add PO</div>
+        
+        <div class="project-title text-nowrap">Generate PO</div>
           <div class="project-hover">
             <svg style="color: black;" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" color="black" stroke-linejoin="round" stroke-linecap="round" viewBox="0 0 24 24" stroke-width="2" fill="none" stroke="currentColor"><line y2="12" x2="19" y1="12" x1="5"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </div>
@@ -225,16 +208,16 @@ $stmt_vendors->close();
 </article> 
             </button>
         </div>
-        <table class="vendorpo-table">
+        <table class="quotation-table">
             <thead>
                 <tr>
-                    <th class="table-heading" style="width:5%;">#</th>
-                    <th class="table-heading" style="min-width:120px;">Vendor</th>
-                    <th class="table-heading" style="min-width:180px;">Product</th>
-                    <th class="table-heading" style="width:60px;">Qty</th>
-                    <th class="table-heading" style="width:110px;">Price</th>
-                    <th class="table-heading" style="width:120px;">Date</th>
-                    <th class="table-heading" style="width:180px;">Actions</th>
+                    <th class="table-heading">SR NO</th>
+                    <th class="table-heading">Vendor</th>
+                    <th class="table-heading" >Product</th>
+                    <th class="table-heading">Qty</th>
+                    <th class="table-heading">Price</th>
+                    <th class="table-heading">Date</th>
+                    <th class="table-heading">Actions</th>
                 </tr>
             </thead>
             <tbody>

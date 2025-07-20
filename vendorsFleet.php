@@ -116,6 +116,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </ul>
             </div>
         </div>
+                <?php if($showAlert): ?>
+        <label>
+            <input type="checkbox" class="alertCheckbox" autocomplete="off"/>
+            <div class="alert notice">
+                <span class="alertClose">X</span>
+                <span class="alertText">Vendor Added Successfully!<br class="clear"/></span>
+            </div>
+        </label>
+        <?php endif; ?>
+        <?php if($showError): ?>
+        <label>
+            <input type="checkbox" class="alertCheckbox" autocomplete="off"/>
+            <div class="alert error">
+                <span class="alertClose">X</span>
+                <span class="alertText">Something Went Wrong<br class="clear"/></span>
+            </div>
+        </label>
+        <?php endif; ?>
+
+
 
         <div class="generate-btn-container">
             <h2></h2>
@@ -160,25 +180,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         stroke-width="2" fill="none" stroke="currentColor"><line y2="12" x2="19" y1="12"
         x1="5"></line><polyline points="12 5 19 12 12 19"></polyline></svg> </div>
         </div> <div class="types"></div> </div> </button> </div> -->
-
-        <?php if($showAlert): ?>
-        <label>
-            <input type="checkbox" class="alertCheckbox" autocomplete="off"/>
-            <div class="alert notice">
-                <span class="alertClose">X</span>
-                <span class="alertText">Vendor Added Successfully!<br class="clear"/></span>
-            </div>
-        </label>
-        <?php endif; ?>
-        <?php if($showError): ?>
-        <label>
-            <input type="checkbox" class="alertCheckbox" autocomplete="off"/>
-            <div class="alert error">
-                <span class="alertClose">X</span>
-                <span class="alertText">Something Went Wrong<br class="clear"/></span>
-            </div>
-        </label>
-        <?php endif; ?>
 
         <form
             action="vendorsFleet.php"
