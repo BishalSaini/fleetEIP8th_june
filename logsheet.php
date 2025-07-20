@@ -574,7 +574,8 @@ dateInput.addEventListener('change', function () {
         equipmentmodel: equipmentmodel
     });
 
-    fetch(`fetch_combined_details.php?${params.toString()}`)
+    // Fetch previous logsheet closed_hmr/closed_km for autofill
+    fetch(`fetch_prev_logsheet.php?${params.toString()}`)
         .then(response => response.json())
         .then(data => {
             let startHmrValue = '';
@@ -583,7 +584,6 @@ dateInput.addEventListener('change', function () {
             if (data && data.match_found) {
                 startHmrValue = data.closed_hmr || '';
                 startKmrValue = data.closed_km || '';
-                // Autofill additional fields
                 document.getElementById('clientname').value = data.clientname || '';
                 document.getElementById('workingdays').value = data.workingdays || '';
                 document.getElementById('workingconditions').value = data.conditions || '';
@@ -596,7 +596,6 @@ dateInput.addEventListener('change', function () {
         .catch(error => {
             document.getElementById('start_hmr_container').value = '';
             document.getElementById('kmr').value = '';
-            // Clear additional fields on error
             document.getElementById('clientname').value = '';
             document.getElementById('workingdays').value = '';
             document.getElementById('workingconditions').value = '';
@@ -648,22 +647,24 @@ function onAssetCodeChange() {
     var fleetCategory = document.getElementById('fleet_category').value;
     if (assetCode === "New Equipment") {
         newFields.style.display = "flex";
-
+        // Set the fleet category below to match the selected one above
         var newFleetCategory = document.getElementById('new_fleet_category');
         newFleetCategory.value = fleetCategory;
         updateFleetTypeOptions();
-  
+        // Clear autofill fields
         document.getElementById('equipmenttype').value = '';
         document.getElementById('equipmentmake').value = '';
         document.getElementById('equipmentmodel').value = '';
-
+        // Optionally clear other autofill fields
     } else {
         newFields.style.display = "none";
+        // Call autofill as usual
         fetchassetDetails(assetCode);
         setTimeout(fetchCombinedDetails, 200);
     }
 }
 
+// Fleet type options by category (same as generate_quotation.php)
 const fleetTypeOptions = {
     "Aerial Work Platform": [
         "Self Propelled Articulated Boomlift",
