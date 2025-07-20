@@ -232,7 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                <!-- New Equipment Fields (hidden by default, shown when "Choose New Equipment" is selected) -->
             <div class="outer02" id="new_equipment_fields" style="display:none;">
                 <div class="trial1">
-                    <select id="new_fleet_category" class="input02" onchange="updateFleetTypeOptions()" required>
+                    <select id="new_fleet_category" class="input02" onchange="updateFleetTypeOptions()">
                         <option value="" disabled selected>Select Fleet Category</option>
                         <option value="Aerial Work Platform">Aerial Work Platform</option>
                         <option value="Concrete Equipment">Concrete Equipment</option>
@@ -244,7 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </select>
                 </div>
                 <div class="trial1">
-                    <select id="new_fleet_type" class="input02" name="equipmenttype" required>
+                    <select id="new_fleet_type" class="input02" name="equipmenttype">
                         <option value="" disabled selected>Select Fleet Type</option>
                         <!-- Options will be dynamically populated based on category -->
                     </select>
@@ -645,12 +645,16 @@ function onAssetCodeChange() {
     var assetCode = document.getElementById('assetcode').value;
     var newFields = document.getElementById('new_equipment_fields');
     var fleetCategory = document.getElementById('fleet_category').value;
+    var newFleetCategory = document.getElementById('new_fleet_category');
+    var newFleetType = document.getElementById('new_fleet_type');
     if (assetCode === "New Equipment") {
         newFields.style.display = "flex";
         // Set the fleet category below to match the selected one above
-        var newFleetCategory = document.getElementById('new_fleet_category');
         newFleetCategory.value = fleetCategory;
         updateFleetTypeOptions();
+        // Add required when visible
+        newFleetCategory.setAttribute('required', 'required');
+        newFleetType.setAttribute('required', 'required');
         // Clear autofill fields
         document.getElementById('equipmenttype').value = '';
         document.getElementById('equipmentmake').value = '';
@@ -658,6 +662,9 @@ function onAssetCodeChange() {
         // Optionally clear other autofill fields
     } else {
         newFields.style.display = "none";
+        // Remove required when hidden
+        newFleetCategory.removeAttribute('required');
+        newFleetType.removeAttribute('required');
         // Call autofill as usual
         fetchassetDetails(assetCode);
         setTimeout(fetchCombinedDetails, 200);
@@ -754,6 +761,67 @@ function updateFleetTypeOptions() {
         });
     }
 }
+
+// New function to fetch both previous and next day's logsheet data
+function autofillLogsheetFields() {
+    const dateInput = document.getElementById("date");
+    const assetcode = document.getElementById("assetcode").value;
+    if (!dateInput.value || !assetcode) {
+        // Clear all relevant fields if missing input
+        document.getElementById('start_hmr_container').value = '';
+        document.getElementById('kmr').value = '';
+        document.getElementById('morning_closedhmr').value = '';
+        document.getElementById('closedkmr').value = '';
+        return;
+    }
+
+    const selectedDate = new Date(dateInput.value);
+    const selectedDateStr = selectedDate.toISOString().split('T')[0];
+
+    // 1. Fetch previous day's logsheet for start_hmr/start_km
+    fetch(`fetch_prev_logsheet.php?assetcode=${encodeURIComponent(assetcode)}&date=${encodeURIComponent(selectedDateStr)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.found) {
+                document.getElementById('start_hmr_container').value = data.closed_hmr || '';
+                document.getElementById('kmr').value = data.closed_km || '';
+            } else {
+                document.getElementById('start_hmr_container').value = '';
+                document.getElementById('kmr').value = '';
+            }
+        })
+        .catch(() => {
+            document.getElementById('start_hmr_container').value = '';
+            document.getElementById('kmr').value = '';
+        });
+
+    // 2. Fetch next day's logsheet for closed_hmr/closed_km
+    fetch(`fetch_next_logsheet.php?assetcode=${encodeURIComponent(assetcode)}&date=${encodeURIComponent(selectedDateStr)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.found) {
+                document.getElementById('morning_closedhmr').value = data.start_hmr || '';
+                document.getElementById('closedkmr').value = data.start_km || '';
+            } else {
+                document.getElementById('morning_closedhmr').value = '';
+                document.getElementById('closedkmr').value = '';
+            }
+        })
+        .catch(() => {
+            document.getElementById('morning_closedhmr').value = '';
+            document.getElementById('closedkmr').value = '';
+        });
+}
+
+// Replace previous event listeners with the new function
+document.getElementById("date").addEventListener("change", function() {
+    fetchCombinedDetails();
+    autofillLogsheetFields();
+});
+document.getElementById("assetcode").addEventListener("change", function() {
+    fetchCombinedDetails();
+    autofillLogsheetFields();
+});
 </script>
 
 </html>
