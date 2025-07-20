@@ -2,7 +2,6 @@
 include_once 'partials/_dbconnect.php';
 session_start();
 $companyname = $_SESSION['companyname'] ?? '';
-
 $enterprise = $_SESSION['enterprise'] ?? '';
 $dashboard_url = '';
 if ($enterprise === 'rental') {
@@ -102,6 +101,25 @@ $stmt_vendors->close();
         .vendorpo-btn:hover {
             background-color: #2253a3;
             color: #fff;
+        }
+        .vendorpo-table {
+            width: 100%;
+            font-size: 13px;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        .vendorpo-table, .vendorpo-table th, .vendorpo-table td {
+            border: 1px solid #4067B5 !important;
+        }
+        .vendorpo-table th, .vendorpo-table td {
+            padding: 8px !important;
+            text-align: left !important;
+        }
+        .vendorpo-table .table-heading {
+            background-color: #4067B5 !important;
+            color: white !important;
         }
         .vendorpo-icon {
             background-color: #B4C5E4;
@@ -236,14 +254,14 @@ $stmt_vendors->close();
             .vendorpo-table tr {
                 border-bottom: 1px solid #4067B5;
                 display: block;
-               
+                margin-bottom: 10px;
             }
             .vendorpo-table td {
                 border-bottom: none;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                
+                padding: 10px 0;
             }
             .vendorpo-table td:before {
                 content: attr(data-label);
@@ -292,8 +310,7 @@ $stmt_vendors->close();
     </div>
     <div class="project-info">
       <div class="flex-pr">
-        
-        <div class="project-title text-nowrap">Generate PO</div>
+        <div class="project-title text-nowrap">Add PO</div>
           <div class="project-hover">
             <svg style="color: black;" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" color="black" stroke-linejoin="round" stroke-linecap="round" viewBox="0 0 24 24" stroke-width="2" fill="none" stroke="currentColor"><line y2="12" x2="19" y1="12" x1="5"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </div>
@@ -304,56 +321,176 @@ $stmt_vendors->close();
 </article> 
             </button>
         </div>
-        <table class="vendorpo-table">
-            <thead>
-                <tr>
-                    <th class="table-heading" style="width:5%;">#</th>
-                    <th class="table-heading" style="min-width:120px;">Vendor</th>
-                    <th class="table-heading" style="min-width:180px;">Product</th>
-                    <th class="table-heading" style="width:60px;">Qty</th>
-                    <th class="table-heading" style="width:110px;">Price</th>
-                    <th class="table-heading" style="width:120px;">Date</th>
-                    <th class="table-heading" style="width:180px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php if (count($orders) === 0): ?>
-                <tr>
-                    <td colspan="7" class="text-center text-muted">No Purchase Orders found.</td>
-                </tr>
-            <?php else: foreach ($orders as $i => $o): ?>
-                <tr>
-                    <td data-label="#"> <?= $i+1 ?> </td>
-                    <td data-label="Vendor">
-                        <?= htmlspecialchars(
-                            $o['vendor_id'] && isset($vendorMap[$o['vendor_id']])
-                            ? $vendorMap[$o['vendor_id']]
-                            : $o['vendor_name']
-                        ) ?>
-                    </td>
-                    <td data-label="Product">
-                        <span class="fw-semibold"><?= htmlspecialchars($o['product_serial']) ?></span>
-                        <br>
-                        <small class="text-muted"><?= htmlspecialchars($o['product_name']) ?></small>
-                    </td>
-                    <td data-label="Qty"><?= htmlspecialchars($o['qty']) ?></td>
-                    <td data-label="Price"><?= htmlspecialchars($o['total_price']) ?></td>
-                    <td data-label="Date"><?= date('d-M-Y', strtotime($o['created_at'])) ?></td>
-                    <td data-label="Actions">
-                        <a href="vendorPO06.php?edit=<?= $o['po_id'] ?>" class="vendorpo-icon" title="Edit">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <a href="#" onclick="return showDeleteModal('vendorPODelete.php?po_id=<?= $o['po_id'] ?>&product_serial=<?= urlencode($o['product_serial']) ?>');" class="vendorpo-icon" title="Delete">
-                            <i class="bi bi-trash"></i>
-                        </a>
-                        <a href="vendorPOPDF.php?id=<?= $o['po_id'] ?>" class="vendorpo-icon" title="PDF" target="_blank">
-                            <i class="bi bi-file-earmark-pdf"></i>
-                        </a>
-                    </td>
-                </tr>
-            <?php endforeach; endif; ?>
-            </tbody>
-        </table>
+
+        <!-- Move filter section here, directly below Add PO button -->
+        <div class="filters" id="vendorpofilter" style="margin-bottom:18px; margin-left:18%;">
+        <p>Apply Filter :</p>
+        <form action="" class="vendorpofilterform" method="GET" style="display:flex; gap:10px; flex-wrap:wrap;">
+            <select name="filtertype" onchange="vendorpo_filter()" id="vendorpofilterdd" class="filter_button">
+                <option value="" disabled selected>Select Filter</option>
+                <option value="Date">Date</option>
+                <option value="Vendor">Vendor</option>
+                <option value="Product">Product</option>
+            </select>
+            <input type="date" name="pofilter_date" id="vendorpofilterdate" class="vendorpo_select" style="display:none;">
+            <select name="filtervendor" id="vendorfilter" class="vendorpo_select" style="display:none;">
+                <option value="" disabled selected>Select Vendor</option>
+                <?php
+                $sql_vendor="SELECT DISTINCT vendor_name FROM purchase_orders WHERE companyname='$companyname'";
+                $result_vendor=mysqli_query($conn,$sql_vendor);
+                while($row_vendor=mysqli_fetch_assoc($result_vendor)){
+                ?>
+                <option value="<?php echo htmlspecialchars($row_vendor['vendor_name']); ?>"><?php echo htmlspecialchars($row_vendor['vendor_name']); ?></option>
+                <?php } ?>
+            </select>
+            <select name="filterproduct" id="productfilter" class="vendorpo_select" style="display:none;">
+                <option value="" disabled selected>Select Product</option>
+                <?php
+                $sql_product="SELECT DISTINCT product_name FROM purchase_order_products WHERE po_id IN (SELECT id FROM purchase_orders WHERE companyname='$companyname')";
+                $result_product=mysqli_query($conn,$sql_product);
+                while($row_product=mysqli_fetch_assoc($result_product)){
+                ?>
+                <option value="<?php echo htmlspecialchars($row_product['product_name']); ?>"><?php echo htmlspecialchars($row_product['product_name']); ?></option>
+                <?php } ?>
+            </select>
+            <button id="vendorpofilterbutton" class="filter_button">Submit</button>
+        </form>
+    </div>
+
+    <table class="vendorpo-table">
+        <thead>
+            <tr>
+                <th class="table-heading" style="width:5%;">#</th>
+                <th class="table-heading" style="min-width:120px;">Vendor</th>
+                <th class="table-heading" style="min-width:180px;">Product</th>
+                <th class="table-heading" style="width:60px;">Qty</th>
+                <th class="table-heading" style="width:110px;">Total Price</th>
+                <th class="table-heading" style="width:120px;">Date</th>
+                <th class="table-heading" style="width:180px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php
+        // Filtering logic
+        $filtered_orders_by_po = $orders_by_po;
+        $filter_applied = false;
+        if ($_SERVER['REQUEST_METHOD'] === 'GET' && (
+            isset($_GET['filtertype']) && $_GET['filtertype'] !== ''
+        )) {
+            $type = $_GET['filtertype'];
+            if ($type === 'Date' && !empty($_GET['pofilter_date'])) {
+                $date = $_GET['pofilter_date'];
+                $filtered_orders_by_po = array_filter($orders_by_po, function($data) use ($date) {
+                    return isset($data['po']['created_at']) && substr($data['po']['created_at'],0,10) === $date;
+                });
+                $filter_applied = true;
+            } elseif ($type === 'Vendor' && !empty($_GET['filtervendor'])) {
+                $vendor = $_GET['filtervendor'];
+                $filtered_orders_by_po = array_filter($orders_by_po, function($data) use ($vendor) {
+                    return isset($data['po']['vendor_name']) && $data['po']['vendor_name'] === $vendor;
+                });
+                $filter_applied = true;
+            } elseif ($type === 'Product' && !empty($_GET['filterproduct'])) {
+                $product = $_GET['filterproduct'];
+                $filtered_orders_by_po = array_filter($orders_by_po, function($data) use ($product) {
+                    foreach ($data['products'] as $prod) {
+                        if ($prod['product_name'] === $product) return true;
+                    }
+                    return false;
+                });
+                $filter_applied = true;
+            }
+        }
+        if ($filter_applied && count($filtered_orders_by_po) === 0): ?>
+            <tr>
+                <td colspan="7" class="text-center text-muted" style="color:#d00;font-weight:500;">No records found</td>
+            </tr>
+        <?php elseif (count($filtered_orders_by_po) === 0): ?>
+            <tr>
+                <td colspan="7" class="text-center text-muted">No Purchase Orders found.</td>
+            </tr>
+        <?php else:
+            $srno = 0;
+            foreach ($filtered_orders_by_po as $po_id => $data):
+                $srno++;
+                $po = $data['po'];
+                $products = $data['products'];
+                $vendor_name = $po['vendor_id'] && isset($vendorMap[$po['vendor_id']])
+                    ? $vendorMap[$po['vendor_id']]
+                    : $po['vendor_name'];
+                $first_product = $products[0];
+                $qty_total = 0;
+                $price_total = 0;
+                foreach ($products as $prod) {
+                    $qty_total += intval($prod['qty']);
+                    $price_total += floatval($prod['total_price']);
+                }
+        ?>
+            <tr>
+                <td data-label="#"><?= $srno ?></td>
+                <td data-label="Vendor"><?= htmlspecialchars($vendor_name) ?></td>
+                <td data-label="Product">
+                    <span class="fw-semibold"><?= htmlspecialchars($first_product['product_serial']) ?></span>
+                    <br>
+                    <small class="text-muted"><?= htmlspecialchars($first_product['product_name']) ?></small>
+                </td>
+                <td data-label="Qty"><?= $qty_total ?></td>
+                <td data-label="Total Price"><?= number_format($price_total, 2) ?></td>
+                <td data-label="Date"><?= date('d-M-Y', strtotime($po['created_at'])) ?></td>
+                <td data-label="Actions">
+                    <a href="vendorPO06.php?edit=<?= $po_id ?>" class="vendorpo-icon" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="#" onclick="return showDeleteModal('vendorPODelete.php?po_id=<?= $po_id ?>');" class="vendorpo-icon" title="Delete">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                    <a href="vendorPOPDF.php?id=<?= $po_id ?>" class="vendorpo-icon" title="PDF" target="_blank">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </a>
+                </td>
+            </tr>
+        <?php endforeach; endif; ?>
+        </tbody>
+    </table>
+    <!-- Pagination Controls -->
+<?php if ($total_pages > 1): ?>
+<div style="text-align:center; margin:20px 0;">
+    <nav class="pagination-nav">
+        <?php if ($page > 1): ?>
+            <a href="?page=1" class="pagination-btn">First</a>
+            <a href="?page=<?php echo $page-1; ?>" class="pagination-btn">&laquo; Prev</a>
+        <?php endif; ?>
+
+        <?php
+        $visible = 2;
+        if ($total_pages <= 7) {
+            for ($i = 1; $i <= $total_pages; $i++) {
+                echo '<a href="?page='.$i.'" class="pagination-btn'.($i==$page?' active':'').'">'.$i.'</a>';
+            }
+        } else {
+            echo '<a href="?page=1" class="pagination-btn'.($page==1?' active':'').'">1</a>';
+            if ($page > $visible + 2) {
+                echo '<span class="pagination-ellipsis">...</span>';
+            }
+            $start = max(2, $page - $visible);
+            $end = min($total_pages - 1, $page + $visible);
+            for ($i = $start; $i <= $end; $i++) {
+                echo '<a href="?page='.$i.'" class="pagination-btn'.($i==$page?' active':'').'">'.$i.'</a>';
+            }
+            if ($page < $total_pages - $visible - 1) {
+                echo '<span class="pagination-ellipsis">...</span>';
+            }
+            echo '<a href="?page='.$total_pages.'" class="pagination-btn'.($page==$total_pages?' active':'').'">'.$total_pages.'</a>';
+        }
+        ?>
+
+        <?php if ($page < $total_pages): ?>
+            <a href="?page=<?php echo $page+1; ?>" class="pagination-btn">Next &raquo;</a>
+            <a href="?page=<?php echo $total_pages; ?>" class="pagination-btn">Last</a>
+        <?php endif; ?>
+    </nav>
+</div>
+<?php endif; ?>
     </div>
 <!-- Custom Delete Modal -->
 <div class="modal-overlay" id="deleteModalOverlay">
