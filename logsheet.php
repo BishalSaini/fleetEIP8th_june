@@ -228,6 +228,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label for="" class="placeholder2">Site Location</label>
                 </div>
 
+            </div> 
+               <!-- New Equipment Fields (hidden by default, shown when "Choose New Equipment" is selected) -->
+            <div class="outer02" id="new_equipment_fields" style="display:none;">
+                <div class="trial1">
+                    <select id="new_fleet_category" class="input02" onchange="updateFleetTypeOptions()" required>
+                        <option value="" disabled selected>Select Fleet Category</option>
+                        <option value="Aerial Work Platform">Aerial Work Platform</option>
+                        <option value="Concrete Equipment">Concrete Equipment</option>
+                        <option value="EarthMovers and Road Equipments">EarthMovers and Road Equipments</option>
+                        <option value="Material Handling Equipments">Material Handling Equipments</option>
+                        <option value="Ground Engineering Equipments">Ground Engineering Equipments</option>
+                        <option value="Trailor and Truck">Trailor and Truck</option>
+                        <option value="Generator and Lighting">Generator and Lighting</option>
+                    </select>
+                </div>
+                <div class="trial1">
+                    <select id="new_fleet_type" class="input02" name="equipmenttype" required>
+                        <option value="" disabled selected>Select Fleet Type</option>
+                        <!-- Options will be dynamically populated based on category -->
+                    </select>
+                </div>
             </div>
             <div class="outer02">
                 <div class="trial1">
@@ -391,35 +412,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <button class="epc-button">Submit</button>
 
-            <!-- New Equipment Fields (hidden by default, shown when "Choose New Equipment" is selected) -->
-            <div class="outer02" id="new_equipment_fields" style="display:none;">
-                <div class="trial1">
-                    <select id="new_fleet_category" class="input02" onchange="updateFleetTypeOptions()" required>
-                        <option value="" disabled selected>Select Fleet Category</option>
-                        <option value="Aerial Work Platform">Aerial Work Platform</option>
-                        <option value="Concrete Equipment">Concrete Equipment</option>
-                        <option value="EarthMovers and Road Equipments">EarthMovers and Road Equipments</option>
-                        <option value="Material Handling Equipments">Material Handling Equipments</option>
-                        <option value="Ground Engineering Equipments">Ground Engineering Equipments</option>
-                        <option value="Trailor and Truck">Trailor and Truck</option>
-                        <option value="Generator and Lighting">Generator and Lighting</option>
-                    </select>
-                </div>
-                <div class="trial1">
-                    <select id="new_fleet_type" class="input02" name="equipmenttype" required>
-                        <option value="" disabled selected>Select Fleet Type</option>
-                        <!-- Options will be dynamically populated based on category -->
-                    </select>
-                </div>
-                <div class="trial1">
-                    <input type="text" id="new_equipmentmake" name="make" class="input02" placeholder="Asset Make">
-                    <label for="" class="placeholder2">Asset Make</label>
-                </div>
-                <div class="trial1">
-                    <input type="text" id="new_equipmentmodel" name="model" class="input02" placeholder="Asset Model">
-                    <label for="" class="placeholder2">Asset Model</label>
-                </div>
-            </div>
         </div>
     </form>
 </body>
@@ -653,22 +645,25 @@ function updateAssetCodeDropdown() {
 function onAssetCodeChange() {
     var assetCode = document.getElementById('assetcode').value;
     var newFields = document.getElementById('new_equipment_fields');
+    var fleetCategory = document.getElementById('fleet_category').value;
     if (assetCode === "New Equipment") {
         newFields.style.display = "flex";
-        // Clear autofill fields
+
+        var newFleetCategory = document.getElementById('new_fleet_category');
+        newFleetCategory.value = fleetCategory;
+        updateFleetTypeOptions();
+  
         document.getElementById('equipmenttype').value = '';
         document.getElementById('equipmentmake').value = '';
         document.getElementById('equipmentmodel').value = '';
-        // Optionally clear other autofill fields
+
     } else {
         newFields.style.display = "none";
-        // Call autofill as usual
         fetchassetDetails(assetCode);
         setTimeout(fetchCombinedDetails, 200);
     }
 }
 
-// Fleet type options by category (same as generate_quotation.php)
 const fleetTypeOptions = {
     "Aerial Work Platform": [
         "Self Propelled Articulated Boomlift",
