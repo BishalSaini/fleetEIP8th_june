@@ -708,7 +708,7 @@ if (mysqli_num_rows($result_siteoffice) > 0) {
       <p class="headingpara" style="margin-bottom:18px;">Join Another Company</p>
       <input type="hidden" name="ex_employee_id" id="modal_ex_employee_id">
       <input type="hidden" name="current_clientid" value="<?php echo $row['id']; ?>">
-      <div class="trial1 join_anothercompanyofrm">
+      <div class="trial1">
         <select name="new_clientname" id="modal_new_clientname" class="input02" required>
           <option value="" disabled selected>Select Client</option>
           <?php foreach($clientlist as $cname) { ?>
@@ -839,7 +839,10 @@ function sitecontactadd(siteheading){
     // Modal logic for Join Another Company
 function openJoinCompanyModal(exEmployeeId) {
     document.getElementById('modal_ex_employee_id').value = exEmployeeId;
-    document.getElementById('modal_new_clientname').selectedIndex = 0;
+    clientInput.value = '';
+    clientHiddenInput.value = '';
+    clientDropdown.innerHTML = '';
+    clientDropdown.style.display = 'none';
     document.getElementById('joinCompanyModal').style.display = 'flex';
 }
 function closeJoinCompanyModal() {
@@ -852,5 +855,64 @@ window.onclick = function(event) {
         closeJoinCompanyModal();
     }
 }
+
+// Client list for modal search
+    var clientList = <?php echo json_encode($clientlist); ?>;
+
+    // Modal search logic
+    const clientInput = document.getElementById('clientSearchInput');
+    const clientDropdown = document.getElementById('clientDropdown');
+    const clientHiddenInput = document.getElementById('modal_new_clientname_hidden');
+
+    clientInput.addEventListener('input', function() {
+        const val = clientInput.value.trim().toLowerCase();
+        clientDropdown.innerHTML = '';
+        if (val.length === 0) {
+            clientDropdown.style.display = 'none';
+            clientHiddenInput.value = '';
+            return;
+        }
+        const matches = clientList.filter(function(name) {
+            return name.toLowerCase().includes(val);
+        });
+        if (matches.length === 0) {
+            clientDropdown.style.display = 'none';
+            clientHiddenInput.value = '';
+            return;
+        }
+        matches.forEach(function(name) {
+            const div = document.createElement('div');
+            div.textContent = name;
+            div.style.padding = '8px 12px';
+            div.style.cursor = 'pointer';
+            div.onmouseover = function() { div.style.background = '#f0f4ff'; };
+            div.onmouseout = function() { div.style.background = '#fff'; };
+            div.onclick = function() {
+                clientInput.value = name;
+                clientHiddenInput.value = name;
+                clientDropdown.style.display = 'none';
+            };
+            clientDropdown.appendChild(div);
+        });
+        clientDropdown.style.display = 'block';
+        clientHiddenInput.value = '';
+    });
+
+    // Hide dropdown on blur (with delay for click)
+    clientInput.addEventListener('blur', function() {
+        setTimeout(function() {
+            clientDropdown.style.display = 'none';
+        }, 150);
+    });
+
+    // On modal open, reset input
+    function openJoinCompanyModal(exEmployeeId) {
+        document.getElementById('modal_ex_employee_id').value = exEmployeeId;
+        clientInput.value = '';
+        clientHiddenInput.value = '';
+        clientDropdown.innerHTML = '';
+        clientDropdown.style.display = 'none';
+        document.getElementById('joinCompanyModal').style.display = 'flex';
+    }
 </script>
 </html>

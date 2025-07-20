@@ -56,8 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 color: white!important;
                 border: none!important;
                 border-radius: 4px!important;
-                padding: 10px 20px!important !important;
-                cursor: pointer!important;
+                padding: 10px 20px !important;
+                cursor: pointer !important;
             }
             .project-info {
                 background: white;

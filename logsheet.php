@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 $companyname001 = $_SESSION['companyname'];
-$enterprise = $_SESSION['enterprise'];
+$enterprise = $_SESSION['email'];
 $email = $_SESSION['email'];
 
 $dashboard_url = '';
@@ -187,26 +187,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="text" name="dayondate" id="dayondate" placeholder="" class="input02" readonly>
                     <label for="dayondate" class="placeholder2">Day</label>
                 </div>
-            </div>
-            <div class="outer02">
+            </div> 
+            <div class="outer02">  
+                      <!-- Fleet Category Dropdown -->
                 <div class="trial1">
-                    <select name="assetcode" id="assetcode" class="input02"
-                        onchange="fetchassetDetails(this.value); setTimeout(fetchCombinedDetails, 200);">
-                        <option value="" disabled selected>Choose Asset Code </option>
-                        <?php
-                        $assetcode = "SELECT * FROM `fleet1` where companyname='$companyname001'";
-                        $result = mysqli_query($conn, $assetcode);
-                        if (mysqli_num_rows($result) > 0) {
-                            while ($row = mysqli_fetch_assoc($result)) {
-                                ?>
-                                <option value="<?php echo $row['assetcode'] ?>">
-                                    <?php echo $row['assetcode'] . '-' . $row['sub_type'] . '-' . $row['yom'] . '-' . $row['capacity'] . $row['unit'] ?>
-                                </option>
-                            <?php }
-                        } ?>
+                    <select id="fleet_category" class="input02" onchange="updateAssetCodeDropdown()" required>
+                        <option value="" disabled selected>Select Fleet Category</option>
+                        <option value="Aerial Work Platform">Aerial Work Platform</option>
+                        <option value="Concrete Equipment">Concrete Equipment</option>
+                        <option value="EarthMovers and Road Equipments">EarthMovers and Road Equipments</option>
+                        <option value="Material Handling Equipments">Material Handling Equipments</option>
+                        <option value="Ground Engineering Equipments">Ground Engineering Equipments</option>
+                        <option value="Trailor and Truck">Trailor and Truck</option>
+                        <option value="Generator and Lighting">Generator and Lighting</option>
                     </select>
                 </div>
-
+                <!-- Asset Code Dropdown (populated by JS) -->
+                <div class="trial1">
+                    <select name="assetcode" id="assetcode" class="input02"
+                        onchange="onAssetCodeChange()" required>
+                        <option value="" disabled selected>Choose Asset Code</option>
+                        <option value="New Equipment">Choose New Equipment</option>
+                        <!-- Options will be dynamically populated -->
+                    </select>
+                </div>
                 <div class="trial1">
                     <select name="shift" id="shift_dd" onchange="shiftrelatedfield()" class="input02">
                         <option value="" disabled selected>Shift</option>
@@ -224,20 +228,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label for="" class="placeholder2">Site Location</label>
                 </div>
 
+            </div> 
+
+            <div class="outer02"> 
+            <div class="trial1">
+                    <select id="new_fleet_category" class="input02" onchange="updateFleetTypeOptions()" required>
+                        <option value="" disabled selected>Select Fleet Category</option>
+                        <option value="Aerial Work Platform">Aerial Work Platform</option>
+                        <option value="Concrete Equipment">Concrete Equipment</option>
+                        <option value="EarthMovers and Road Equipments">EarthMovers and Road Equipments</option>
+                        <option value="Material Handling Equipments">Material Handling Equipments</option>
+                        <option value="Ground Engineering Equipments">Ground Engineering Equipments</option>
+                        <option value="Trailor and Truck">Trailor and Truck</option>
+                        <option value="Generator and Lighting">Generator and Lighting</option>
+                    </select>
+                </div>
+                <div class="trial1">
+                    <select id="new_fleet_type" class="input02" name="equipmenttype" required>
+                        <option value="" disabled selected>Select Fleet Type</option>
+                        <!-- Options will be dynamically populated based on category -->
+                    </select>
+                </div>
             </div>
             <div class="outer02">
-
                 <div class="trial1">
-                    <input type="text" placeholder="" id="equipmenttype" name="equipmenttype" class="input02">
+                    <input type="text" id="equipmenttype" name="equipmenttype" class="input02" placeholder="">
                     <label for="" class="placeholder2">Equipment Type</label>
                 </div>
                 <div class="trial1">
-                    <input type="text" placeholder="" id="equipmentmake" name="make" class="input02">
+                    <input type="text" id="equipmentmake" name="make" class="input02" placeholder="">
                     <label for="" class="placeholder2">Asset Make</label>
                 </div>
 
                 <div class="trial1">
-                    <input type="text" placeholder="" id="equipmentmodel" name="model" class="input02">
+                    <input type="text" id="equipmentmodel" name="model" class="input02" placeholder="">
                     <label for="" class="placeholder2">Asset Model</label>
                 </div>
 
@@ -388,14 +412,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <button class="epc-button">Submit</button>
 
-
-
-
-
-
-
-
-
+            <!-- New Equipment Fields (hidden by default, shown when "Choose New Equipment" is selected) -->
+        
         </div>
     </form>
 </body>
@@ -546,38 +564,194 @@ dateInput.addEventListener('change', function () {
 
 
     function fetchCombinedDetails() {
-    const date = document.getElementById("date").value;
     const assetcode = document.getElementById("assetcode").value;
-    const workorder_ref = document.getElementById("workorder_ref").value;
-    
-    fetch(`fetch_combined_details.php?date=${date}&assetcode=${assetcode}&woref=${workorder_ref}`)
+    const equipmenttype = document.getElementById("equipmenttype").value;
+    const equipmentmake = document.getElementById("equipmentmake").value;
+    const equipmentmodel = document.getElementById("equipmentmodel").value;
+
+    const params = new URLSearchParams({
+        assetcode: assetcode,
+        equipmenttype: equipmenttype,
+        equipmentmake: equipmentmake,
+        equipmentmodel: equipmentmodel
+    });
+
+    fetch(`fetch_combined_details.php?${params.toString()}`)
         .then(response => response.json())
         .then(data => {
-            // Check if 'night_closed_hmr' is 0 or empty, and assign the appropriate value
-            const startHmrValue = (data?.night_closed_hmr === 0 || data?.night_closed_hmr === '') 
-                ? data?.closed_hmr 
-                : data?.night_closed_hmr;
+            let startHmrValue = '';
+            let startKmrValue = '';
 
-            const startKmrValue = (data?.night_closed_km === 0 || data?.night_closed_km === '') 
-                ? data?.closed_km 
-                : data?.night_closed_km;
+            if (data && data.match_found) {
+                startHmrValue = data.closed_hmr || '';
+                startKmrValue = data.closed_km || '';
+                // Autofill additional fields
+                document.getElementById('clientname').value = data.clientname || '';
+                document.getElementById('workingdays').value = data.workingdays || '';
+                document.getElementById('workingconditions').value = data.conditions || '';
+                document.getElementById('projectname').value = data.projectname || '';
+            }
 
-            // Set the value of the 'start_hmr_container' input field
             document.getElementById('start_hmr_container').value = startHmrValue || '';
-            // Set the value of the 'kmr' input field
             document.getElementById('kmr').value = startKmrValue || '';
         })
         .catch(error => {
             document.getElementById('start_hmr_container').value = '';
             document.getElementById('kmr').value = '';
+            // Clear additional fields on error
+            document.getElementById('clientname').value = '';
+            document.getElementById('workingdays').value = '';
+            document.getElementById('workingconditions').value = '';
+            document.getElementById('projectname').value = '';
         });
 }
 
 
     document.getElementById("date").addEventListener("change", fetchCombinedDetails);
-
-// Trigger fetch on assetcode change (already in the 'onchange' of the select)
 document.getElementById("assetcode").addEventListener("change", fetchCombinedDetails);
+document.getElementById("equipmenttype").addEventListener("change", fetchCombinedDetails);
+document.getElementById("equipmentmake").addEventListener("change", fetchCombinedDetails);
+document.getElementById("equipmentmodel").addEventListener("change", fetchCombinedDetails);
+document.getElementById("sitelocation").addEventListener("change", fetchCombinedDetails);
+
+
+function updateAssetCodeDropdown() {
+    var fleetCategory = document.getElementById('fleet_category').value;
+    var assetCodeDropdown = document.getElementById('assetcode');
+    assetCodeDropdown.innerHTML = '<option value="" disabled selected>Choose Asset Code</option><option value="New Equipment">Choose New Equipment</option>';
+    // AJAX to fetch asset codes for selected category
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "fetch_asset_codes.php?fleet_category=" + encodeURIComponent(fleetCategory), true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var response = JSON.parse(xhr.responseText);
+                if (response.error) return;
+                response.forEach(function (asset) {
+                    var option = document.createElement("option");
+                    option.value = asset.assetcode;
+                    option.text = asset.assetcode + " (" + asset.sub_type + " " + asset.make + " " + asset.model + " " + asset.capacity + " " + asset.unit + ") " + asset.status;
+                    if (asset.status.toLowerCase() === "idle") {
+                        option.style.backgroundColor = "lightgreen";
+                    } else if (asset.status.toLowerCase() === "working") {
+                        option.style.backgroundColor = "lightcoral";
+                    }
+                    assetCodeDropdown.appendChild(option);
+                });
+            } catch (e) { }
+        }
+    };
+    xhr.send();
+}
+
+function onAssetCodeChange() {
+    var assetCode = document.getElementById('assetcode').value;
+    var newFields = document.getElementById('new_equipment_fields');
+    if (assetCode === "New Equipment") {
+        newFields.style.display = "flex";
+        // Clear autofill fields
+        document.getElementById('equipmenttype').value = '';
+        document.getElementById('equipmentmake').value = '';
+        document.getElementById('equipmentmodel').value = '';
+        // Optionally clear other autofill fields
+    } else {
+        newFields.style.display = "none";
+        // Call autofill as usual
+        fetchassetDetails(assetCode);
+        setTimeout(fetchCombinedDetails, 200);
+    }
+}
+
+// Fleet type options by category (same as generate_quotation.php)
+const fleetTypeOptions = {
+    "Aerial Work Platform": [
+        "Self Propelled Articulated Boomlift",
+        "Scissor Lift Diesel",
+        "Scissor Lift Electric",
+        "Spider Lift",
+        "Self Propelled Straight Boomlift",
+        "Truck Mounted Articulated Boomlift",
+        "Truck Mounted Straight Boomlift"
+    ],
+    "Concrete Equipment": [
+        "Batching Plant",
+        "Self Loading Mixer",
+        "Concrete Boom Placer",
+        "Concrete Pump",
+        "Moli Pump",
+        "Mobile Batching Plant",
+        "Static Boom Placer",
+        "Transit Mixer",
+        "Shotcrete boom"
+    ],
+    "EarthMovers and Road Equipments": [
+        "Baby Roller",
+        "Backhoe Loader",
+        "Bulldozer",
+        "Excavator",
+        "Milling Machine",
+        "Motor Grader",
+        "Pneumatic Tyre Roller",
+        "Single Drum Roller",
+        "Skid Loader",
+        "Slip Form Paver",
+        "Soil Compactor",
+        "Tandem Roller",
+        "Vibratory Roller",
+        "Wheeled Excavator",
+        "Wheeled Loader"
+    ],
+    "Material Handling Equipments": [
+        "Fixed Tower Crane",
+        "Fork Lift Diesel",
+        "Fork Lift Electric",
+        "Hammerhead Tower Crane",
+        "Hydraulic Crawler Crane",
+        "Luffing Jib Tower Crane",
+        "Mechanical Crawler Crane",
+        "Pick and Carry Crane",
+        "Reach Stacker",
+        "Rough Terrain Crane",
+        "Telehandler",
+        "Telescopic Crawler Crane",
+        "Telescopic Mobile Crane",
+        "All Terrain Mobile Crane",
+        "Self Loading Truck Crane"
+    ],
+    "Ground Engineering Equipments": [
+        "Hydraulic Drilling Rig",
+        "Rotary Drilling Rig",
+        "Vibro Hammer"
+    ],
+    "Trailor and Truck": [
+        "Dumper",
+        "Truck",
+        "Water Tanker",
+        "Low Bed",
+        "Semi Low Bed",
+        "Flatbed",
+        "Hydraulic Axle"
+    ],
+    "Generator and Lighting": [
+        "Silent Diesel Generator",
+        "Mobile Light Tower",
+        "Diesel Generator"
+    ]
+};
+
+function updateFleetTypeOptions() {
+    var category = document.getElementById('new_fleet_category').value;
+    var typeSelect = document.getElementById('new_fleet_type');
+    typeSelect.innerHTML = '<option value="" disabled selected>Select Fleet Type</option>';
+    if (fleetTypeOptions[category]) {
+        fleetTypeOptions[category].forEach(function(type) {
+            var option = document.createElement('option');
+            option.value = type;
+            option.text = type;
+            typeSelect.appendChild(option);
+        });
+    }
+}
 </script>
 
 </html>

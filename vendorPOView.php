@@ -13,21 +13,47 @@ if ($enterprise === 'rental') {
     $dashboard_url = 'epc_dashboard.php';
 }
 
-// Fetch POs and product lines for this company
-$orders = [];
-$sql = "SELECT po.id as po_id, po.vendor_id, po.vendor_name, pop.product_serial, pop.product_name, pop.qty, pop.unit_price, pop.total_price, po.created_at
-        FROM purchase_orders po
-        JOIN purchase_order_products pop ON po.id = pop.po_id
-        WHERE po.companyname = ?
-        ORDER BY po.created_at DESC, po.id DESC, pop.product_serial ASC";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $companyname);
-$stmt->execute();
-$result = $stmt->get_result();
-while ($row = $result->fetch_assoc()) {
-    $orders[] = $row;
+// Pagination setup for PO
+$po_per_page = 10;
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$offset = ($page - 1) * $po_per_page;
+
+// Count total unique POs for pagination
+$sql_count = "SELECT COUNT(DISTINCT po.id) as total FROM purchase_orders po WHERE po.companyname='$companyname'";
+$result_count = mysqli_query($conn, $sql_count);
+$total_po = 0;
+if ($row_count = mysqli_fetch_assoc($result_count)) {
+    $total_po = intval($row_count['total']);
 }
-$stmt->close();
+$total_pages = ceil($total_po / $po_per_page);
+
+// Fetch only current page POs (IDs)
+$sql_po_ids = "SELECT po.id FROM purchase_orders po WHERE po.companyname='$companyname' ORDER BY po.created_at DESC, po.id DESC LIMIT $po_per_page OFFSET $offset";
+$result_po_ids = mysqli_query($conn, $sql_po_ids);
+$po_ids = [];
+while ($row = mysqli_fetch_assoc($result_po_ids)) {
+    $po_ids[] = $row['id'];
+}
+
+// Fetch all product lines for current page POs and group by PO
+$orders_by_po = [];
+if (count($po_ids) > 0) {
+    $po_ids_str = implode(',', array_map('intval', $po_ids));
+    $sql = "SELECT po.id as po_id, po.vendor_id, po.vendor_name, pop.product_serial, pop.product_name, pop.qty, pop.unit_price, pop.total_price, po.created_at
+            FROM purchase_orders po
+            JOIN purchase_order_products pop ON po.id = pop.po_id
+            WHERE po.companyname = ? AND po.id IN ($po_ids_str)
+            ORDER BY po.created_at DESC, po.id DESC, pop.product_serial ASC";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $companyname);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $orders_by_po[$row['po_id']]['po'] = $row;
+        $orders_by_po[$row['po_id']]['products'][] = $row;
+    }
+    $stmt->close();
+}
 
 // Get vendor names for mapping
 $vendorMap = [];
@@ -137,7 +163,69 @@ $stmt_vendors->close();
         }
         .modal-btn:hover {
             background: #1a237e;
-        }
+        } 
+
+        
+.pagination-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.pagination-btn {
+  color: #4067B5;
+  padding: 6px 14px;
+  text-decoration: none;
+  border: 1px solid #4067B5;
+  margin: 0 2px;
+  border-radius: 4px;
+  background: #fff;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+  min-width: 36px;
+  text-align: center;
+  display: inline-block;
+}
+
+.pagination-btn:hover {
+  background: #4067B5;
+  color: #fff;
+}
+
+.pagination-btn.active {
+  background: #4067B5;
+  color: #fff;
+  border: 1px solid #4067B5;
+  pointer-events: none;
+}
+
+.pagination-ellipsis {
+  padding: 6px 8px;
+  color: #888;
+  background: none;
+  border: none;
+  font-size: 16px;
+  min-width: 20px;
+  pointer-events: none;
+}
+
+/* Responsive for pagination */
+@media screen and (max-width: 600px) {
+  .pagination-nav {
+    width: 100%;
+    font-size: 14px;
+    gap: 0;
+  }
+  .pagination-btn {
+    padding: 6px 8px;
+    font-size: 13px;
+    min-width: 28px;
+  }
+}
         @media screen and (max-width: 600px) {
             .vendorpo-table {
                 border: 0;
@@ -168,6 +256,14 @@ $stmt_vendors->close();
                 align-items: flex-start;
                 gap: 10px;
             }
+        }
+        #vendorpofilterbutton {
+            background: #2253a3;
+            color: #fff;
+            border: 1px solid #2253a3;
+            font-weight: 600;
+            padding: 8px 22px;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -208,16 +304,16 @@ $stmt_vendors->close();
 </article> 
             </button>
         </div>
-        <table class="quotation-table">
+        <table class="vendorpo-table">
             <thead>
                 <tr>
-                    <th class="table-heading">SR NO</th>
-                    <th class="table-heading">Vendor</th>
-                    <th class="table-heading" >Product</th>
-                    <th class="table-heading">Qty</th>
-                    <th class="table-heading">Price</th>
-                    <th class="table-heading">Date</th>
-                    <th class="table-heading">Actions</th>
+                    <th class="table-heading" style="width:5%;">#</th>
+                    <th class="table-heading" style="min-width:120px;">Vendor</th>
+                    <th class="table-heading" style="min-width:180px;">Product</th>
+                    <th class="table-heading" style="width:60px;">Qty</th>
+                    <th class="table-heading" style="width:110px;">Price</th>
+                    <th class="table-heading" style="width:120px;">Date</th>
+                    <th class="table-heading" style="width:180px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -282,6 +378,25 @@ document.getElementById('modalCancelBtn').onclick = function() {
     document.getElementById('deleteModalOverlay').style.display = 'none';
     deleteUrl = '';
 };
+function vendorpo_filter() {
+    var type = document.getElementById('vendorpofilterdd').value;
+    document.getElementById('vendorpofilterdate').style.display = 'none';
+    document.getElementById('vendorfilter').style.display = 'none';
+    document.getElementById('productfilter').style.display = 'none';
+    if (type === 'Date') {
+        document.getElementById('vendorpofilterdate').style.display = 'inline-block';
+    } else if (type === 'Vendor') {
+        document.getElementById('vendorfilter').style.display = 'inline-block';
+    } else if (type === 'Product') {
+        document.getElementById('productfilter').style.display = 'inline-block';
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var vendorpofilterdd = document.getElementById('vendorpofilterdd');
+    if (vendorpofilterdd.value !== '') {
+        vendorpo_filter();
+    }
+});
 </script>
 </body>
 </html>

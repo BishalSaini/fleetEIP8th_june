@@ -255,307 +255,424 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_submit'])) {
         </script>
     </head>
     <body>
-        <div class="navbar1">
-            <div class="logo_fleet">
-                <img
-                    src="logo_fe.png"
-                    alt="FLEET EIP"
-                    onclick="window.location.href='rental_dashboard.php'">
+<div class="navbar1">
+    <div class="logo_fleet">
+        <img src="logo_fe.png" alt="FLEET EIP" onclick="window.location.href='rental_dashboard.php'">
+    </div>
+    <div class="iconcontainer">
+        <ul>
+            <li><a href="rental_dashboard.php">Dashboard</a></li>
+            <li><a href="news/">News</a></li>
+            <li><a href="logout.php">Log Out</a></li>
+        </ul>
+    </div>
+</div>
+
+<?php
+if ($showSuccess) {
+    echo '<label>
+    <input type="checkbox" class="alertCheckbox" autocomplete="off" />
+    <div class="alert notice">
+        <span class="alertClose">X</span>
+        <span class="alertText">Regional office created successfully!<br class="clear"/></span>
+    </div>
+    </label>';
+}
+if ($showError) {
+    echo '<label>
+    <input type="checkbox" class="alertCheckbox" autocomplete="off" />
+    <div class="alert error">
+        <span class="alertClose">X</span>
+        <span class="alertText">Failed to create regional office. Please try again.<br class="clear"/></span>
+    </div>
+    </label>';
+}
+?>
+
+<div class="clientbasicdetail">
+    <h3 class="client_para">
+        Vendor: <?php echo $vendor ? htmlspecialchars($vendor['vendor_name']) : ''; ?>
+        <?php if ($vendor): ?>
+       <!--  <a href="editVendor.php?id=<?php echo $vendor_id; ?>" id="editbasicdetailclient" title="Edit Vendor">
+            <i style="width: 22px; height: 22px;" class="bi bi-pencil"></i>
+        </a> -->
+        <?php endif; ?>
+    </h3>
+    <p>
+        Office Address:
+        <?php
+            echo ($vendor && isset($vendor['office_address']) && $vendor['office_address'])
+                ? htmlspecialchars($vendor['office_address'])
+                : '<span style="color:#e74c3c;">Not Provided</span>';
+        ?>
+    </p>
+    <p>
+        Category:
+        <?php
+            echo ($vendor && isset($vendor['vendor_category']) && $vendor['vendor_category'])
+                ? htmlspecialchars($vendor['vendor_category'])
+                : '<span style="color:#e74c3c;">Not Provided</span>';
+        ?>
+    </p>
+    <div class="buttoncontainer">
+        <button class="tripupdate_generatecn" onclick="toggleRegionalOfficeForm()">Create Regional Office</button>
+        <button class="tripupdate_generatecn" onclick="toggleProductForm()">Add Product</button>
+    </div>
+</div>
+
+<!-- Regional Office Form -->
+<form class="createregionaloffice" id="createregionalofficeform" method="POST" autocomplete="off" style="display:none;">
+    <div class="createregionalofficecontainer">
+        <p class="headingpara">Create Regional Office</p>
+        <div class="trial1" style="margin-bottom:16px;">
+            <input
+                type="text"
+                placeholder=""
+                name="regional_office_address"
+                class="input02"
+                required="required"
+                style="font-size:1.1rem;">
+            <label for="" class="placeholder2">Regional Office Address</label>
+        </div>
+        <div class="trial1" style="margin-bottom:16px;">
+            <select
+                name="regional_office_state"
+                class="input02"
+                required="required"
+                style="font-size:1.1rem;">
+                <option value="" disabled="disabled" selected="selected">Select State</option>
+                <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                <option value="Assam">Assam</option>
+                <option value="Bihar">Bihar</option>
+                <option value="Chandigarh">Chandigarh</option>
+                <option value="Chhattisgarh">Chhattisgarh</option>
+                <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Goa">Goa</option>
+                <option value="Gujarat">Gujarat</option>
+                <option value="Haryana">Haryana</option>
+                <option value="Himachal Pradesh">Himachal Pradesh</option>
+                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                <option value="Jharkhand">Jharkhand</option>
+                <option value="Karnataka">Karnataka</option>
+                <option value="Kerala">Kerala</option>
+                <option value="Ladakh">Ladakh</option>
+                <option value="Lakshadweep">Lakshadweep</option>
+                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Manipur">Manipur</option>
+                <option value="Meghalaya">Meghalaya</option>
+                <option value="Mizoram">Mizoram</option>
+                <option value="Nagaland">Nagaland</option>
+                <option value="Odisha">Odisha</option>
+                <option value="Puducherry">Puducherry</option>
+                <option value="Punjab">Punjab</option>
+                <option value="Rajasthan">Rajasthan</option>
+                <option value="Sikkim">Sikkim</option>
+                <option value="Tamil Nadu">Tamil Nadu</option>
+                <option value="Telangana">Telangana</option>
+                <option value="Tripura">Tripura</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="Uttarakhand">Uttarakhand</option>
+                <option value="West Bengal">West Bengal</option>
+            </select>
+            <label for="" class="placeholder2">State</label>
+        </div>
+        <div class="trial1" style="margin-bottom:16px;">
+            <input
+                type="text"
+                placeholder=""
+                name="regional_office_contact_person"
+                class="input02"
+                required="required"
+                style="font-size:1.1rem;">
+            <label for="" class="placeholder2">Contact Person</label>
+        </div>
+        <div class="trial1" style="margin-bottom:16px;">
+            <input
+                type="text"
+                placeholder=""
+                name="regional_office_contact_number"
+                class="input02"
+                required="required"
+                style="font-size:1.1rem;">
+            <label for="" class="placeholder2">Contact Number</label>
+        </div>
+        <div class="trial1" style="margin-bottom:16px;">
+            <input
+                type="email"
+                placeholder=""
+                name="regional_office_contact_email"
+                class="input02"
+                required="required"
+                style="font-size:1.1rem;">
+            <label for="" class="placeholder2">Contact Email</label>
+        </div>
+        <button type="submit" name="regional_office_submit" class="epc-button">SUBMIT</button>
+    </div>
+</form>
+
+<!-- Product Form -->
+<form class="hqcontact" id="hqcontactform" method="POST" autocomplete="off" style="display:none;">
+    <div class="hqcontactcontainer">
+        <p class="headingpara">Add Product</p>
+        <div class="outer02">
+            <div class="trial1" style="margin-bottom:16px;">
+                <input
+                    type="text"
+                    placeholder=""
+                    name="product_serial"
+                    class="input02"
+                    required="required"
+                    style="font-size:1.1rem;">
+                <label for="" class="placeholder2">Product Serial Number/Code</label>
             </div>
-            <div class="iconcontainer">
-                <ul>
-                    <li>
-                        <a href="rental_dashboard.php">Dashboard</a>
-                    </li>
-                    <li>
-                        <a href="news/">News</a>
-                    </li>
-                    <li>
-                        <a href="logout.php">Log Out</a>
-                    </li>
-                </ul>
+            <div class="trial1" style="margin-bottom:16px;">
+                <input
+                    type="text"
+                    placeholder=""
+                    name="product_name"
+                    class="input02"
+                    required="required"
+                    style="font-size:1.1rem;">
+                <label for="" class="placeholder2">Product Name (Code HSN/SAC)</label>
             </div>
         </div>
+        <div class="outer02">
+            <div class="trial1" style="margin-bottom:16px;">
+                <select
+                    name="product_uom"
+                    class="input02"
+                    required="required"
+                    style="font-size:1.1rem;">
+                    <option value="" disabled="disabled" selected="selected">Select UoM</option>
+                    <option value="set">Set</option>
+                    <option value="nos">Nos</option>
+                    <option value="kgs">Kgs</option>
+                    <option value="meter">Meter</option>
+                    <option value="litre">Litre</option>
+                </select>
+                <label class="placeholder2">UoM (Unit of Measurement)</label>
+            </div>
 
-        <div class="main-center-flex">
-            <?php if ($showSuccess): ?>
-            <div class="success-msg">Regional office created successfully!</div>
-        <?php elseif ($showError): ?>
-            <div class="error-msg">Failed to create regional office. Please try again.</div>
-            <?php endif; ?>
+            <div class="trial1" style="margin-bottom:16px;">
+                <input
+                    type="number"
+                    placeholder=""
+                    step="0.01"
+                    min="0"
+                    name="unit_price"
+                    id="unit_price"
+                    class="input02"
+                    required="required"
+                    style="font-size:1.1rem;">
+                <label for="" class="placeholder2">Unit Price</label>
+            </div>
 
-            <?php if ($vendor): ?>
-            <div class="main-content-inner">
-                <div class="button-row">
-                    <button
-                        class="regional-office-btn"
-                        onclick="toggleRegionalOfficeForm()"
-                        style="min-width:220px; margin:0;">
-                        Create Regional Office
-                    </button>
-                    <button
-                        class="regional-office-btn"
-                        onclick="toggleProductForm()"
-                        style="min-width:220px; background:#2253a3; margin:0;">
-                        Add Product
-                    </button>
+            <div class="trial1" style="margin-bottom:16px;">
+                <input
+                    type="number"
+                    placeholder=""
+                    step="1"
+                    min="1"
+                    name="qty"
+                    id="qty"
+                    class="input02"
+                    required="required"
+                    style="font-size:1.1rem;"
+                    value="1"
+                    readonly="readonly">
+                <label for="" class="placeholder2">Qty</label>
+            </div>
+        </div>
+        <div class="outer02">
+            <div class="trial1" style="margin-bottom:16px;">
+                <input
+                    type="number"
+                    placeholder=""
+                    step="0.01"
+                    min="0"
+                    name="gst"
+                    id="gst"
+                    class="input02"
+                    style="font-size:1.1rem;">
+                <label for="" class="placeholder2">GST (%)</label>
+            </div>
+            <div class="trial1" style="margin-bottom:16px;">
+                <input
+                    type="number"
+                    placeholder=""
+                    step="0.01"
+                    min="0"
+                    name="price_after_gst"
+                    id="price_after_gst"
+                    class="input02"
+                    style="font-size:1.1rem;"
+                    readonly="readonly">
+                <label for="price_after_gst" class="placeholder2">Price after GST</label>
+            </div>
+        </div>
+        <div class="outer02">
+            <div class="trial1" style="margin-bottom:16px;">
+                <input
+                    type="number"
+                    placeholder=""
+                    step="0.01"
+                    min="0"
+                    name="cgst"
+                    id="cgst"
+                    class="input02"
+                    style="font-size:1.1rem;"
+                    readonly="readonly">
+                <label for="" class="placeholder2">CGST (%)</label>
+            </div>
+            <div class="trial1" style="margin-bottom:16px;">
+                <input
+                    type="number"
+                    placeholder=""
+                    step="0.01"
+                    min="0"
+                    name="sgst"
+                    id="sgst"
+                    class="input02"
+                    style="font-size:1.1rem;"
+                    readonly="readonly">
+                <label for="" class="placeholder2">SGST (%)</label>
+            </div>
+        </div>
+        <div class="outer02">
+            <div class="trial1" style="margin-bottom:16px;">
+                <input
+                    type="number"
+                    placeholder=""
+                    step="0.01"
+                    min="0"
+                    name="price_after_cgst"
+                    id="price_after_cgst"
+                    class="input02"
+                    style="font-size:1.1rem;"
+                    readonly="readonly">
+                <label for="price_after_cgst" class="placeholder2">Price after CGST</label>
+            </div>
+            <div class="trial1" style="margin-bottom:16px;">
+                <input
+                    type="number"
+                    placeholder=""
+                    step="0.01"
+                    min="0"
+                    name="price_after_sgst"
+                    id="price_after_sgst"
+                    class="input02"
+                    style="font-size:1.1rem;"
+                    readonly="readonly">
+                <label for="price_after_sgst" class="placeholder2">Price after SGST</label>
+            </div>
+        </div>
+        <button type="submit" name="product_submit" class="epc-button">SUBMIT</button>
+    </div>
+</form>
+
+<?php
+// Regional Offices Section
+$regional_sql = "SELECT * FROM vendor_regional_office WHERE vendor_id = ?";
+$regional_stmt = $conn->prepare($regional_sql);
+$regional_stmt->bind_param("i", $vendor_id);
+$regional_stmt->execute();
+$regional_result = $regional_stmt->get_result();
+
+if ($regional_result->num_rows > 0) {
+    echo '<h3 class="contactheading" style="margin-top:28px;">Regional Offices</h3>';
+    echo '<div class="regional-offices-row" style="gap:24px; margin:0 0 24px 0;">';
+    while ($rowreg = $regional_result->fetch_assoc()) {
+        // Check for incomplete data and collect missing fields
+        $missingFields = [];
+        if (empty($rowreg['office_address'])) $missingFields[] = 'Office Address';
+        if (empty($rowreg['state'])) $missingFields[] = 'State';
+        if (empty($rowreg['contact_person'])) $missingFields[] = 'Contact Person';
+        if (empty($rowreg['contact_number'])) $missingFields[] = 'Contact Number';
+        if (empty($rowreg['contact_email'])) $missingFields[] = 'Contact Email';
+        $incomplete = count($missingFields) > 0;
+        if ($incomplete): ?>
+            <div class="regional-office-card incomplete-data">
+                <h3>
+                    Incomplete Regional Office Data
+                </h3>
+                <div style="margin-bottom:10px;">
+                    <strong>Regional Office:</strong> <?php echo htmlspecialchars($rowreg['office_address']); ?>
+                    <a href="editVendorRegional.php?id=<?php echo $rowreg['id'] ?>&vendorid=<?php echo $vendor_id; ?>" id="editregionalofficebutton" title="Edit Regional Office">
+                        <i style="width: 22px; height: 22px;" class="bi bi-pencil"></i>
+                    </a>
                 </div>
-                <form
-                    class="createregionaloffice"
-                    id="createregionalofficeform"
-                    method="POST"
-                    autocomplete="off"
-                    style="display:none;">
-                    <div class="createregionalofficecontainer">
-                        <p class="headingpara">Create Regional Office</p>
-                        <div class="trial1" style="margin-bottom:16px;">
-                            <input
-                                type="text"
-                                placeholder=""
-                                name="regional_office_address"
-                                class="input02"
-                                required="required"
-                                style="font-size:1.1rem;">
-                            <label for="" class="placeholder2">Regional Office Address</label>
-                        </div>
-                        <div class="trial1" style="margin-bottom:16px;">
-                            <select
-                                name="regional_office_state"
-                                class="input02"
-                                required="required"
-                                style="font-size:1.1rem;">
-                                <option value="" disabled="disabled" selected="selected">Select State</option>
-                                <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
-                                <option value="Andhra Pradesh">Andhra Pradesh</option>
-                                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-                                <option value="Assam">Assam</option>
-                                <option value="Bihar">Bihar</option>
-                                <option value="Chandigarh">Chandigarh</option>
-                                <option value="Chhattisgarh">Chhattisgarh</option>
-                                <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
-                                <option value="Delhi">Delhi</option>
-                                <option value="Goa">Goa</option>
-                                <option value="Gujarat">Gujarat</option>
-                                <option value="Haryana">Haryana</option>
-                                <option value="Himachal Pradesh">Himachal Pradesh</option>
-                                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                                <option value="Jharkhand">Jharkhand</option>
-                                <option value="Karnataka">Karnataka</option>
-                                <option value="Kerala">Kerala</option>
-                                <option value="Ladakh">Ladakh</option>
-                                <option value="Lakshadweep">Lakshadweep</option>
-                                <option value="Madhya Pradesh">Madhya Pradesh</option>
-                                <option value="Maharashtra">Maharashtra</option>
-                                <option value="Manipur">Manipur</option>
-                                <option value="Meghalaya">Meghalaya</option>
-                                <option value="Mizoram">Mizoram</option>
-                                <option value="Nagaland">Nagaland</option>
-                                <option value="Odisha">Odisha</option>
-                                <option value="Puducherry">Puducherry</option>
-                                <option value="Punjab">Punjab</option>
-                                <option value="Rajasthan">Rajasthan</option>
-                                <option value="Sikkim">Sikkim</option>
-                                <option value="Tamil Nadu">Tamil Nadu</option>
-                                <option value="Telangana">Telangana</option>
-                                <option value="Tripura">Tripura</option>
-                                <option value="Uttar Pradesh">Uttar Pradesh</option>
-                                <option value="Uttarakhand">Uttarakhand</option>
-                                <option value="West Bengal">West Bengal</option>
-                            </select>
-                            <label for="" class="placeholder2">State</label>
-                        </div>
-                        <div class="trial1" style="margin-bottom:16px;">
-                            <input
-                                type="text"
-                                placeholder=""
-                                name="regional_office_contact_person"
-                                class="input02"
-                                required="required"
-                                style="font-size:1.1rem;">
-                            <label for="" class="placeholder2">Contact Person</label>
-                        </div>
-                        <div class="trial1" style="margin-bottom:16px;">
-                            <input
-                                type="text"
-                                placeholder=""
-                                name="regional_office_contact_number"
-                                class="input02"
-                                required="required"
-                                style="font-size:1.1rem;">
-                            <label for="" class="placeholder2">Contact Number</label>
-                        </div>
-                        <div class="trial1" style="margin-bottom:16px;">
-                            <input
-                                type="email"
-                                placeholder=""
-                                name="regional_office_contact_email"
-                                class="input02"
-                                required="required"
-                                style="font-size:1.1rem;">
-                            <label for="" class="placeholder2">Contact Email</label>
-                        </div>
-                        <button type="submit" name="regional_office_submit" class="epc-button">SUBMIT</button>
-                    </div>
-                </form>
-                <!-- Product Form -->
-                <form class="hqcontact" id="hqcontactform" method="POST" autocomplete="off">
-                    <div class="hqcontactcontainer">
-                        <p class="headingpara">Add Product</p>
-                        <div class="outer02">
-                            <div class="trial1" style="margin-bottom:16px;">
-                                <input
-                                    type="text"
-                                    placeholder=""
-                                    name="product_serial"
-                                    class="input02"
-                                    required="required"
-                                    style="font-size:1.1rem;">
-                                <label for="" class="placeholder2">Product Serial Number/Code</label>
-                            </div>
-                            <div class="trial1" style="margin-bottom:16px;">
-                                <input
-                                    type="text"
-                                    placeholder=""
-                                    name="product_name"
-                                    class="input02"
-                                    required="required"
-                                    style="font-size:1.1rem;">
-                                <label for="" class="placeholder2">Product Name (Code HSN/SAC)</label>
-                            </div>
-                        </div>
-                        <div class="outer02">
-                            <div class="trial1" style="margin-bottom:16px;">
-                                <select
-                                    name="product_uom"
-                                    class="input02"
-                                    required="required"
-                                    style="font-size:1.1rem;">
-                                    <option value="" disabled="disabled" selected="selected">Select UoM</option>
-                                    <option value="set">Set</option>
-                                    <option value="nos">Nos</option>
-                                    <option value="kgs">Kgs</option>
-                                    <option value="meter">Meter</option>
-                                    <option value="litre">Litre</option>
-                                </select>
-                                <label class="placeholder2">UoM (Unit of Measurement)</label>
-                            </div>
+                <div>
+                    <strong>State:</strong> <?php echo htmlspecialchars($rowreg['state']); ?><br>
+                    <strong>Contact Person:</strong> <?php echo htmlspecialchars($rowreg['contact_person']); ?><br>
+                    <strong>Contact Number:</strong> <?php echo htmlspecialchars($rowreg['contact_number']); ?><br>
+                    <strong>Contact Email:</strong> <?php echo htmlspecialchars($rowreg['contact_email']); ?><br>
+                </div>
+                <div style="margin-top:12px; color:#e74c3c; font-weight:600;">
+                    <i class="bi bi-exclamation-triangle-fill" style="margin-right:6px;"></i>
+                    Missing Fields:
+                    <ul style="margin:8px 0 0 18px; color:#e74c3c; font-weight:500;">
+                        <?php foreach ($missingFields as $field): ?>
+                            <li><?php echo htmlspecialchars($field); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="regional-office-card">
+                <h3>
+                    Regional Office: <?php echo htmlspecialchars($rowreg['office_address']); ?>
+                    <a href="editVendorRegional.php?id=<?php echo $rowreg['id'] ?>&vendorid=<?php echo $vendor_id; ?>" id="editregionalofficebutton" title="Edit Regional Office">
+                        <i style="width: 22px; height: 22px;" class="bi bi-pencil"></i>
+                    </a>
+                </h3>
+                <h5>
+                    <strong>State:</strong> <?php echo htmlspecialchars($rowreg['state']); ?>
+                    <mark>(Contact: <?php echo htmlspecialchars($rowreg['contact_person']); ?>)</mark>
+                </h5>
+                <h5>
+                    <strong>Contact Number:</strong> <?php echo htmlspecialchars($rowreg['contact_number']); ?>
+                </h5>
+                <h5>
+                    <strong>Contact Email:</strong> <?php echo htmlspecialchars($rowreg['contact_email']); ?>
+                </h5>
+            </div>
+        <?php endif;
+    }
+    echo '</div>';
+}
+$regional_stmt->close();
+?>
 
-                            <div class="trial1" style="margin-bottom:16px;">
-                                <input
-                                    type="number"
-                                    placeholder=""
-                                    step="0.01"
-                                    min="0"
-                                    name="unit_price"
-                                    id="unit_price"
-                                    class="input02"
-                                    required="required"
-                                    style="font-size:1.1rem;">
-                                <label for="" class="placeholder2">Unit Price</label>
-                            </div>
+<!-- Products Section -->
+<?php
+$prod_sql = "SELECT product_serial, product_name, product_uom, unit_price FROM vendor_products WHERE vendor_id = ?";
+$prod_stmt = $conn->prepare($prod_sql);
+$prod_stmt->bind_param("i", $vendor_id);
+$prod_stmt->execute();
+$prod_result = $prod_stmt->get_result();
+if ($prod_result->num_rows > 0) {
+    echo '<h3 class="contactheading" style="margin-top:28px;">Products Added</h3>';
+    echo '<div class="regional-offices-row" style="gap:24px; margin:0 0 24px 0;">';
+    while ($prow = $prod_result->fetch_assoc()) {
+        echo '<div class="regional-office-card" style="background:#f5f7fa;border:1px solid #b4c5e4;min-width:280px;max-width:340px;display:flex;flex-direction:column;align-items:flex-start;">';
+        echo '<h4 style="margin:0 0 10px 0;font-size:1.15rem;color:#2253a3;font-weight:600;display:flex;align-items:center;gap:8px;">' . htmlspecialchars($prow['product_name']) . '</h4>';
+        echo '<h5 style="margin:4px 0;font-size:1rem;font-weight:400;color:#333;"><strong>Serial/Code:</strong> ' . htmlspecialchars($prow['product_serial']) . '</h5>';
+        echo '<h5 style="margin:4px 0;font-size:1rem;font-weight:400;color:#333;"><strong>UoM:</strong> ' . htmlspecialchars($prow['product_uom']) . '</h5>';
+        echo '<h5 style="margin:4px 0;font-size:1rem;font-weight:400;color:#333;"><strong>Unit Price:</strong> ₹' . htmlspecialchars($prow['unit_price']) . '</h5>';
+        echo '</div>';
+    }
+    echo '</div>';
+} else {
+    echo '<div style="color:#888;">No products added yet.</div>';
+}
+$prod_stmt->close();
+?>
 
-                            <div class="trial1" style="margin-bottom:16px;">
-                                <input
-                                    type="number"
-                                    placeholder=""
-                                    step="1"
-                                    min="1"
-                                    name="qty"
-                                    id="qty"
-                                    class="input02"
-                                    required="required"
-                                    style="font-size:1.1rem;"
-                                    value="1"
-                                    readonly="readonly">
-                                <label for="" class="placeholder2">Qty</label>
-                            </div>
-                        </div>
-                        <div class="outer02">
-                            <div class="trial1" style="margin-bottom:16px;">
-                                <input
-                                    type="number"
-                                    placeholder=""
-                                    step="0.01"
-                                    min="0"
-                                    name="gst"
-                                    id="gst"
-                                    class="input02"
-                                    style="font-size:1.1rem;">
-                                <label for="" class="placeholder2">GST (%)</label>
-                            </div>
-                            <div class="trial1" style="margin-bottom:16px;">
-                                <input
-                                    type="number"
-                                    placeholder=""
-                                    step="0.01"
-                                    min="0"
-                                    name="price_after_gst"
-                                    id="price_after_gst"
-                                    class="input02"
-                                    style="font-size:1.1rem;"
-                                    readonly="readonly">
-                                <label for="price_after_gst" class="placeholder2">Price after GST</label>
-                            </div>
-                        </div>
-                        <div class="outer02">
-                            <div class="trial1" style="margin-bottom:16px;">
-                                <input
-                                    type="number"
-                                    placeholder=""
-                                    step="0.01"
-                                    min="0"
-                                    name="cgst"
-                                    id="cgst"
-                                    class="input02"
-                                    style="font-size:1.1rem;"
-                                    readonly="readonly">
-                                <label for="" class="placeholder2">CGST (%)</label>
-                            </div>
-                            <div class="trial1" style="margin-bottom:16px;">
-                                <input
-                                    type="number"
-                                    placeholder=""
-                                    step="0.01"
-                                    min="0"
-                                    name="sgst"
-                                    id="sgst"
-                                    class="input02"
-                                    style="font-size:1.1rem;"
-                                    readonly="readonly">
-                                <label for="" class="placeholder2">SGST (%)</label>
-                            </div>
-                        </div>
-                        <div class="outer02">
-                            <div class="trial1" style="margin-bottom:16px;">
-                                <input
-                                    type="number"
-                                    placeholder=""
-                                    step="0.01"
-                                    min="0"
-                                    name="price_after_cgst"
-                                    id="price_after_cgst"
-                                    class="input02"
-                                    style="font-size:1.1rem;"
-                                    readonly="readonly">
-                                <label for="price_after_cgst" class="placeholder2">Price after CGST</label>
-                            </div>
-                            <div class="trial1" style="margin-bottom:16px;">
-                                <input
-                                    type="number"
-                                    placeholder=""
-                                    step="0.01"
-                                    min="0"
-                                    name="price_after_sgst"
-                                    id="price_after_sgst"
-                                    class="input02"
-                                    style="font-size:1.1rem;"
-                                    readonly="readonly">
-                                <label for="price_after_sgst" class="placeholder2">Price after SGST</label>
-                            </div>
-                        </div>
-                        <button type="submit" name="product_submit" class="epc-button">SUBMIT</button>
-                    </div>
-                </form>
+<!-- ...existing scripts for form toggling and GST logic... -->
                 <script>
                     // GST split logic and price after GST/CGST/SGST
                     document.addEventListener('DOMContentLoaded', function () {
@@ -575,14 +692,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_submit'])) {
                             cgstInput.value = cgstVal ? cgstVal.toFixed(2) : '';
                             sgstInput.value = sgstVal ? sgstVal.toFixed(2) : '';
 
-                            // Calculate prices
+                            // Calculate only tax amounts
                             var gstAmount = price * (gstVal / 100);
                             var cgstAmount = price * (cgstVal / 100);
                             var sgstAmount = price * (sgstVal / 100);
 
-                            priceAfterGst.value = (price + gstAmount).toFixed(2);
-                            priceAfterCgst.value = (price + cgstAmount).toFixed(2);
-                            priceAfterSgst.value = (price + sgstAmount).toFixed(2);
+                            priceAfterGst.value = gstAmount.toFixed(2);
+                            priceAfterCgst.value = cgstAmount.toFixed(2);
+                            priceAfterSgst.value = sgstAmount.toFixed(2);
                         }
 
                         if (gstInput && cgstInput && sgstInput && unitPriceInput) {
@@ -594,67 +711,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_submit'])) {
                         }
                     });
                 </script>
-            </div>
-            <?php endif; ?>
-        </div>
-        <?php
-// Show all regional offices for this vendor
-if ($vendor_id > 0) {
-    $regional_sql = "SELECT * FROM vendor_regional_office WHERE vendor_id = ?";
-    $regional_stmt = $conn->prepare($regional_sql);
-    $regional_stmt->bind_param("i", $vendor_id);
-    $regional_stmt->execute();
-    $regional_result = $regional_stmt->get_result();
-
-    if ($regional_result->num_rows > 0) {
-        echo '<div class="regional-offices-row">';
-        while ($rowreg = $regional_result->fetch_assoc()) {
-            // Check for incomplete data
-            $incomplete = (
-                empty($rowreg['office_address']) ||
-                empty($rowreg['state']) ||
-                empty($rowreg['contact_person']) ||
-                empty($rowreg['contact_number']) ||
-                empty($rowreg['contact_email'])
-            );
-            $cardClass = 'regional-office-card' . ($incomplete ? ' incomplete-data' : '');
-            ?>
-        <div class="<?php echo $cardClass; ?>">
-            <h3>
-                Regional Office:
-                <?php echo htmlspecialchars($rowreg['office_address']); ?>
-                <a
-                    href="editVendorRegional.php?id=<?php echo $rowreg['id'] ?>&vendorid=<?php echo $vendor_id; ?>"
-                    class="edit-link"
-                    title="Edit Regional Office">
-                    <i
-                        class="bi bi-pencil"
-                        style="font-size:20px;vertical-align:middle;line-height:1;"></i>
-                </a>
-            </h3>
-            <h5>
-                <strong>State:</strong>
-                <?php echo htmlspecialchars($rowreg['state']); ?></h5>
-            <h5>
-                <strong>Contact Person:</strong>
-                <?php echo htmlspecialchars($rowreg['contact_person']); ?></h5>
-            <h5>
-                <strong>Contact Number:</strong>
-                <?php echo htmlspecialchars($rowreg['contact_number']); ?></h5>
-            <h5>
-                <strong>Contact Email:</strong>
-                <?php echo htmlspecialchars($rowreg['contact_email']); ?></h5>
-            <?php if ($incomplete): ?>
-            <div style="color:#e74c3c; font-weight:600; margin-top:8px;">Incomplete Data</div>
-            <?php endif; ?>
-        </div>
-        <?php
-        }
-        echo '</div>';
-    }
-    $regional_stmt->close();
-}
-?>
-
-    </body>
+</body>
 </html>
