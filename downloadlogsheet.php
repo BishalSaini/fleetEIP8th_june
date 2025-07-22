@@ -31,10 +31,54 @@ $row_logo_fetch = mysqli_fetch_assoc($result_fetch_logo);
     <title>View Log Sheet</title>
     <link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" href="favicon.jpg" type="image/x-icon">
+    <style>
+        /* Hide buttons when printing or exporting to PDF */
+        @media print {
+            .fulllength {
+                display: none !important;
+            }
+        }
+
+        /* Ensure tables fit page and avoid cropping */
+        .logsheetcontainerprint {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .logsheet_table,
+        .logsheetdatatable {
+            width: 100% !important;
+            table-layout: auto;
+            word-break: break-word;
+        }
+
+        .logsheet_table th,
+        .logsheet_table td,
+        .logsheetdatatable th,
+        .logsheetdatatable td {
+            font-size: 13px;
+            padding: 4px 6px;
+        }
+
+        /* Optional: reduce font for PDF to fit more content */
+        @media print {
+            body,
+            table,
+            th,
+            td {
+                font-size: 11px !important;
+            } 
+            
+        }
+    </style>
 </head>
 
 <body>
-    <div class="fulllength">
+    <div class="fulllength" id="action-buttons">
         <button onclick="downloadsummary()" class="downloadbuttonsummary">Download</button>
         <button
             onclick="window.location.href='logsheetsummary.php?assetcode=<?php echo $assetcode; ?>&worefno=<?php echo $worefno ?>&clientname=<?php echo $clientnameget ?>&month=<?php echo $month ?>&sitelocation=<?php echo $sitelocation ?>'"
@@ -184,7 +228,12 @@ $row_logo_fetch = mysqli_fetch_assoc($result_fetch_logo);
                                 <tr>
                                     <td><?php echo $sr_no++; ?></td>
                                     <td><?php echo date('D', strtotime($row['date'])); ?></td> <!-- Day of the week -->
-                                    <td><?php echo date('d-M-y', strtotime($row['date'])); ?></td> <!-- Date -->
+                                    <td>
+                                        <?php
+                                        // Print date in single line, e.g., 19-Jul-25
+                                        echo date('d-M-y', strtotime($row['date']));
+                                        ?>
+                                    </td> <!-- Date -->
 
                                     <!-- Day Shift Run -->
                                     <td><?php echo $row['start_time']; ?></td>
@@ -423,27 +472,51 @@ $row_logo_fetch = mysqli_fetch_assoc($result_fetch_logo);
 </body>
 <script>
     function downloadsummary() {
-        const element = document.querySelector('.logsheetcontainerprint');
+        // Hide the action buttons before generating PDF
+        const actionButtons = document.getElementById('action-buttons');
+        if (actionButtons) actionButtons.style.display = 'none';
 
-        // Proper concatenation of PHP values into the JavaScript string for filename
+        const element = document.querySelector('.logsheetcontainerprint');
+        // Use a clone to avoid affecting the live DOM
+        const clone = element.cloneNode(true);
+
+        // Optional: Remove any elements you don't want in PDF (already hidden by CSS)
+        // Prepare filename
         const filename = "<?php echo $firstRow['month_year']; ?>-<?php echo $firstRow['assetcode']; ?>-<?php echo $firstRow['sitelocation']; ?>.pdf";
 
-        html2pdf(element, {
-            margin: [0.5, 0.5, 0.5, 0.5], // Reduce margins to make the content fit better
-            filename: filename,
-            image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: {
-                dpi: 300, // Adjust DPI for better image quality
-                letterRendering: true,
-                scale: 3, // Shrink content slightly to avoid cropping
-                useCORS: true
-            },
-            jsPDF: {
-                unit: 'in',
-                format: 'letter',
-                orientation: 'potrait'
-            }
-        });
+        // html2pdf options for quality and size
+        html2pdf()
+            .set({
+                margin: [0.2, 0.2, 0.2, 0.2], // Narrow margins
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.95 }, // High quality but not max
+                html2canvas: {
+                    scale: 2, // Good balance between quality and size
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false,
+                    scrollY: 0,
+                    scrollX: 0,
+                    windowWidth: clone.scrollWidth,
+                    windowHeight: clone.scrollHeight
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait',
+                    compress: true // Compress PDF to help keep under 1MB
+                },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            })
+            .from(clone)
+            .save()
+            .then(() => {
+                // Restore the action buttons after PDF is generated
+                if (actionButtons) actionButtons.style.display = '';
+            })
+            .catch(() => {
+                if (actionButtons) actionButtons.style.display = '';
+            });
     }
 
     let baseFinalPay = <?php echo isset($finalPay) ? $finalPay : 0; ?>;
