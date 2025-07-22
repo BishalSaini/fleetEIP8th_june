@@ -191,7 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="outer02">  
                       <!-- Fleet Category Dropdown -->
                 <div class="trial1">
-                    <select id="fleet_category" class="input02" onchange="updateAssetCodeDropdown()" required>
+                    <select id="fleet_category" class="input02" onchange="updateAssetCodeDropdown()" >
                         <option value="" disabled selected>Select Fleet Category</option>
                         <option value="Aerial Work Platform">Aerial Work Platform</option>
                         <option value="Concrete Equipment">Concrete Equipment</option>
@@ -232,7 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                <!-- New Equipment Fields (hidden by default, shown when "Choose New Equipment" is selected) -->
             <div class="outer02" id="new_equipment_fields" style="display:none;">
                 <div class="trial1">
-                    <select id="new_fleet_category" class="input02" onchange="updateFleetTypeOptions()" required>
+                    <select id="new_fleet_category" class="input02" onchange="updateFleetTypeOptions()" >
                         <option value="" disabled selected>Select Fleet Category</option>
                         <option value="Aerial Work Platform">Aerial Work Platform</option>
                         <option value="Concrete Equipment">Concrete Equipment</option>
@@ -244,7 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </select>
                 </div>
                 <div class="trial1">
-                    <select id="new_fleet_type" class="input02" name="equipmenttype" required>
+                    <select id="new_fleet_type" class="input02" name="equipmenttype" >
                         <option value="" disabled selected>Select Fleet Type</option>
                         <!-- Options will be dynamically populated based on category -->
                     </select>
@@ -563,53 +563,63 @@ dateInput.addEventListener('change', function () {
 
     function fetchCombinedDetails() {
     const assetcode = document.getElementById("assetcode").value;
-    const equipmenttype = document.getElementById("equipmenttype").value;
-    const equipmentmake = document.getElementById("equipmentmake").value;
-    const equipmentmodel = document.getElementById("equipmentmodel").value;
+    const companyname = "<?php echo addslashes($companyname001); ?>";
+    const projectname = document.getElementById("projectname").value;
+    const date = document.getElementById("date").value;
 
-    const params = new URLSearchParams({
-        assetcode: assetcode,
-        equipmenttype: equipmenttype,
-        equipmentmake: equipmentmake,
-        equipmentmodel: equipmentmodel
-    });
+    if (!assetcode || !companyname || !projectname || !date) {
+        document.getElementById('start_hmr_container').value = '';
+        document.getElementById('kmr').value = '';
+        return;
+    }
 
-    // Fetch previous logsheet closed_hmr/closed_km for autofill
-    fetch(`fetch_prev_logsheet.php?${params.toString()}`)
+    // Fetch previous day's logsheet for reference (for start values)
+    const prevDateObj = new Date(date);
+    prevDateObj.setDate(prevDateObj.getDate() - 1);
+    const prevDate = prevDateObj.toISOString().split('T')[0];
+
+    fetch(`fetch_prev_logsheet.php?assetcode=${encodeURIComponent(assetcode)}&companyname=${encodeURIComponent(companyname)}&projectname=${encodeURIComponent(projectname)}&date=${encodeURIComponent(prevDate)}`)
         .then(response => response.json())
         .then(data => {
-            let startHmrValue = '';
-            let startKmrValue = '';
-
             if (data && data.match_found) {
-                startHmrValue = data.closed_hmr || '';
-                startKmrValue = data.closed_km || '';
-                document.getElementById('clientname').value = data.clientname || '';
-                document.getElementById('workingdays').value = data.workingdays || '';
-                document.getElementById('workingconditions').value = data.conditions || '';
-                document.getElementById('projectname').value = data.projectname || '';
+                document.getElementById('start_hmr_container').value = data.closed_hmr || '';
+                document.getElementById('kmr').value = data.closed_km || '';
+            } else {
+                document.getElementById('start_hmr_container').value = '';
+                document.getElementById('kmr').value = '';
             }
-
-            document.getElementById('start_hmr_container').value = startHmrValue || '';
-            document.getElementById('kmr').value = startKmrValue || '';
         })
-        .catch(error => {
+        .catch(() => {
             document.getElementById('start_hmr_container').value = '';
             document.getElementById('kmr').value = '';
-            document.getElementById('clientname').value = '';
-            document.getElementById('workingdays').value = '';
-            document.getElementById('workingconditions').value = '';
-            document.getElementById('projectname').value = '';
+        });
+
+    // Fetch next day's logsheet for reference (for end values)
+    const nextDateObj = new Date(date);
+    nextDateObj.setDate(nextDateObj.getDate() + 1);
+    const nextDate = nextDateObj.toISOString().split('T')[0];
+
+    fetch(`fetch_next_logsheet.php?assetcode=${encodeURIComponent(assetcode)}&companyname=${encodeURIComponent(companyname)}&projectname=${encodeURIComponent(projectname)}&date=${encodeURIComponent(nextDate)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.match_found) {
+                document.getElementById('morning_closedhmr').value = data.start_hmr || '';
+                document.getElementById('closedkmr').value = data.start_km || '';
+            } else {
+                document.getElementById('morning_closedhmr').value = '';
+                document.getElementById('closedkmr').value = '';
+            }
+        })
+        .catch(() => {
+            document.getElementById('morning_closedhmr').value = '';
+            document.getElementById('closedkmr').value = '';
         });
 }
 
 
     document.getElementById("date").addEventListener("change", fetchCombinedDetails);
 document.getElementById("assetcode").addEventListener("change", fetchCombinedDetails);
-document.getElementById("equipmenttype").addEventListener("change", fetchCombinedDetails);
-document.getElementById("equipmentmake").addEventListener("change", fetchCombinedDetails);
-document.getElementById("equipmentmodel").addEventListener("change", fetchCombinedDetails);
-document.getElementById("sitelocation").addEventListener("change", fetchCombinedDetails);
+document.getElementById("projectname").addEventListener("change", fetchCombinedDetails);
 
 
 function updateAssetCodeDropdown() {
