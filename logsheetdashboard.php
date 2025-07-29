@@ -117,52 +117,33 @@ ORDER BY `id` DESC";
 $result=mysqli_query($conn,$sql);
 
 if(mysqli_num_rows($result)>0){
-    echo '<table class="purchase_table" id="logi_rates"><tr>';
-
-    $loop_count = 0;
-
+    // Use a flexbox grid container instead of table
+    echo '<div class="card-grid">';
     while($row=mysqli_fetch_assoc($result)){
-        if ($loop_count > 0 && $loop_count % 2 == 0) {
-            echo '</tr><tr>'; 
-        }
         $id=$row['id'];
         ?>
-            <td>
-                
             <div class="custom-card" id="application_card" onclick="window.location.href='monthlylogbook.php?assetcode=<?php echo urlencode($row['assetcode']); ?>&worefno=<?php echo urlencode($row['worefno']); ?>&clientname=<?php echo $row['clientname'] ?>&sitelocation=<?php echo $row['sitelocation'] ?>'">
-            <!-- <div class="custom-card" id="application_card" onclick="window.location.href='logsheetsummary.php?assetcode=<?php echo urlencode($row['assetcode']); ?>&worefno=<?php echo urlencode($row['worefno']); ?>'"> -->
             <h3 class="custom-card__title">Asset Code :<?php echo htmlspecialchars($row['assetcode']); ?></h3>
                     <p class="insidedetails">Equipment :<?php echo htmlspecialchars($row['equipmenttype'] .' ('. $row['make'] .')('. $row['model']) .')'; ?></p>
                     <p class="insidedetails">WO Ref :<?php echo htmlspecialchars($row['worefno']); ?></p>
                     <div class="insidedetails">Project  : <?php echo htmlspecialchars($row['projectname']); ?></div>
                     <div class="insidedetails">Site Location  : <?php echo htmlspecialchars($row['sitelocation']); ?></div>
-                    <!-- <div class="insidedetails"><?php echo htmlspecialchars($row['consignor_state'] .' - '. $row['consignee_state']); ?></div> -->
 <br>
                     <p class="insidedetails" id="button_container_resume">
                         <a href='deletelogbook.php?id=<?php echo urlencode($row['id']); ?>&assetcode=<?php echo $row['assetcode'] ?>&woref=<?php echo $row['worefno'] ?>&clientname=<?php echo $row['clientname'] ?>'>
                             <button title="Delete Complete Log Book" class="downloadresume" onclick="return confirmdelete()" type="button"><i class="fas fa-trash"></i>
-
                             </button>
                         </a>
-                        <!-- <a href='printchallan.php?id=<?php echo urlencode($row['id']); ?>'>
-                            <button title="Print Challan" class="downloadresume" type="button"><i class="fas fa-print"></i>
-
-                            </button>
-                        </a> -->
                     </p>
                     <div class="custom-card__arrow">
                         <i class="fas fa-arrow-right"></i>
                     </div>
                 </div>
-            </td>
-
-
-<?php
- $loop_count++;  
+        <?php
     }
-    echo '</tr></table>';
-    }
-    ?>
+    echo '</div>'; // Close card-grid
+}
+?>
 
 
 </body>
@@ -171,4 +152,32 @@ if(mysqli_num_rows($result)>0){
         return confirm("Are you sure you want to delete the complete log book this will delete log sheet of all the months for this asset code working at this specific project ?")
     }
 </script>
+<style>
+.card-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    justify-content: flex-start;
+    margin: 40px 0 0 0;
+}
+.custom-card {
+    flex: 1 1 320px;
+    max-width: 350px;
+    min-width: 280px;
+    box-sizing: border-box;
+    margin-bottom: 32px;
+}
+@media (max-width: 1100px) {
+    .custom-card {
+        flex: 1 1 45%;
+        max-width: 48%;
+    }
+}
+@media (max-width: 700px) {
+    .custom-card {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+}
+</style>
 </html>
