@@ -538,7 +538,7 @@ if ($result_quote_stats === false) {
         <td data-label="Period Contract"><?php echo $row['period_contract']; ?></td>
         <td class="todatacont" data-label="Site Location"><?php echo $row['site_loc']; ?></td>
         <td data-label="Current Status" onclick="toggleModal('modal_<?php echo $row['ref_no']; ?>')" style="cursor: pointer;">
-            <mark><?php echo isset($row_crnt_status_check['current_status']) ? $row_crnt_status_check['current_status'] : 'Not Defined'; ?></mark>
+            <mark><?php echo isset($row_crnt_status_check['current_status']) && $row_crnt_status_check['current_status'] !== '' ? $row_crnt_status_check['current_status'] : 'Open'; ?></mark>
         </td>        
         <!-- Modal inside the loop with unique ID -->
         <div class="modal" id="modal_<?php echo $row['ref_no']; ?>">
@@ -563,15 +563,18 @@ if ($result_quote_stats === false) {
                     </div>
                     
                     <div class="trial1">
-                    <select name="current_status_" class="input02" onchange="status_change(this.value, '<?php echo $row['ref_no']; ?>')" required>
-                    <option value="" disabled selected>Current Status</option>
-                            <option value="Closed">Inquiry Closed</option>
-                            <option value="Open" >Open</option>
-                            <option value="Regretted">Regretted</option>
-                            <option value="Won">Won</option>
-                            <option value="Lost">Lost</option>
-                        </select>
-                    </div> 
+<select name="current_status_" class="input02" onchange="status_change(this.value, '<?php echo $row['ref_no']; ?>')" required>
+    <?php
+    $current_status_val = isset($row_crnt_status_check['current_status']) && $row_crnt_status_check['current_status'] !== '' ? $row_crnt_status_check['current_status'] : 'Open';
+    ?>
+    <option value="" disabled <?php if($current_status_val == '') echo 'selected'; ?>>Current Status</option>
+    <option value="Closed" <?php if($current_status_val == 'Closed' || $current_status_val == 'Inquiry Closed') echo 'selected'; ?>>Inquiry Closed</option>
+    <option value="Open" <?php if($current_status_val == 'Open') echo 'selected'; ?>>Open</option>
+    <option value="Regretted" <?php if($current_status_val == 'Regretted') echo 'selected'; ?>>Regretted</option>
+    <option value="Won" <?php if($current_status_val == 'Won') echo 'selected'; ?>>Won</option>
+    <option value="Lost" <?php if($current_status_val == 'Lost') echo 'selected'; ?>>Lost</option>
+</select>
+</div> 
 
                     <!-- Fields visible only when status is 'Won' -->
                     <div class="trial1 won-only" id="client_name_<?php echo $row['ref_no']; ?>" style="display: none;">
@@ -837,6 +840,35 @@ document.addEventListener('DOMContentLoaded', function() {
     if (quotationfilterdd.value !== '') {
       quotation_filter();
     }
+
+    // Rearrange table rows so "Open" status rows are at the top
+    function sortQuotationRowsByStatusOpen() {
+        var table = document.querySelector('.quotation-table');
+        if (!table) return;
+        var tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        var rows = Array.from(tbody.querySelectorAll('tr'));
+        var openRows = [];
+        var otherRows = [];
+
+        rows.forEach(function(row) {
+            var statusCell = row.querySelectorAll('td')[7];
+            if (statusCell && statusCell.textContent.trim().toLowerCase() === 'open') {
+                openRows.push(row);
+            } else {
+                otherRows.push(row);
+            }
+        });
+
+        // Clear tbody and append sorted rows
+        tbody.innerHTML = '';
+        openRows.concat(otherRows).forEach(function(row) {
+            tbody.appendChild(row);
+        });
+    }
+
+    sortQuotationRowsByStatusOpen();
 });
 
 function confirmDelete() {
