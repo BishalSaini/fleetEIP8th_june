@@ -30,224 +30,10 @@ $row_logo_fetch = mysqli_fetch_assoc($result_fetch_logo);
     <title>View Log Sheet</title>
     <link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" href="favicon.jpg" type="image/x-icon">
-    <style>
-        body {
-            background: #f6f8fa;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .fulllength {
-            display: flex;
-            justify-content: center;
-            gap: 18px;
-            padding: 18px 0 0 0;
-            background: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-        .downloadbuttonsummary, .gobackbuttonsummary {
-            padding: 0.6rem 1.4rem;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            background: #007bff;
-            color: #fff;
-            transition: background 0.2s;
-        }
-        .downloadbuttonsummary:hover, .gobackbuttonsummary:hover {
-            background: #0056b3;
-        }
-        .gobackbuttonsummary {
-            background: #e0e0e0;
-            color: #333;
-        }
-        .gobackbuttonsummary:hover {
-            background: #bdbdbd;
-        }
-        .logsheetcontainerprint {
-            background: #fff;
-            margin: 32px auto;
-            max-width: 1100px;
-            border-radius: 14px;
-            box-shadow: 0 4px 32px rgba(0,0,0,0.09);
-            padding: 32px 28px 32px 28px;
-        }
-        .logtablecontainer {
-            display: flex;
-            gap: 32px;
-            margin-bottom: 32px;
-            flex-wrap: wrap;
-        }
-        /* Professional info card styling for top info */
-        .logsheet-info-card {
-            background: linear-gradient(90deg, #f7faff 60%, #eaf2fb 100%);
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-            padding: 22px 28px 18px 28px;
-            margin-bottom: 18px;
-            display: flex;
-            flex-direction: row;
-            gap: 32px;
-            align-items: flex-start;
-        }
-        .logsheet-info-section {
-            min-width: 320px;
-            flex: 1;
-        }
-        .logsheet-info-section table {
-            width: 100%;
-            border-collapse: collapse;
-            background: none;
-        }
-        .logsheet-info-section th, .logsheet-info-section td {
-            padding: 7px 0;
-            font-size: 1.05rem;
-            border: none;
-            background: none;
-            color: #222;
-        }
-        .logsheet-info-section th {
-            font-weight: 600;
-            color: #007bff;
-            text-align: left;
-            width: 170px;
-        }
-        .logsheet-info-section td {
-            font-weight: 400;
-            color: #222;
-            text-align: left;
-        }
-        .logsheet-info-section tr:not(:last-child) td, .logsheet-info-section tr:not(:last-child) th {
-            border-bottom: 1px solid #f0f4fa;
-        }
-        .logsheetdatatable, .logsheetdatatable th, .logsheetdatatable td {
-            background: none;
-            border: none;
-            box-shadow: none;
-            border-radius: 0;
-            padding: 0;
-        }
-        .logsheet_table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 24px;
-            background: #fff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
-        }
-
-        .logsheet_table th,
-        .logsheet_table td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #eaeaea;
-            font-size: 0.97rem;
-            text-align: center;
-        }
-
-        .logsheet_table th {
-            background: #f1f5fb;
-            font-weight: 600;
-            color: #222;
-        }
-
-        .logsheet_table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .logsheet_table tfoot td {
-            background: #f9fafb;
-            font-weight: 700;
-            font-size: 1.05rem;
-            color: #007bff;
-        }
-
-        .logsheet_table .user-row td {
-            background: #f7faff;
-        }
-
-        .logsheet_table input[type="text"],
-        .logsheet_table input[type="number"] {
-            width: 90%;
-            padding: 6px 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 5px;
-            font-size: 0.97rem;
-            background: #fafbfc;
-        }
-
-        .logsheet_table input[type="text"]:focus,
-        .logsheet_table input[type="number"]:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-
-        .bothtable {
-            display: flex;
-            gap: 32px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
-        }
-
-        #extratable {
-            background: #f9fafb;
-            border-radius: 8px;
-            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
-            min-width: 320px;
-            margin-bottom: 0;
-        }
-
-        #extratable th,
-        #extratable td {
-            padding: 8px 12px;
-            font-size: 0.97rem;
-            border-bottom: 1px solid #eaeaea;
-            text-align: center;
-        }
-
-        #extratable th {
-            background: #f1f5fb;
-            font-weight: 600;
-            color: #222;
-        }
-
-        #extratable tr:last-child td {
-            border-bottom: none;
-        }
-
-        .contactheading {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #007bff;
-            margin: 18px 0 8px 0;
-        }
-
-        @media (max-width: 900px) {
-            .logsheetcontainerprint {
-                padding: 18px 6px 18px 6px;
-                max-width: 99vw;
-            }
-            .logtablecontainer, .bothtable, .logsheet-info-card {
-                flex-direction: column;
-                gap: 18px;
-            }
-        }
-        @media (max-width: 600px) {
-            .logsheet-info-card {
-                padding: 12px 4px 12px 4px;
-            }
-            .logsheet-info-section th, .logsheet-info-section td {
-                font-size: 0.95rem;
-                padding: 5px 0;
-            }
-        }
-    </style>
 </head>
 
 <body>
-    <div class="fulllength">
+    <div class="fulllength" id="action-buttons">
         <button onclick="downloadsummary()" class="downloadbuttonsummary">Download</button>
         <button
             onclick="window.location.href='logsheetsummary.php?assetcode=<?php echo $assetcode; ?>&worefno=<?php echo $worefno ?>&clientname=<?php echo $clientnameget ?>&month=<?php echo $month ?>&sitelocation=<?php echo $sitelocation ?>'"
@@ -385,13 +171,13 @@ $row_logo_fetch = mysqli_fetch_assoc($result_fetch_logo);
                             $totalShiftHours = $dayShiftHours + ($shiftType === 'Double' ? $nightShiftHours : 0);
                             $totalHours += $totalShiftHours;
 
-                            // Add the fuel taken for this row to the total fuel
-                            $totalFuel += $row['fuel_taken'];
-                            ?>
-                            <tr>
-                                <td><?php echo $sr_no++; ?></td>
-                                <td><?php echo date('D', strtotime($row['date'])); ?></td>
-                                <td><?php echo date('d-M-y', strtotime($row['date'])); ?></td>
+                                // Add the fuel taken for this row to the total fuel
+                                $totalFuel += $row['fuel_taken'];
+                                ?>
+                                <tr>
+                                    <td><?php echo $sr_no++; ?></td>
+                                    <td><?php echo date('D', strtotime($row['date'])); ?></td> <!-- Day of the week -->
+                                    <td><?php echo date('d-M-y', strtotime($row['date'])); ?></td> <!-- Date -->
 
                                 <!-- Day Shift Run -->
                                 <td><?php echo $row['start_time']; ?></td>
@@ -629,30 +415,27 @@ $row_logo_fetch = mysqli_fetch_assoc($result_fetch_logo);
 </body>
 <script>
     function downloadsummary() {
-        // Download the entire logsheetcontainerprint as PDF, even for 30+ entries
-        const element = document.getElementById('logsheetpdf');
+        const element = document.querySelector('.logsheetcontainerprint');
+
+        // Proper concatenation of PHP values into the JavaScript string for filename
         const filename = "<?php echo $firstRow['month_year']; ?>-<?php echo $firstRow['assetcode']; ?>-<?php echo $firstRow['sitelocation']; ?>.pdf";
 
-        html2pdf().set({
-            margin: [10, 10, 10, 10], // Use mm for margins for A4
+        html2pdf(element, {
+            margin: [0.5, 0.5, 0.5, 0.5], // Reduce margins to make the content fit better
             filename: filename,
-            image: { type: 'jpeg', quality: 0.98 },
+            image: { type: 'jpeg', quality: 1.0 },
             html2canvas: {
-                dpi: 300,
+                dpi: 300, // Adjust DPI for better image quality
                 letterRendering: true,
-                scale: 1, // Use scale 1 for best fit
-                useCORS: true,
-                scrollY: 0,
-                windowWidth: element.scrollWidth,
-                windowHeight: element.scrollHeight
+                scale: 3, // Shrink content slightly to avoid cropping
+                useCORS: true
             },
             jsPDF: {
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait'
-            },
-            pagebreak: { mode: ['css', 'legacy'], before: '.logsheet-info-card, .logsheet_table, .bothtable', after: '.logsheet_table' }
-        }).from(element).save();
+                unit: 'in',
+                format: 'letter',
+                orientation: 'potrait'
+            }
+        });
     }
 
     let baseFinalPay = <?php echo isset($finalPay) ? $finalPay : 0; ?>;

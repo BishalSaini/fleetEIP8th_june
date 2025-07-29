@@ -87,6 +87,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $month_year=$_POST['month_year'];
     $sitelocation=$_POST['sitelocation'];
     $shift_hour=$_POST['shift_hour'];
+    $double_start_hmr = isset($_POST['double_start_hmr']) ? $_POST['double_start_hmr'] : null;
+    $double_closed_hmr = isset($_POST['double_closed_hmr']) ? $_POST['double_closed_hmr'] : null;
+    $double_start_km = isset($_POST['double_start_km']) ? $_POST['double_start_km'] : null;
+    $double_closed_km = isset($_POST['double_closed_km']) ? $_POST['double_closed_km'] : null;
 
 
     $query = "INSERT INTO logsheetnew (
@@ -94,13 +98,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     worefno, rentalcharges, workingdays, conditions, start_time, close_time, start_hmr, closed_hmr, 
     start_km, closed_km, night_start_time, night_close_time, night_start_hmr, night_closed_hmr, 
     night_start_km, night_closed_km, fuel_taken, engineer_name, operator_name, night_engineer, 
-    second_operator, remark, breakdown_hours, breakdown_reason, othours, otprorata, otnotes, createdby, companyname
+    second_operator, remark, breakdown_hours, breakdown_reason, othours, otprorata, otnotes, createdby, companyname,
+    double_start_hmr, double_closed_hmr, double_start_km, double_closed_km
 ) VALUES (
     '$date','$sitelocation','$shift_hour','$month_year', '$dayondate','$logtype', '$assetcode', '$shift', '$equipmenttype', '$make', '$model', '$clientname', '$projectname', 
     '$worefno', '$rentalcharges', '$workingdays', '$conditions', '$start_time', '$close_time', '$start_hmr', '$closed_hmr', 
     '$start_km', '$closed_km', '$night_start_time', '$night_close_time', '$night_start_hmr', '$night_closed_hmr', 
     '$night_start_km', '$night_closed_km', '$fuel_taken', '$engineer_name', '$operator_name', '$night_engineer', 
-    '$second_operator', '$remark', '$breakdown_hours', '$breakdown_reason','$othours', '$otprorata', '$otnotes', '$email', '$companyname001'
+    '$second_operator', '$remark', '$breakdown_hours', '$breakdown_reason','$othours', '$otprorata', '$otnotes', '$email', '$companyname001',
+    " . ($double_start_hmr !== null ? "'$double_start_hmr'" : "NULL") . ",
+    " . ($double_closed_hmr !== null ? "'$double_closed_hmr'" : "NULL") . ",
+    " . ($double_start_km !== null ? "'$double_start_km'" : "NULL") . ",
+    " . ($double_closed_km !== null ? "'$double_closed_km'" : "NULL") . "
 )";
     $result = mysqli_query($conn, $query);
     if ($result) {
@@ -118,7 +127,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -128,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="shortcut icon" href="favicon.jpg" type="image/x-icon">
 </head>
 
-<body>
+<body> 
     <div class="navbar1">
         <div class="logo_fleet">
             <img src="logo_fe.png" alt="FLEET EIP" onclick="window.location.href='<?php echo $dashboard_url ?>'">
@@ -326,6 +334,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
+            <!-- Double Shift Extra Inputs (Initially hidden, 2-2 design) -->
+            <div class="outer02" id="doubleshift_extra" style="display:none;">
+                <div class="trial1">
+                    <input type="number" name="double_start_hmr" id="double_start_hmr" placeholder="" class="input02">
+                    <label for="" class="placeholder2">2nd Shift Start HMR</label>
+                </div>
+                <div class="trial1">
+                    <input type="number" name="double_closed_hmr" id="double_closed_hmr" placeholder="" class="input02">
+                    <label for="" class="placeholder2">2nd Shift Closed HMR</label>
+                </div>
+            </div>
+            <div class="outer02" id="doubleshift_extra_km" style="display:none;">
+                <div class="trial1">
+                    <input type="number" name="double_start_km" id="double_start_km" placeholder="" class="input02">
+                    <label for="" class="placeholder2">2nd Shift Start KMR</label>
+                </div>
+                <div class="trial1">
+                    <input type="number" name="double_closed_km" id="double_closed_km" placeholder="" class="input02">
+                    <label for="" class="placeholder2">2nd Shift Closed KMR</label>
+                </div>
+            </div> 
             <div class="outer02" id="doubleshift1">
                 <div class="trial1">
                     <input type="time" name="night_start_time" placeholder="" class="input02">
@@ -416,20 +445,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 </body>
 <script>
+// Fix: autofill night HMR/KMR only for "Double Shift"
 document.getElementById('morning_closedhmr').addEventListener('input', function() {
     const shift_dd = document.getElementById("shift_dd"); 
-    if (shift_dd.value === 'Double') {
+    if (shift_dd.value === 'Double Shift') {
         document.getElementById('night_hmr_start').value = this.value;
     }
 });
-
 document.getElementById('closedkmr').addEventListener('input', function() {
     const shift_dd = document.getElementById("shift_dd"); 
-    if (shift_dd.value === 'Double') {
+    if (shift_dd.value === 'Double Shift') {
         document.getElementById('nightstartkmrinput').value = this.value;
     }
 });
-
 
 const dateInput = document.getElementById('date');
 const dayInput = document.getElementById('dayondate');
@@ -764,6 +792,67 @@ function updateFleetTypeOptions() {
         });
     }
 }
+
+// New function to fetch both previous and next day's logsheet data
+function autofillLogsheetFields() {
+    const dateInput = document.getElementById("date");
+    const assetcode = document.getElementById("assetcode").value;
+    if (!dateInput.value || !assetcode) {
+        // Clear all relevant fields if missing input
+        document.getElementById('start_hmr_container').value = '';
+        document.getElementById('kmr').value = '';
+        document.getElementById('morning_closedhmr').value = '';
+        document.getElementById('closedkmr').value = '';
+        return;
+    }
+
+    const selectedDate = new Date(dateInput.value);
+    const selectedDateStr = selectedDate.toISOString().split('T')[0];
+
+    // 1. Fetch previous day's logsheet for start_hmr/start_km
+    fetch(`fetch_prev_logsheet.php?assetcode=${encodeURIComponent(assetcode)}&date=${encodeURIComponent(selectedDateStr)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.found) {
+                document.getElementById('start_hmr_container').value = data.closed_hmr || '';
+                document.getElementById('kmr').value = data.closed_km || '';
+            } else {
+                document.getElementById('start_hmr_container').value = '';
+                document.getElementById('kmr').value = '';
+            }
+        })
+        .catch(() => {
+            document.getElementById('start_hmr_container').value = '';
+            document.getElementById('kmr').value = '';
+        });
+
+    // 2. Fetch next day's logsheet for closed_hmr/closed_km
+    fetch(`fetch_next_logsheet.php?assetcode=${encodeURIComponent(assetcode)}&date=${encodeURIComponent(selectedDateStr)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.found) {
+                document.getElementById('morning_closedhmr').value = data.start_hmr || '';
+                document.getElementById('closedkmr').value = data.start_km || '';
+            } else {
+                document.getElementById('morning_closedhmr').value = '';
+                document.getElementById('closedkmr').value = '';
+            }
+        })
+        .catch(() => {
+            document.getElementById('morning_closedhmr').value = '';
+            document.getElementById('closedkmr').value = '';
+        });
+}
+
+// Replace previous event listeners with the new function
+document.getElementById("date").addEventListener("change", function() {
+    fetchCombinedDetails();
+    autofillLogsheetFields();
+});
+document.getElementById("assetcode").addEventListener("change", function() {
+    fetchCombinedDetails();
+    autofillLogsheetFields();
+});
 </script>
 
 </html>
