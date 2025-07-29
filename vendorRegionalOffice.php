@@ -74,6 +74,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_submit'])) {
     $stmt_product->execute();
     $stmt_product->close();
 }
+
+// Handle product deletion
+if (isset($_GET['delete_product_id']) && intval($_GET['delete_product_id']) > 0) {
+    $del_id = intval($_GET['delete_product_id']);
+    $del_sql = "DELETE FROM vendor_products WHERE id = ? AND vendor_id = ?";
+    $del_stmt = $conn->prepare($del_sql);
+    $del_stmt->bind_param("ii", $del_id, $vendor_id);
+    $del_stmt->execute();
+    $del_stmt->close();
+    // Optionally, add a success message or redirect
+}
+
+// Handle product edit form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_product_submit'])) {
+    $edit_id = intval($_POST['edit_product_id']);
+    $product_serial = $_POST['edit_product_serial'];
+    $product_name = $_POST['edit_product_name'];
+    $product_uom = $_POST['edit_product_uom'];
+    $unit_price = $_POST['edit_unit_price'];
+    $sql_update = "UPDATE vendor_products SET product_serial=?, product_name=?, product_uom=?, unit_price=? WHERE id=? AND vendor_id=?";
+    $stmt_update = $conn->prepare($sql_update);
+    $stmt_update->bind_param("ssssii", $product_serial, $product_name, $product_uom, $unit_price, $edit_id, $vendor_id);
+    $stmt_update->execute();
+    $stmt_update->close();
+    // Optionally, add a success message or redirect
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -230,6 +256,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_submit'])) {
                 color: red;
                 text-align: center;
             }
+            .icon-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                background: #e3eaf7;
+                transition: background 0.2s;
+                cursor: pointer;
+                border: none;
+                outline: none;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+                margin: 0;
+                padding: 0;
+            }
+            .icon-btn.edit {
+                background: #B4C5E4;
+            }
+        
+            .icon-btn.delete {
+                background: #B4C5E4;
+            }
+           
+            .icon-btn i {
+                font-size: 22px;
+                color: black;
+            }
+            .icon-btn.edit i {
+                color: black;
+            }
+            .icon-btn.delete i {
+                color: black;
+            }
         </style>
         <script>
             function toggleRegionalOfficeForm() {
@@ -289,11 +349,23 @@ if ($showError) {
 }
 ?>
 
-<div class="clientbasicdetail">
+<div class="clientbasicdetail" style="position:relative;">
+    <!-- Edit/Delete buttons top right -->
+    <?php if ($vendor): ?>
+    <div style="position:absolute;top:12px;right:12px;display:flex;gap:10px;">
+        <a href="vendorsFleet.php?id=<?php echo $vendor_id; ?>&edit=1" title="Edit Vendor" class="icon-btn edit">
+            <i class="bi bi-pencil"></i>
+        </a>
+        <a href="vendorsFleet.php?id=<?php echo $vendor_id; ?>&delete=1" title="Delete Vendor" class="icon-btn delete"
+           onclick="return confirm('Are you sure you want to delete this vendor?');">
+            <i class="bi bi-trash"></i>
+        </a>
+    </div>
+    <?php endif; ?>
     <h3 class="client_para">
         Vendor: <?php echo $vendor ? htmlspecialchars($vendor['vendor_name']) : ''; ?>
         <?php if ($vendor): ?>
-       <!--  <a href="editVendor.php?id=<?php echo $vendor_id; ?>" id="editbasicdetailclient" title="Edit Vendor">
+       <!--  <a href="editVendor.php?id="<?php echo $vendor_id; ?>" id="editbasicdetailclient" title="Edit Vendor">
             <i style="width: 22px; height: 22px;" class="bi bi-pencil"></i>
         </a> -->
         <?php endif; ?>
@@ -649,7 +721,7 @@ $regional_stmt->close();
 
 <!-- Products Section -->
 <?php
-$prod_sql = "SELECT product_serial, product_name, product_uom, unit_price FROM vendor_products WHERE vendor_id = ?";
+$prod_sql = "SELECT id, product_serial, product_name, product_uom, unit_price FROM vendor_products WHERE vendor_id = ?";
 $prod_stmt = $conn->prepare($prod_sql);
 $prod_stmt->bind_param("i", $vendor_id);
 $prod_stmt->execute();
@@ -658,11 +730,52 @@ if ($prod_result->num_rows > 0) {
     echo '<h3 class="contactheading" style="margin-top:28px;">Products Added</h3>';
     echo '<div class="regional-offices-row" style="gap:24px; margin:0 0 24px 0;">';
     while ($prow = $prod_result->fetch_assoc()) {
+        $prod_id = $prow['id'];
+        $isEditing = (isset($_GET['edit_product_id']) && intval($_GET['edit_product_id']) === $prod_id);
         echo '<div class="regional-office-card" style="background:#f5f7fa;border:1px solid #b4c5e4;min-width:280px;max-width:340px;display:flex;flex-direction:column;align-items:flex-start;">';
-        echo '<h4 style="margin:0 0 10px 0;font-size:1.15rem;color:#2253a3;font-weight:600;display:flex;align-items:center;gap:8px;">' . htmlspecialchars($prow['product_name']) . '</h4>';
-        echo '<h5 style="margin:4px 0;font-size:1rem;font-weight:400;color:#333;"><strong>Serial/Code:</strong> ' . htmlspecialchars($prow['product_serial']) . '</h5>';
-        echo '<h5 style="margin:4px 0;font-size:1rem;font-weight:400;color:#333;"><strong>UoM:</strong> ' . htmlspecialchars($prow['product_uom']) . '</h5>';
-        echo '<h5 style="margin:4px 0;font-size:1rem;font-weight:400;color:#333;"><strong>Unit Price:</strong> ₹' . htmlspecialchars($prow['unit_price']) . '</h5>';
+        if ($isEditing) {
+            // Edit form for this product
+            ?>
+            <form method="POST" style="width:100%;">
+                <input type="hidden" name="edit_product_id" value="<?php echo $prod_id; ?>">
+                <div class="trial1" style="margin-bottom:10px;">
+                    <label class="placeholder2">Product Serial Number/Code</label>
+                    <input type="text" name="edit_product_serial" class="input02" value="<?php echo htmlspecialchars($prow['product_serial']); ?>" required>
+                </div>
+                <div class="trial1" style="margin-bottom:10px;">
+                    <label class="placeholder2">Product Name</label>
+                    <input type="text" name="edit_product_name" class="input02" value="<?php echo htmlspecialchars($prow['product_name']); ?>" required>
+                </div>
+                <div class="trial1" style="margin-bottom:10px;">
+                    <label class="placeholder2">UoM</label>
+                    <select name="edit_product_uom" class="input02" required>
+                        <option value="set" <?php if($prow['product_uom']=='set')echo 'selected';?>>Set</option>
+                        <option value="nos" <?php if($prow['product_uom']=='nos')echo 'selected';?>>Nos</option>
+                        <option value="kgs" <?php if($prow['product_uom']=='kgs')echo 'selected';?>>Kgs</option>
+                        <option value="meter" <?php if($prow['product_uom']=='meter')echo 'selected';?>>Meter</option>
+                        <option value="litre" <?php if($prow['product_uom']=='litre')echo 'selected';?>>Litre</option>
+                    </select>
+                </div>
+                <div class="trial1" style="margin-bottom:10px;">
+                    <label class="placeholder2">Unit Price</label>
+                    <input type="number" step="0.01" min="0" name="edit_unit_price" class="input02" value="<?php echo htmlspecialchars($prow['unit_price']); ?>" required>
+                </div>
+                <button type="submit" name="edit_product_submit" class="epc-button">Update</button>
+                <a href="vendorRegionalOffice.php?id=<?php echo $vendor_id; ?>" style="margin-left:10px;color:#4067B5;">Cancel</a>
+            </form>
+            <?php
+        } else {
+            // Normal product card
+            echo '<h4 style="margin:0 0 10px 0;font-size:1.15rem;color:#2253a3;font-weight:600;display:flex;align-items:center;gap:8px;">' . htmlspecialchars($prow['product_name']) . '</h4>';
+            echo '<h5 style="margin:4px 0;font-size:1rem;font-weight:400;color:#333;"><strong>Serial/Code:</strong> ' . htmlspecialchars($prow['product_serial']) . '</h5>';
+            echo '<h5 style="margin:4px 0;font-size:1rem;font-weight:400;color:#333;"><strong>UoM:</strong> ' . htmlspecialchars($prow['product_uom']) . '</h5>';
+            echo '<h5 style="margin:4px 0;font-size:1rem;font-weight:400;color:#333;"><strong>Unit Price:</strong> ₹' . htmlspecialchars($prow['unit_price']) . '</h5>';
+            // Edit and Delete icons (styled like the image)
+            echo '<div style="margin-top:10px;display:flex;gap:12px;">';
+            echo '<a href="vendorRegionalOffice.php?id=' . $vendor_id . '&edit_product_id=' . $prod_id . '" title="Edit Product" class="icon-btn edit"><i class="bi bi-pencil"></i></a>';
+            echo '<a href="vendorRegionalOffice.php?id=' . $vendor_id . '&delete_product_id=' . $prod_id . '" title="Delete Product" class="icon-btn delete" onclick="return confirm(\'Are you sure you want to delete this product?\');"><i class="bi bi-trash"></i></a>';
+            echo '</div>';
+        }
         echo '</div>';
     }
     echo '</div>';

@@ -2,7 +2,8 @@
 session_start();
 $companyname001 = $_SESSION['companyname'];
 $showAlert = false;
-$showError = false; 
+$showError = false;
+$showDelete = false; 
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -25,6 +26,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $stmt->close();
     $conn->close();
+}
+
+$edit_mode = isset($_GET['edit']) && $_GET['edit'] == 1 && isset($_GET['id']);
+$vendor_edit = null;
+if ($edit_mode) {
+    include "partials/_dbconnect.php";
+    $edit_id = intval($_GET['id']);
+    $sql = "SELECT * FROM vendors WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $edit_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $vendor_edit = $result->fetch_assoc();
+    $stmt->close();
+}
+
+// Handle update vendor
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vendor_id']) && $_POST['vendor_id']) {
+    include "partials/_dbconnect.php";
+    $vendor_id = intval($_POST['vendor_id']);
+    $vendor_name = $_POST['vendor_name'];
+    $office_address = $_POST['office_address'];
+    $vendor_code = $_POST['vendor_code'];
+    $vendor_category = $_POST['vendor_category'];
+    $state = $_POST['clientstate'];
+    $company_name = $companyname001;
+
+    $sql = "UPDATE vendors SET vendor_name=?, office_address=?, vendor_code=?, vendor_category=?, state=?, companyname=? WHERE id=?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssssssi", $vendor_name, $office_address, $vendor_code, $vendor_category, $state, $company_name, $vendor_id);
+    if ($stmt->execute()) {
+        $showAlert = true;
+    } else {
+        $showError = true;
+    }
+    $stmt->close();
+    $conn->close();
+    // Optionally redirect or reload
+}
+
+if (isset($_GET['delete']) && $_GET['delete'] == 1 && isset($_GET['id'])) {
+    include "partials/_dbconnect.php";
+    $del_id = intval($_GET['id']);
+    $del_sql = "DELETE FROM vendors WHERE id = ?";
+    $del_stmt = $conn->prepare($del_sql);
+    $del_stmt->bind_param("i", $del_id);
+    if ($del_stmt->execute()) {
+        $showDelete = true;
+    } else {
+        $showError = true;
+    }
+    $del_stmt->close();
+    $conn->close();
+    // Optionally, redirect to remove delete param from URL
+    header("Location: vendorsFleet.php?deleted=1");
+    exit();
+}
+
+if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
+    $showDelete = true;
 }
 ?>
 <!DOCTYPE html>
@@ -134,6 +195,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </label>
         <?php endif; ?>
+        <?php if($showDelete): ?>
+<label>
+    <input type="checkbox" class="alertCheckbox" autocomplete="off"/>
+    <div class="alert notice">
+        <span class="alertClose">X</span>
+        <span class="alertText">Vendor Deleted Successfully!<br class="clear"/></span>
+    </div>
+</label>
+<?php endif; ?>
 
 
 
@@ -182,20 +252,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div> <div class="types"></div> </div> </button> </div> -->
 
         <form
-            action="vendorsFleet.php"
+            action="vendorsFleet.php<?php echo $edit_mode ? '?id=' . $vendor_edit['id'] . '&edit=1' : ''; ?>"
             method="POST"
             class="vendorform"
             autocomplete="off"
             style="margin-top: 40px;">
             <div class="rentalclientcontainer">
-                <p class="headingpara">Add Vendor</p>
+                <p class="headingpara"><?php echo $edit_mode ? 'Edit Vendor' : 'Add Vendor'; ?></p>
+                <?php if ($edit_mode): ?>
+                    <input type="hidden" name="vendor_id" value="<?php echo $vendor_edit['id']; ?>">
+                <?php endif; ?>
                 <div class="trial1">
                     <input
                         type="text"
                         placeholder=""
                         name="vendor_name"
                         class="input02"
-                        required="required">
+                        required="required"
+                        value="<?php echo $vendor_edit ? htmlspecialchars($vendor_edit['vendor_name']) : ''; ?>">
                     <label for="" class="placeholder2">Vendor Name</label>
                 </div>
                 <div class="trial1">
@@ -203,51 +277,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         placeholder=""
                         name="office_address"
                         class="input02"
-                        required="required"></textarea>
+                        required="required"><?php echo $vendor_edit ? htmlspecialchars($vendor_edit['office_address']) : ''; ?></textarea>
                     <label for="" class="placeholder2">Office Address</label>
                 </div>
-
                 <div class="trial1">
                     <select name="clientstate" id="clientstate" class="input02">
-                        <option value="" disabled="disabled" selected="selected">Select State</option>
-                        <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
-                        <option value="Andhra Pradesh">Andhra Pradesh</option>
-                        <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-                        <option value="Assam">Assam</option>
-                        <option value="Bihar">Bihar</option>
-                        <option value="Chandigarh">Chandigarh</option>
-                        <option value="Chhattisgarh">Chhattisgarh</option>
-                        <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
-                        <option value="Delhi">Delhi</option>
-                        <option value="Goa">Goa</option>
-                        <option value="Gujarat">Gujarat</option>
-                        <option value="Haryana">Haryana</option>
-                        <option value="Himachal Pradesh">Himachal Pradesh</option>
-                        <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                        <option value="Jharkhand">Jharkhand</option>
-                        <option value="Karnataka">Karnataka</option>
-                        <option value="Kerala">Kerala</option>
-                        <option value="Ladakh">Ladakh</option>
-                        <option value="Lakshadweep">Lakshadweep</option>
-                        <option value="Madhya Pradesh">Madhya Pradesh</option>
-                        <option value="Maharashtra">Maharashtra</option>
-                        <option value="Manipur">Manipur</option>
-                        <option value="Meghalaya">Meghalaya</option>
-                        <option value="Mizoram">Mizoram</option>
-                        <option value="Nagaland">Nagaland</option>
-                        <option value="Odisha">Odisha</option>
-                        <option value="Puducherry">Puducherry</option>
-                        <option value="Punjab">Punjab</option>
-                        <option value="Rajasthan">Rajasthan</option>
-                        <option value="Sikkim">Sikkim</option>
-                        <option value="Tamil Nadu">Tamil Nadu</option>
-                        <option value="Telangana">Telangana</option>
-                        <option value="Tripura">Tripura</option>
-                        <option value="Uttar Pradesh">Uttar Pradesh</option>
-                        <option value="Uttarakhand">Uttarakhand</option>
-                        <option value="West Bengal">West Bengal</option>
+                        <option value="" disabled="disabled" <?php echo !$vendor_edit ? 'selected' : ''; ?>>Select State</option>
+                        <?php
+                        $states = [
+                            "Andaman and Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh",
+                            "Dadra and Nagar Haveli and Daman and Diu","Delhi","Goa","Gujarat","Haryana","Himachal Pradesh","Jammu and Kashmir",
+                            "Jharkhand","Karnataka","Kerala","Ladakh","Lakshadweep","Madhya Pradesh","Maharashtra","Manipur","Meghalaya",
+                            "Mizoram","Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura",
+                            "Uttar Pradesh","Uttarakhand","West Bengal"
+                        ];
+                        foreach ($states as $state) {
+                            $selected = ($vendor_edit && $vendor_edit['state'] == $state) ? 'selected' : '';
+                            echo "<option value=\"$state\" $selected>$state</option>";
+                        }
+                        ?>
                     </select>
-
                 </div>
                 <div class="outer02">
                     <div class="trial1">
@@ -256,18 +305,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             placeholder=""
                             name="vendor_code"
                             class="input02"
-                            required="required">
+                            required="required"
+                            value="<?php echo $vendor_edit ? htmlspecialchars($vendor_edit['vendor_code']) : ''; ?>">
                         <label for="" class="placeholder2">Vendor Code</label>
                     </div>
-
                     <select name="vendor_category" class="input02" required="required">
-                        <option value="" disabled="disabled" selected="selected">Vendor Category</option>
-                        <option value="Logistics">Logistics</option>
-                        <option value="Spares">Spares</option>
-                        <option value="OEM">OEM</option>
+                        <option value="" disabled="disabled" <?php echo !$vendor_edit ? 'selected' : ''; ?>>Vendor Category</option>
+                        <option value="Logistics" <?php if($vendor_edit && $vendor_edit['vendor_category']=='Logistics') echo 'selected'; ?>>Logistics</option>
+                        <option value="Spares" <?php if($vendor_edit && $vendor_edit['vendor_category']=='Spares') echo 'selected'; ?>>Spares</option>
+                        <option value="OEM" <?php if($vendor_edit && $vendor_edit['vendor_category']=='OEM') echo 'selected'; ?>>OEM</option>
                     </select>
                 </div>
-                <button type="submit" class="epc-button">Submit</button>
+                <button type="submit" class="epc-button"><?php echo $edit_mode ? 'Update' : 'Submit'; ?></button>
             </div>
         </form>
     </body>

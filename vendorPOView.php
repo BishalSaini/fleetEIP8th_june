@@ -102,40 +102,37 @@ $stmt_vendors->close();
             background-color: #2253a3;
             color: #fff;
         }
-        .vendorpo-table {
-            width: 100%;
-            font-size: 13px;
-            border-collapse: collapse;
-            margin-top: 20px;
-            margin: 0 auto;
-            padding: 10px;
+        /* --- Quotation Table Design from generate_quotation_landingpage.php --- */
+        .quotation-table {
+          width: 100%;
+          font-size: 13px;
+          border-collapse: collapse;
+          margin-top: 20px;
+          margin: 0 auto; 
+          padding: 10px; 
         }
-        .vendorpo-table, .vendorpo-table th, .vendorpo-table td {
-            border: 1px solid #4067B5 !important;
+        .quotation-table, .quotation-table th, .quotation-table td {
+          border: 1px solid black!important; 
+          margin-top:30px;
         }
-        .vendorpo-table th, .vendorpo-table td {
-            padding: 8px !important;
-            text-align: left !important;
+        .quotation-table th, .quotation-table td {
+          padding: 8px!important;
+          text-align: left!important;
+        }  
+        .quotation-table .table-heading { 
+            background-color: #4067B5!important; 
+            color: white!important;
         }
-        .vendorpo-table .table-heading {
-            background-color: #4067B5 !important;
-            color: white !important;
-        }
-        .vendorpo-icon {
-            background-color: #B4C5E4;
-            color: black;
-            border-radius: 5px;
-            width: 22px;
-            height: 22px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 4px;
-            text-decoration: none;
-        }
-        .vendorpo-icon:hover {
-            background: #4067B5;
-            color: #fff;
+        .quotation-icon { 
+          background-color:#B4C5E4; 
+          color:black; 
+          border: 1px; 
+          border-radius:5px; 
+          width: 22px;
+          height: 22px;
+          display: inline-block;
+          text-align: center;
+          line-height: 22px;
         }
         .modal-overlay {
             position: fixed;
@@ -357,7 +354,7 @@ $stmt_vendors->close();
         </form>
     </div>
 
-    <table class="vendorpo-table">
+    <table class="quotation-table">
         <thead>
             <tr>
                 <th class="table-heading" style="width:5%;">#</th>
@@ -430,21 +427,19 @@ $stmt_vendors->close();
                 <td data-label="#"><?= $srno ?></td>
                 <td data-label="Vendor"><?= htmlspecialchars($vendor_name) ?></td>
                 <td data-label="Product">
-                    <span class="fw-semibold"><?= htmlspecialchars($first_product['product_serial']) ?></span>
-                    <br>
-                    <small class="text-muted"><?= htmlspecialchars($first_product['product_name']) ?></small>
+                    <?= htmlspecialchars($first_product['product_serial']) ?> - <?= htmlspecialchars($first_product['product_name']) ?>
                 </td>
                 <td data-label="Qty"><?= $qty_total ?></td>
                 <td data-label="Total Price"><?= number_format($price_total, 2) ?></td>
                 <td data-label="Date"><?= date('d-M-Y', strtotime($po['created_at'])) ?></td>
                 <td data-label="Actions">
-                    <a href="vendorPO06.php?edit=<?= $po_id ?>" class="vendorpo-icon" title="Edit">
+                    <a href="vendorPO06.php?edit=<?= $po_id ?>" class="quotation-icon" title="Edit">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <a href="#" onclick="return showDeleteModal('vendorPODelete.php?po_id=<?= $po_id ?>');" class="vendorpo-icon" title="Delete">
+                    <a href="#" onclick="return showDeleteModal('vendorPODelete.php?po_id=<?= $po_id ?>');" class="quotation-icon" title="Delete">
                         <i class="bi bi-trash"></i>
                     </a>
-                    <a href="vendorPOPDF.php?id=<?= $po_id ?>" class="vendorpo-icon" title="PDF" target="_blank">
+                    <a href="vendorPOPDF.php?id=<?= $po_id ?>" class="quotation-icon" title="PDF" target="_blank">
                         <i class="bi bi-file-earmark-pdf"></i>
                     </a>
                 </td>
