@@ -1,50 +1,52 @@
 <?php
 include "partials/_dbconnect.php";
-session_start();
 
 $assetcode = $_GET['assetcode'] ?? '';
-$equipmenttype = $_GET['equipmenttype'] ?? '';
-$equipmentmake = $_GET['equipmentmake'] ?? '';
-$equipmentmodel = $_GET['equipmentmodel'] ?? '';
-$companyname = $_SESSION['companyname'] ?? '';
+$companyname = $_GET['companyname'] ?? '';
+$projectname = $_GET['projectname'] ?? '';
+$date = $_GET['date'] ?? '';
 
 header('Content-Type: application/json');
 
-// Find most recent previous logsheet for same asset/type/make/model/company
-$sql = "SELECT closed_hmr, closed_km, clientname, workingdays, conditions, projectname
-    FROM logsheetnew
-    WHERE assetcode = ?
-      AND equipmenttype = ?
-      AND make = ?
-      AND model = ?
-      AND companyname = ?
-    ORDER BY date DESC LIMIT 1";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("sssss", $assetcode, $equipmenttype, $equipmentmake, $equipmentmodel, $companyname);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($result && $result->num_rows > 0) {
-    $row = $result->fetch_assoc();
+if ($assetcode && $companyname && $projectname && $date) {
+    $sql = "SELECT closed_hmr, closed_km, clientname, workingdays, conditions, projectname FROM logsheetnew 
+            WHERE assetcode = ? AND companyname = ? AND projectname = ? AND date = ?
+            ORDER BY date DESC LIMIT 1";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssss", $assetcode, $companyname, $projectname, $date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        echo json_encode([
+            'match_found' => true,
+            'closed_hmr' => $row['closed_hmr'],
+            'closed_km' => $row['closed_km'],
+            "clientname" => $row['clientname'],
+            "workingdays" => $row['workingdays'],
+            "conditions" => $row['conditions'],
+            "projectname" => $row['projectname']
+        ]);
+    } else {
+        echo json_encode([
+            'match_found' => false,
+            'closed_hmr' => "",
+            'closed_km' => "",
+            "clientname" => "",
+            "workingdays" => "",
+            "conditions" => "",
+            "projectname" => ""
+        ]);
+    }
+    $stmt->close();
+} else {
     echo json_encode([
-        "match_found" => true,
-        "closed_hmr" => $row['closed_hmr'],
-        "closed_km" => $row['closed_km'],
-        "clientname" => $row['clientname'],
-        "workingdays" => $row['workingdays'],
-        "conditions" => $row['conditions'],
-        "projectname" => $row['projectname']
+        'match_found' => false,
+        'closed_hmr' => "",
+        'closed_km' => "",
+        "clientname" => "",
+        "workingdays" => "",
+        "conditions" => "",
+        "projectname" => ""
     ]);
-    exit;
 }
-
-echo json_encode([
-    "match_found" => false,
-    "closed_hmr" => "",
-    "closed_km" => "",
-    "clientname" => "",
-    "workingdays" => "",
-    "conditions" => "",
-    "projectname" => ""
-]);
 ?>

@@ -27,54 +27,9 @@ $row_logo_fetch = mysqli_fetch_assoc($result_fetch_logo);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
-
     <title>View Log Sheet</title>
     <link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" href="favicon.jpg" type="image/x-icon">
-    <style>
-        /* Hide buttons when printing or exporting to PDF */
-        @media print {
-            .fulllength {
-                display: none !important;
-            }
-        }
-
-        /* Ensure tables fit page and avoid cropping */
-        .logsheetcontainerprint {
-            width: 100%;
-            max-width: 1000px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .logsheet_table,
-        .logsheetdatatable {
-            width: 100% !important;
-            table-layout: auto;
-            word-break: break-word;
-        }
-
-        .logsheet_table th,
-        .logsheet_table td,
-        .logsheetdatatable th,
-        .logsheetdatatable td {
-            font-size: 13px;
-            padding: 4px 6px;
-        }
-
-        /* Optional: reduce font for PDF to fit more content */
-        @media print {
-            body,
-            table,
-            th,
-            td {
-                font-size: 11px !important;
-            } 
-            
-        }
-    </style>
 </head>
 
 <body>
@@ -95,17 +50,6 @@ $row_logo_fetch = mysqli_fetch_assoc($result_fetch_logo);
         $firstRow = mysqli_fetch_assoc($result);
         ?>
         <div class="logsheetcontainerprint">
-            <!-- Company Header (for PDF export) -->
-            <div class="pdf-header" style="display: flex; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
-                <img src="img/<?php echo htmlspecialchars($row_logo_fetch['companylogo']); ?>" alt="Company Logo" style="height: 60px; margin-right: 20px;">
-                <div>
-                    <div style="font-size: 20px; font-weight: bold;"><?php echo htmlspecialchars($row_logo_fetch['companyname']); ?></div>
-                    <div style="font-size: 14px;">
-                        <?php echo isset($row_logo_fetch['companyaddress']) ? nl2br(htmlspecialchars($row_logo_fetch['companyaddress'])) : ''; ?>
-                    </div>
-                </div>
-            </div>
-            <!-- End Company Header -->
             <div class="logtablecontainer">
                 <table class="logsheetdatatable">
                     <tr>
@@ -154,6 +98,15 @@ $row_logo_fetch = mysqli_fetch_assoc($result_fetch_logo);
  -->
 
             </div>
+            <?php
+            // Database query to fetch the data
+            $sql = "SELECT * FROM logsheetnew WHERE assetcode='$assetcode' AND worefno='$worefno' AND clientname='$clientnameget' AND month_year='$month' AND sitelocation='$sitelocation' AND companyname='$companyname001' and logtype='shift'";
+            $result = mysqli_query($conn, $sql);
+
+            $firstRow = mysqli_fetch_array($result); // Fetch the first row to check the shift type
+            $shiftType = $firstRow['shift'] ?? 'Single'; // Default to 'Single' if not set
+            mysqli_data_seek($result, 0); // Reset result pointer to loop through all rows
+            ?>
             <div class="logsheet_table_container">
                 <table class="logsheet_table">
                     <thead>
@@ -188,88 +141,85 @@ $row_logo_fetch = mysqli_fetch_assoc($result_fetch_logo);
                     </thead>
                     <tbody>
                         <?php
-                        // Initialize variables to store the total hours and fuel
+                        // Print all logsheet rows for the month (up to 30/31 days)
                         $totalHours = 0;
                         $totalFuel = 0;
-                        $per_hour_rate = 1.00;
-                        $overtime_rate = 1.50;
-                        $totalBreakdownHours = 0;
-                        $totalOvertimeHours = 0;
-                        $totalProRataPay = 0;
-                        $comments = [];
-                        $sr_no = 1; // Fix: Always define $sr_no before loop
 
-                        // Loop through all rows (all logtypes)
-                        mysqli_data_seek($result, 0);
-                        while ($row = mysqli_fetch_array($result)) {
-                            // Calculate total hours for day shift (based on start and close HMR)
-                            $dayStartHMR = $row['start_hmr'];
-                            $dayCloseHMR = $row['closed_hmr'];
-                            $dayShiftHours = ($dayCloseHMR - $dayStartHMR);
+                        if (mysqli_num_rows($result) > 0) {
+                            $sr_no = 1;
+                            while ($row = mysqli_fetch_array($result)) {
+                                // Calculate total hours for day shift (based on start and close HMR)
+                                $dayStartHMR = $row['start_hmr'];
+                                $dayCloseHMR = $row['closed_hmr'];
+                                $dayShiftHours = ($dayCloseHMR - $dayStartHMR); // Calculate hours for day shift
+                    
+                                // Calculate total hours for night shift (based on start and close HMR)
+                                $nightStartHMR = $row['night_start_hmr'];
+                                $nightCloseHMR = $row['night_closed_hmr'];
+                                $nightShiftHours = ($nightCloseHMR - $nightStartHMR); // Calculate hours for night shift
+                    
+                                // Sum the total hours for this row
+                                $totalShiftHours = $dayShiftHours + ($shiftType === 'Double' ? $nightShiftHours : 0);
+                                $totalHours += $totalShiftHours;
 
-                            // Calculate total hours for night shift (based on start and close HMR)
-                            $nightStartHMR = $row['night_start_hmr'];
-                            $nightCloseHMR = $row['night_closed_hmr'];
-                            $nightShiftHours = ($nightCloseHMR - $nightStartHMR);
+                                // Add the fuel taken for this row to the total fuel
+                                $totalFuel += $row['fuel_taken'];
+                                ?>
+                                <tr>
+                                    <td><?php echo $sr_no++; ?></td>
+                                    <td><?php echo date('D', strtotime($row['date'])); ?></td> <!-- Day of the week -->
+                                    <td>
+                                        <?php
+                                        // Print date in single line, e.g., 19-Jul-25
+                                        echo date('d-M-y', strtotime($row['date']));
+                                        ?>
+                                    </td> <!-- Date -->
 
-                            // Sum the total hours for this row
-                            $totalShiftHours = $dayShiftHours + $nightShiftHours;
-                            $totalHours += $totalShiftHours;
+                                    <!-- Day Shift Run -->
+                                    <td><?php echo $row['start_time']; ?></td>
+                                    <td><?php echo $row['close_time']; ?></td>
 
-                            // Add the fuel taken for this row to the total fuel
-                            $totalFuel += $row['fuel_taken'];
+                                    <!-- Day Shift KMR -->
+                                    <td><?php echo $row['start_km']; ?></td>
+                                    <td><?php echo $row['closed_km']; ?></td>
 
-                            // Collect breakdown and overtime hours for pay calculation
-                            $totalBreakdownHours += floatval($row['breakdown_hours'] ?? 0);
-                            $totalOvertimeHours += floatval($row['othours'] ?? 0);
+                                    <!-- Day Shift HMR -->
+                                    <td><?php echo $row['start_hmr']; ?></td>
+                                    <td><?php echo $row['closed_hmr']; ?></td>
 
-                            // Collect comments if present
-                            if (!empty($row['remark'])) {
-                                $comments[] = $row['remark'];
+                                    <!-- Night Shift Columns -->
+                                    <?php if ($shiftType === 'Double'): ?>
+                                        <td><?php echo $row['night_start_time']; ?></td>
+                                        <td><?php echo $row['night_close_time']; ?></td>
+
+                                        <td><?php echo $row['night_start_km']; ?></td>
+                                        <td><?php echo $row['night_closed_km']; ?></td>
+
+                                        <td><?php echo $row['night_start_hmr']; ?></td>
+                                        <td><?php echo $row['night_closed_hmr']; ?></td>
+                                    <?php endif; ?>
+
+                                    <!-- Display total shift hours for this row -->
+                                    <td><?php echo number_format($totalShiftHours, 2); ?> hours</td>
+                                    <td><?php echo $row['fuel_taken']; ?></td>
+                                </tr>
+                                <?php
                             }
-
-                            // Pro Rata Pay calculation for this row
-                            $prorata_percentage = isset($row['otprorata']) ? floatval($row['otprorata']) : 0;
-                            $rentalcharges = isset($row['rentalcharges']) && $row['rentalcharges'] !== null ? floatval($row['rentalcharges']) : 0;
-                            $workingdays = isset($row['workingdays']) && $row['workingdays'] > 0 ? intval($row['workingdays']) : 1;
-                            $per_day_pay = $workingdays > 0 ? ($rentalcharges / $workingdays) : 0;
-                            $prorata_pay = ($per_day_pay * $prorata_percentage) / 100;
-                            $totalProRataPay += $prorata_pay;
                             ?>
+                            <!-- Display the sum of all hours and fuel at the end -->
                             <tr>
-                                <td><?php echo $sr_no++; ?></td>
-                                <td><?php echo date('D', strtotime($row['date'])); ?></td>
-                                <td><?php echo date('d-M-y', strtotime($row['date'])); ?></td>
-                                <td><?php echo htmlspecialchars($row['logtype']); ?></td>
-                                <td><?php echo $row['start_time']; ?></td>
-                                <td><?php echo $row['close_time']; ?></td>
-                                <td><?php echo $row['start_km']; ?></td>
-                                <td><?php echo $row['closed_km']; ?></td>
-                                <td><?php echo $row['start_hmr']; ?></td>
-                                <td><?php echo $row['closed_hmr']; ?></td>
-                                <td><?php echo $row['night_start_time']; ?></td>
-                                <td><?php echo $row['night_close_time']; ?></td>
-                                <td><?php echo $row['night_start_km']; ?></td>
-                                <td><?php echo $row['night_closed_km']; ?></td>
-                                <td><?php echo $row['night_start_hmr']; ?></td>
-                                <td><?php echo $row['night_closed_hmr']; ?></td>
-                                <td><?php echo number_format($totalShiftHours, 2); ?> hours</td>
-                                <td><?php echo $row['fuel_taken']; ?></td>
+                                <td colspan="4" style="text-align: right;"><strong>Total Hours Worked in Month:</strong></td>
+                                <td colspan="15" style="text-align: left;"><strong><?php echo number_format($totalHours, 2); ?>
+                                        hours</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" style="text-align: right;"><strong>Total Fuel Taken in Month:</strong></td>
+                                <td colspan="15" style="text-align: left;"><strong><?php echo number_format($totalFuel, 2); ?>
+                                        liters</strong></td>
                             </tr>
                             <?php
                         }
                         ?>
-                        <!-- Display the sum of all hours and fuel at the end -->
-             <!--            <tr>
-                            <td colspan="4" style="text-align: right;"><strong>Total Hours Worked in Month:</strong></td>
-                            <td colspan="15" style="text-align: left;"><strong><?php echo number_format($totalHours, 2); ?>
-                                    hours</strong></td>
-                        </tr>
-                        <tr>
-                            <td colspan="4" style="text-align: right;"><strong>Total Fuel Taken in Month:</strong></td>
-                            <td colspan="15" style="text-align: left;"><strong><?php echo number_format($totalFuel, 2); ?>
-                                    liters</strong></td>
-                        </tr> -->
                     </tbody>
                 </table>
                 <!-- Summary section styled as per your image -->
@@ -479,51 +429,27 @@ $row_logo_fetch = mysqli_fetch_assoc($result_fetch_logo);
 </body>
 <script>
     function downloadsummary() {
-        // Hide the action buttons before generating PDF
-        const actionButtons = document.getElementById('action-buttons');
-        if (actionButtons) actionButtons.style.display = 'none';
-
         const element = document.querySelector('.logsheetcontainerprint');
-        // Use a clone to avoid affecting the live DOM
-        const clone = element.cloneNode(true);
 
-        // Optional: Remove any elements you don't want in PDF (already hidden by CSS)
-        // Prepare filename
+        // Proper concatenation of PHP values into the JavaScript string for filename
         const filename = "<?php echo $firstRow['month_year']; ?>-<?php echo $firstRow['assetcode']; ?>-<?php echo $firstRow['sitelocation']; ?>.pdf";
 
-        // html2pdf options for quality and size
-        html2pdf()
-            .set({
-                margin: [0.2, 0.2, 0.2, 0.2], // Narrow margins
-                filename: filename,
-                image: { type: 'jpeg', quality: 0.95 }, // High quality but not max
-                html2canvas: {
-                    scale: 2, // Good balance between quality and size
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: false,
-                    scrollY: 0,
-                    scrollX: 0,
-                    windowWidth: clone.scrollWidth,
-                    windowHeight: clone.scrollHeight
-                },
-                jsPDF: {
-                    unit: 'mm',
-                    format: 'a4',
-                    orientation: 'portrait',
-                    compress: true // Compress PDF to help keep under 1MB
-                },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-            })
-            .from(clone)
-            .save()
-            .then(() => {
-                // Restore the action buttons after PDF is generated
-                if (actionButtons) actionButtons.style.display = '';
-            })
-            .catch(() => {
-                if (actionButtons) actionButtons.style.display = '';
-            });
+        html2pdf(element, {
+            margin: [0.5, 0.5, 0.5, 0.5], // Reduce margins to make the content fit better
+            filename: filename,
+            image: { type: 'jpeg', quality: 1.0 },
+            html2canvas: {
+                dpi: 300, // Adjust DPI for better image quality
+                letterRendering: true,
+                scale: 3, // Shrink content slightly to avoid cropping
+                useCORS: true
+            },
+            jsPDF: {
+                unit: 'in',
+                format: 'letter',
+                orientation: 'potrait'
+            }
+        });
     }
 
     let baseFinalPay = <?php echo isset($finalPay) ? $finalPay : 0; ?>;
