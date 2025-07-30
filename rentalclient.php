@@ -130,6 +130,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="rentalclient_autofill.js"defer></script>
     <script src="main.js"></script>
     <title>Clients</title>
+    <style>
+        /* ...existing code... */
+        #addClientForm {
+            display: none;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+        #addClientForm .rentalclientcontainer {
+            margin: 0 auto;
+            max-width: 600px;
+        }
+        /* Ensure form is centered on all screens */
+        @media (min-width: 600px) {
+            #addClientForm {
+                display: none;
+                display: flex;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="navbar1">
@@ -226,7 +246,30 @@ if(mysqli_num_rows($clientresult)>0){ ?>
 
 </div> -->
 
-<form action="rentalclient.php" method="POST" class="rentalclient" autocomplete="off">
+<!-- Add Client Button (top right) -->
+<div style="display:flex;justify-content:flex-end;align-items:center;margin:32px 0 0 0;">
+    <button class="generate-btn" id="showAddClientBtn" style="margin-right:32px;">
+        <article class="article-wrapper">
+            <div class="rounded-lg container-projectss"></div>
+            <div class="project-info">
+                <div class="flex-pr">
+                    <div class="project-title text-nowrap">Add Client</div>
+                    <div class="project-hover">
+                        <svg style="color: black;" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" color="black" stroke-linejoin="round" stroke-linecap="round" viewBox="0 0 24 24" stroke-width="2" fill="none" stroke="currentColor">
+                            <line y2="12" x2="19" y1="12" x1="5"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                </div>
+                <div class="types"></div>
+            </div>
+        </article>
+    </button>
+</div>
+<!-- End Add Client Button -->
+
+<!-- Client Form (hidden by default) -->
+<form action="rentalclient.php" method="POST" class="rentalclient" autocomplete="off" id="addClientForm" style="display:none;">
     <div class="rentalclientcontainer">
         <p class="headingpara">Add Client</p>
         <!-- <div class="outer02">
@@ -519,5 +562,16 @@ if(mysqli_num_rows($clientresult)>0){ ?>
         })
 
     }
+
+    // Show form when Add Client button is clicked
+    document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.getElementById('showAddClientBtn');
+        var form = document.getElementById('addClientForm');
+        if (btn && form) {
+            btn.addEventListener('click', function() {
+                form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            });
+        }
+    });
 </script>
 </html>
