@@ -613,7 +613,8 @@ if($showAlert_addfleet){
                 <option value="Kgs">Kgs</option>
                 <option value="KnM">KnM</option>
                 <option value="Meter">Meter</option>
-                <option value="M³">M³</option>
+                <option value="M³">M³</option> 
+                 <option value="HP">HP (Horse Power)</option>
             </select>
         </div>
         </div>

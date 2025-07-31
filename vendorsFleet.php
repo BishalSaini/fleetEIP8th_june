@@ -104,7 +104,7 @@ if (isset($_GET['delete']) && $_GET['delete'] == 1 && isset($_GET['id'])) {
 
 if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
     $showDelete = true;
-}
+} 
 
 // Fetch all vendors for card display
 include "partials/_dbconnect.php";
@@ -118,6 +118,11 @@ while ($row = $result_vendors->fetch_assoc()) {
     $all_vendors[] = $row;
 }
 $stmt_vendors->close();
+
+// Sort vendors alphabetically by vendor_name
+usort($all_vendors, function($a, $b) {
+    return strcasecmp($a['vendor_name'], $b['vendor_name']);
+});
 ?>
 <!DOCTYPE html>
 <html lang="en">

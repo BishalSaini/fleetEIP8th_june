@@ -13,7 +13,7 @@ if ($enterprise === 'rental') {
 }
 
 // Pagination setup for PO
-$po_per_page = 10;
+$po_per_page = 40; // changed from 10 to 40
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $offset = ($page - 1) * $po_per_page;
 
@@ -333,7 +333,7 @@ $stmt_vendors->close();
             <select name="filtervendor" id="vendorfilter" class="vendorpo_select" style="display:none;">
                 <option value="" disabled selected>Select Vendor</option>
                 <?php
-                $sql_vendor="SELECT DISTINCT vendor_name FROM purchase_orders WHERE companyname='$companyname'";
+                $sql_vendor="SELECT DISTINCT vendor_name FROM purchase_orders WHERE companyname='$companyname' ORDER BY vendor_name ASC";
                 $result_vendor=mysqli_query($conn,$sql_vendor);
                 while($row_vendor=mysqli_fetch_assoc($result_vendor)){
                 ?>

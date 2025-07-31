@@ -352,10 +352,18 @@ body {
 
 <!-- Controls for adjusting size -->
 <div class="controls">
-    <button onclick="increaseLogoSize()">Increase Logo Size</button>
-    <button onclick="decreaseLogoSize()">Decrease Logo Size</button>
-    <button onclick="increaseTextSize()">Increase Text Size</button>
-    <button onclick="decreaseTextSize()">Decrease Text Size</button>
+    <button class="control-btn" onclick="increaseLogoSize()" title="Increase Logo Size">
+        <i class="bi bi-arrows-angle-expand"></i> Logo +
+    </button>
+    <button class="control-btn" onclick="decreaseLogoSize()" title="Decrease Logo Size">
+        <i class="bi bi-arrows-angle-contract"></i> Logo -
+    </button>
+    <button class="control-btn" onclick="increaseTextSize()" title="Increase Text Size">
+        <i class="bi bi-plus-circle"></i> Text +
+    </button>
+    <button class="control-btn" onclick="decreaseTextSize()" title="Decrease Text Size">
+        <i class="bi bi-dash-circle"></i> Text -
+    </button>
 </div>
 
 
@@ -368,11 +376,14 @@ body {
     <div class="tocontainer">
             <div class="toadress">To, <p class="sender_name space"><?php echo $row['to_name'] ?></p> <p class="sender_name address_tobe_sent space"><?php echo $row['to_address'] ?></p> </div>
 
-            <div class="to_contactperson sender_name">Contact Person :<?php echo $row['salutation'] ?> <?php echo $row['contact_person'] ?> <p class="space">Cell :<?php echo $row['contact_person_cell'] ?></p>
-            <p class="space">Email ID : <?php echo $row['email_id_contact_person'] ?></p>
-            <p class="space">Site Location : <?php echo $row['site_loc'] ?></p>
-        
-        </div>
+            <div class="to_contactperson sender_name">
+                Contact Person :<?php echo $row['salutation'] ?> <?php echo $row['contact_person'] ?>
+                <p class="space">Cell :<?php echo $row['contact_person_cell'] ?></p>
+                <p class="space email-responsive">
+                    Email ID : <span class="email-value"><?php echo $row['email_id_contact_person'] ?></span>
+                </p>
+                <p class="space">Site Location : <?php echo $row['site_loc'] ?></p>
+            </div>
         </div>
         <div class="salutation">
             <!-- <p>Dear Sir/Ma'am;</p> -->
@@ -583,7 +594,6 @@ if (!empty($row5equipment['demob_charges2'])) {
 
 
 
-
         </table>
         <div class="withregard_section">
             <p>Thanks And Regards</p>
@@ -725,36 +735,77 @@ if (!empty($row5equipment['demob_charges2'])) {
     display: flex;
     align-items: center;
     justify-content: center;
-
-    /* border: 1px solid red; */
-    gap: 10px; /* Space between buttons */
-    margin-bottom: 20px;}
-
-.controls button {
-    padding: 10px 20px; /* Comfortable padding */
-    font-size: 14px; /* Readable font size */
-    font-weight: 500; /* Slightly bold text */
-    color: #fff; /* White text */
-    background-color: #007bff; /* Primary blue color */
-    border: none; /* Remove default border */
-    border-radius: 5px; /* Rounded corners */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    gap: 18px;
+    margin-bottom: 20px;
+    background: #f7f7fa;
+    border-radius: 8px;
+    padding: 10px 0;
+    box-shadow: 0 2px 8px rgba(64,103,181,0.07);
+}
+.control-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #4067B5;
+    background: #fff;
+    border: 1px solid #4067B5;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 4px rgba(64,103,181,0.08);
+}
+.control-btn:hover, .control-btn:focus {
+    background: #4067B5;
+    color: #fff;
+    outline: none;
+}
+.control-btn i {
+    font-size: 18px;
+    vertical-align: middle;
+}
+@media (max-width: 600px) {
+    .controls {
+        flex-direction: column;
+        gap: 10px;
+        padding: 8px 0;
+    }
+    .control-btn {
+        width: 90vw;
+        justify-content: center;
+        font-size: 14px;
+        padding: 8px 0;
+    }
 }
 
-.controls button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-    transform: translateY(-2px); /* Slight lift effect */
+.email-responsive {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    vertical-align: middle;
 }
-
-.controls button:active {
-    background-color: #004080; /* Even darker blue on click */
-    transform: translateY(0); /* Reset lift effect */
+.email-responsive .email-value {
+    font-size: 14px;
+    word-break: break-all;
+    white-space: normal;
+    display: inline;
+    max-width: 220px;
+    vertical-align: baseline;
+    line-height: inherit;
 }
-
-.controls button:focus {
-    outline: none; /* Remove default focus outline */
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5); /* Add a focus ring */
+@media (max-width: 600px) {
+    .email-responsive {
+        display: block;
+        align-items: flex-start;
+        gap: 0;
+    }
+    .email-responsive .email-value {
+        font-size: 12px;
+        max-width: 98vw;
+        display: block;
+    }
 }
 </style>
 <script>
@@ -769,8 +820,7 @@ function downloadPDF() {
 
     html2pdf(element, {
         margin: 0.2, // Adjust the margin as needed
-        filename: '<?php echo $row['ref_no'] . ' ' . $row['to_name'] . '-' . $row['site_loc'] . '.pdf';
-?>',
+        filename: "<?php echo $row['ref_no'] . ' ' . $row['to_name'] . '-' . $row['site_loc'] . '.pdf'; ?>",
         image: { type: 'jpeg', quality: 1.0 },
         html2canvas: { 
             dpi: 400, // Set higher DPI for better image quality
