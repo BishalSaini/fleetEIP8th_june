@@ -20,7 +20,7 @@ $showError = false;
 $show_celebration=false;
 
 // Pagination setup
-$quotations_per_page = 10;
+$quotations_per_page = 40; // changed from 10 to 40
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $offset = ($page - 1) * $quotations_per_page;
 
@@ -468,7 +468,7 @@ if ($result_quote_stats === false) {
         <select name="filterclient" id="clientfilter" class="quotation_select">
           <option value=""disabled selected>Select Client</option>
           <?php 
-          $sqlfilterclient="SELECT * FROM `rentalclient_basicdetail` where companyname='$companyname001'";
+          $sqlfilterclient="SELECT * FROM `rentalclient_basicdetail` where companyname='$companyname001' ORDER BY clientname ASC";
           $result_client=mysqli_query($conn,$sqlfilterclient);
           while($rowclientfilter=mysqli_fetch_assoc($result_client)){
             ?>
@@ -476,15 +476,14 @@ if ($result_quote_stats === false) {
             <?php
           }
           ?>
-          
         </select>
         <select name="filterstatus" id="statusfilter" class="quotation_select">
-          <option value=""disabled selected>Select Status</option>
-          <option value="Inquiry Closed">Inquiry Closed</option>
+          <option value=""disabled selected>Select Status</option> 
           <option value="Open">Open</option>
+          <option value="Won">Won</option> 
+          <option value="Lost">Lost</option> 
           <option value="Regretted">Regretted</option>
-          <option value="Won">Won</option>
-          <option value="Lost">Lost</option>
+          <option value="Inquiry Closed">Inquiry Closed</option>
         </select>
         <select name="filterassetcode" id="acfilter" class="quotation_select">
           <option value=""disabled selected>Select Assetcode</option>

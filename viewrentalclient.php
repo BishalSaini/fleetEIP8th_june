@@ -41,6 +41,17 @@ while ($row = mysqli_fetch_assoc($result)) {
     }
     $clients_by_state[$state][] = $row;
 }
+
+// Sort states alphabetically
+ksort($clients_by_state);
+
+// Sort clients within each state alphabetically by clientname
+foreach ($clients_by_state as $state => &$clients) {
+    usort($clients, function($a, $b) {
+        return strcmp($a['clientname'], $b['clientname']);
+    });
+}
+unset($clients); // break reference
 ?>
 <!DOCTYPE html>
 <html lang="en">
